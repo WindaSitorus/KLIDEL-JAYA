@@ -653,77 +653,6 @@
     }
     .link:hover { text-decoration: underline; }
 
-    /* FOOTER STATUS TERKINI */
-    .foot {
-      position: sticky;
-      bottom: 0;
-      margin: 18px -28px -24px;
-      background: var(--navy);
-      color: #ffffff;
-      padding: 16px 28px;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      flex-wrap: wrap;
-      z-index: 10;
-      box-shadow: 0 -4px 16px rgba(1, 45, 104, 0.15);
-    }
-    .foot .l {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10.5px;
-      letter-spacing: .14em;
-      color: var(--blue);
-      line-height: 1.5;
-    }
-    .foot .big {
-      font-size: 32px;
-      font-weight: 800;
-      letter-spacing: -.02em;
-      color: #ffffff;
-      line-height: 1;
-    }
-    .foot .big small {
-      display: block;
-      font-size: 11.5px;
-      font-weight: 500;
-      letter-spacing: 0;
-      color: var(--blue);
-      margin-top: 4px;
-    }
-    .foot .r {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .foot .prog {
-      text-align: right;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 700;
-      color: #ffffff;
-    }
-    .foot .prog small {
-      display: block;
-      font-size: 10px;
-      color: var(--blue);
-      font-weight: 500;
-      margin-top: 2px;
-    }
-    .btn {
-      all: unset;
-      cursor: pointer;
-      background: #ffffff;
-      color: var(--navy);
-      font-weight: 800;
-      padding: 12px 22px;
-      border-radius: 11px;
-      font-size: 13.5px;
-      transition: background 0.15s ease, transform 0.1s ease;
-    }
-    .btn:hover { background: var(--blue-soft); }
-    .btn:active { transform: scale(0.98); }
-
     /* TAB RESEP PASIEN & TAB LAPORAN (HIDDEN BY DEFAULT) */
     .tab-section { display: none; }
     .tab-section.active { display: block; }
@@ -919,8 +848,6 @@
       .app { grid-template-columns: 1fr; }
       .grid { grid-template-columns: 1fr; }
       .content { padding: 18px 16px 80px; }
-      .foot { margin: 18px -16px 0; padding: 14px 16px; }
-      .foot .r { width: 100%; justify-content: space-between; }
       
       .floating-bottom-nav {
         position: fixed;
@@ -1125,24 +1052,6 @@
           </aside>
 
         </div>
-
-        <!-- FOOTER STOK OPNAME -->
-        <footer class="foot" id="footBar">
-          <div class="l">
-            STOK OPNAME APOTEK · STATUS TERKINI
-          </div>
-          <div class="big">
-            <span id="footSelisih">0</span>
-            <small>item selisih fisik vs sistem</small>
-          </div>
-          <div class="r">
-            <div class="prog">
-              <span id="footProgress">0/0</span>
-              <small>obat telah diverifikasi</small>
-            </div>
-            <button type="button" class="btn" onclick="selesaikanOpname()">Selesaikan Opname</button>
-          </div>
-        </footer>
 
       </section>
 
@@ -1550,25 +1459,18 @@
       }
     }
 
-    function renderFoot() {
+    function renderCounts() {
       const hLines = $('#hLines');
       if (hLines) {
         hLines.textContent = `${DRUGS.length} jenis · ${counted.size} terhitung`;
       }
-
-      const totalDiff = DRUGS.filter(d => d.act !== d.sys).length;
-      const footSelisih = $('#footSelisih');
-      if (footSelisih) footSelisih.textContent = totalDiff;
-
-      const footProgress = $('#footProgress');
-      if (footProgress) footProgress.textContent = `${counted.size}/${DRUGS.length}`;
     }
 
     function render() {
       renderChips();
       renderRows();
       renderPanel();
-      renderFoot();
+      renderCounts();
     }
 
     // Filter tabs di riwayat
