@@ -34,7 +34,6 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::get('/quick-login/{role}', [AuthController::class, 'quickLogin'])
     ->name('quick-login');
 
-
 // =====================================================
 // PATIENT / USER ROUTES
 // =====================================================
@@ -57,7 +56,6 @@ Route::get('/calendar', [HomeController::class, 'calendar'])
 Route::get('/rekam-medis', [HomeController::class, 'medicalRecords'])
     ->name('rekam-medis');
 
-
 // =====================================================
 // DOCTOR ROUTES
 // =====================================================
@@ -77,10 +75,8 @@ Route::middleware(['doctor'])
             ->name('obat.search');
     });
 
-
 // =====================================================
 // ADMIN ROUTES
-// Fokus: MANAJEMEN KEUANGAN KLINIK
 // Dilindungi oleh AdminMiddleware
 // =====================================================
 
@@ -88,44 +84,11 @@ Route::middleware(['admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-
-        // 1. Dashboard Keuangan
-        Route::get('/', [AdminController::class, 'index'])
-            ->name('dashboard');
-
-        // 2. Transaksi
-        Route::get('/transactions', [AdminController::class, 'transactions'])
-            ->name('transactions');
-
-        // 3. Tagihan Pasien
-        Route::get('/invoices', [AdminController::class, 'invoices'])
-            ->name('invoices');
-
-        // 4. Riwayat Pembayaran
-        Route::get('/payment-history', [AdminController::class, 'paymentHistory'])
-            ->name('paymentHistory');
-
-        // 5. Rekap Pendapatan
-        Route::get('/revenue', [AdminController::class, 'revenue'])
-            ->name('revenue');
-
-        // 6. Laporan Keuangan
-        Route::get('/reports', [AdminController::class, 'reports'])
-            ->name('reports');
-
-        // Kalender Admin
-        Route::get('/calendar', [AdminController::class, 'calendar'])
-            ->name('calendar');
-
-        // Export data pembayaran ke CSV
-        Route::get('/export-csv', [AdminController::class, 'exportCsv'])
-            ->name('exportCsv');
-
-        // Simpan Transaksi Baru
-        Route::post('/transaction', [AdminController::class, 'storeTransaction'])
-            ->name('storeTransaction');
+        Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/calendar', [AdminController::class, 'calendar'])->name('calendar');
+        Route::get('/export-csv', [AdminController::class, 'exportCsv'])->name('exportCsv');
+        Route::post('/transaction', [AdminController::class, 'storeTransaction'])->name('storeTransaction');
     });
-
 
 // =====================================================
 // APOTEKER ROUTES
@@ -142,7 +105,6 @@ Route::middleware(['apoteker'])
         Route::get('/', [ApotekerController::class, 'index'])
             ->name('dashboard');
     });
-
 
 // =====================================================
 // OBAT MANAGEMENT ROUTES
