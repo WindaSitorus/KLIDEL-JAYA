@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Booking;
 use App\Models\Doctor;
 use App\Models\MedicalRecord;
+use App\Models\Obat;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Poli;
@@ -78,6 +79,16 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Dr. Saran Mitchell',
                 'password' => bcrypt('password'),
                 'role' => 'doctor',
+            ]
+        );
+
+        // Apoteker: Amélie Laurent
+        $apotekerUser = User::updateOrCreate(
+            ['email' => 'apoteker@aihealth.com'],
+            [
+                'name' => 'Amélie Laurent',
+                'password' => bcrypt('password'),
+                'role' => 'apoteker',
             ]
         );
 
@@ -662,6 +673,97 @@ class DatabaseSeeder extends Seeder
             Payment::updateOrCreate(
                 ['invoice_number' => $pay['invoice_number']],
                 $pay
+            );
+        }
+
+        // 8. Seed Master Data Obat & Stok Apotek
+        $obatData = [
+            [
+                'kode_obat' => 'PCT-500',
+                'nama_obat' => 'Paracetamol 500 mg',
+                'kategori' => 'Analgesik',
+                'satuan' => 'Tablet',
+                'harga' => 12000,
+                'stok' => 128,
+                'deskripsi' => 'Tablet · strip isi 10. Rak: A-03',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'AMX-500',
+                'nama_obat' => 'Amoxicillin 500 mg',
+                'kategori' => 'Antibiotik',
+                'satuan' => 'Kapsul',
+                'harga' => 18000,
+                'stok' => 64,
+                'deskripsi' => 'Kapsul · strip isi 10. Rak: A-01',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'CTZ-010',
+                'nama_obat' => 'Cetirizine 10 mg',
+                'kategori' => 'Antihistamin',
+                'satuan' => 'Tablet',
+                'harga' => 15000,
+                'stok' => 96,
+                'deskripsi' => 'Tablet · strip isi 10. Rak: A-04',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'OMP-020',
+                'nama_obat' => 'Omeprazole 20 mg',
+                'kategori' => 'Lambung',
+                'satuan' => 'Kapsul',
+                'harga' => 25000,
+                'stok' => 36,
+                'deskripsi' => 'Kapsul · strip isi 10. Rak: B-02',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'VTC-500',
+                'nama_obat' => 'Vitamin C 500 mg',
+                'kategori' => 'Vitamin',
+                'satuan' => 'Tablet',
+                'harga' => 45000,
+                'stok' => 21,
+                'deskripsi' => 'Tablet · botol 30. Rak: B-05',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'MTF-500',
+                'nama_obat' => 'Metformin 500 mg',
+                'kategori' => 'Antidiabetik',
+                'satuan' => 'Tablet',
+                'harga' => 22000,
+                'stok' => 18,
+                'deskripsi' => 'Tablet · strip isi 10. Rak: A-02',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'INS-GLA',
+                'nama_obat' => 'Insulin Glargine 100 IU/ml',
+                'kategori' => 'Rak Dingin',
+                'satuan' => 'Pen',
+                'harga' => 185000,
+                'stok' => 12,
+                'deskripsi' => 'Pen · 3 ml. Rak: KLK-1',
+                'is_active' => true,
+            ],
+            [
+                'kode_obat' => 'AMB-SRP',
+                'nama_obat' => 'Ambroxol Sirup 15 mg/5 ml',
+                'kategori' => 'Batuk & Flu',
+                'satuan' => 'Botol',
+                'harga' => 16500,
+                'stok' => 40,
+                'deskripsi' => 'Botol · 60 ml. Rak: B-03',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($obatData as $obat) {
+            Obat::updateOrCreate(
+                ['kode_obat' => $obat['kode_obat']],
+                $obat
             );
         }
     }

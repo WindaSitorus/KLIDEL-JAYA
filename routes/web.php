@@ -100,10 +100,10 @@ Route::middleware(['apoteker'])
     ->prefix('apoteker')
     ->name('apoteker.')
     ->group(function () {
-
-        // Dashboard Apoteker
-        Route::get('/', [ApotekerController::class, 'index'])
-            ->name('dashboard');
+        Route::get('/', [ApotekerController::class, 'index'])->name('dashboard');
+        Route::post('/tambah-obat', [ApotekerController::class, 'storeObat'])->name('tambahObat');
+        Route::post('/update-stok', [ApotekerController::class, 'updateStok'])->name('updateStok');
+        Route::post('/selesaikan-opname', [ApotekerController::class, 'selesaikanOpname'])->name('selesaikanOpname');
     });
 
 // =====================================================

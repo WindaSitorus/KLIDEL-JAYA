@@ -28,6 +28,13 @@ class AuthRoleTest extends TestCase
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
+
+        User::create([
+            'name' => 'Amélie Laurent',
+            'email' => 'apoteker@aihealth.com',
+            'password' => Hash::make('password'),
+            'role' => 'apoteker',
+        ]);
     }
 
     /**
@@ -148,5 +155,45 @@ class AuthRoleTest extends TestCase
 
         $response->assertRedirect(route('login'));
         $this->assertGuest();
+    }
+
+    /**
+     * Test quick login route for apoteker.
+     */
+    public function test_quick_login_for_apoteker(): void
+    {
+        $response = $this->get('/quick-login/apoteker');
+
+        $response->assertRedirect(route('apoteker.dashboard'));
+        $this->assertAuthenticated();
+        $this->assertEquals('apoteker', auth()->user()->role);
+    }
+
+    /**
+     * Test apoteker can access dashboard with Informasi Obat.
+     */
+    public function test_apoteker_can_access_apoteker_dashboard(): void
+    {
+        $apoteker = User::where('role', 'apoteker')->first();
+
+        $response = $this->actingAs($apoteker)->get(route('apoteker.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Informasi Obat');
+        $response->assertSee('Stok Opname Obat');
+        $response->assertSee('Amélie Laurent');
+        $response->assertSee('Paracetamol 500 mg');
+    }
+
+    /**
+     * Test standard user cannot access apoteker dashboard.
+     */
+    public function test_standard_user_cannot_access_apoteker_dashboard(): void
+    {
+        $user = User::where('role', 'user')->first();
+
+        $response = $this->actingAs($user)->get(route('apoteker.dashboard'));
+
+        $response->assertForbidden();
     }
 }
