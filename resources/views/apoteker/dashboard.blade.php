@@ -671,6 +671,56 @@
       border-color: #cbd5e1;
     }
 
+    /* SUB-TABS FILTER RESEP PASIEN */
+    .resep-subtabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+    }
+    .resep-subtab-btn {
+      all: unset;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .resep-subtab-btn:hover {
+      background: #f1f5f9;
+      color: var(--text);
+    }
+    .resep-subtab-btn.active {
+      background: var(--navy);
+      color: #ffffff;
+      border-color: var(--navy);
+      box-shadow: 0 2px 6px rgba(1, 45, 104, 0.2);
+    }
+    .resep-subtab-btn .st-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .resep-subtab-btn.active .st-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
     /* MODAL POPUPS */
     .modal {
       position: fixed;
@@ -926,9 +976,8 @@
         <a href="#resep-pasien" class="nav-item" id="navItemResep" onclick="switchApotekerTab('resep', event)" title="Daftar Resep Pasien">
           <svg><use href="#i-prescription"/></svg>
           <span>Resep Pasien</span>
-          @if(isset($stats['total_orders']) && $stats['total_orders'] > 0)
-            <span class="nav-badge" id="resepCountBadge">{{ $stats['total_orders'] }}</span>
-          @endif
+          @php $activeResepCount = ($stats['perlu_count'] ?? 0) + ($stats['racik_count'] ?? 0); @endphp
+          <span class="nav-badge" id="resepCountBadge" style="{{ $activeResepCount > 0 ? '' : 'display:none;' }}">{{ $activeResepCount }}</span>
         </a>
 
         <!-- Menu 3: Laporan -->
@@ -1059,11 +1108,11 @@
         <div class="head">
           <div>
             <div class="crumb">RESEP / ANTRIAN DOKTER</div>
-            <h1>Daftar Resep Pasien <span class="pill">Siap Diracik</span></h1>
-            <div class="sub">Menampilkan antrean pasien yang telah menyelesaikan pembayaran konsultasi dokter</div>
+            <h1>Daftar Resep Pasien <span class="pill" id="resepHeaderPill">Aktif</span></h1>
+            <div class="sub">Workflow peracikan obat terintegrasi rekam medis dokter dan apotek</div>
           </div>
           <div class="meta">
-            <b>{{ count($orders) }} Antrean Resep</b>
+            <b id="resepTotalHeader">{{ count($orders) }} Antrean Resep</b>
             <small>{{ $stats['total_obat_resep'] ?? 0 }} Total Butir/Item Obat</small>
           </div>
         </div>
@@ -1074,55 +1123,132 @@
           </div>
         @endif
 
+        <!-- SUB-TABS FILTER RESEP PASIEN -->
+        <div class="resep-subtabs">
+          <button type="button" class="resep-subtab-btn active" data-subtab="all" onclick="filterResepStatus('all')">
+            <span>Semua</span>
+            <span class="st-badge" id="badgeCountAll">{{ $stats['total_orders'] }}</span>
+          </button>
+          <button type="button" class="resep-subtab-btn" data-subtab="perlu_diproses" onclick="filterResepStatus('perlu_diproses')">
+            <span>Perlu Diproses</span>
+            <span class="st-badge" id="badgeCountPerlu" style="background:#fee2e2; color:#991b1b;">{{ $stats['perlu_count'] }}</span>
+          </button>
+          <button type="button" class="resep-subtab-btn" data-subtab="sedang_diracik" onclick="filterResepStatus('sedang_diracik')">
+            <span>Sedang Diracik</span>
+            <span class="st-badge" id="badgeCountRacik" style="background:#fef3c7; color:#92400e;">{{ $stats['racik_count'] }}</span>
+          </button>
+          <button type="button" class="resep-subtab-btn" data-subtab="selesai" onclick="filterResepStatus('selesai')">
+            <span>Selesai &amp; Serahkan</span>
+            <span class="st-badge" id="badgeCountSelesai" style="background:#dcfce7; color:#166534;">{{ $stats['selesai_count'] }}</span>
+          </button>
+        </div>
+
         <div class="card" style="padding: 20px;">
-          @forelse($orders as $order)
-            @php
-              $patient = $order->patient;
-              $doctor = $order->doctor;
-              $meds = $order->medicalRecord?->plan['medications'] ?? [];
-            @endphp
-            <div class="order-card">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
-                <div>
-                  <span class="mono" style="font-weight:700; color:var(--navy); font-size:12px; background:var(--blue-soft); padding:3px 8px; border-radius:6px;">{{ $order->booking_code }}</span>
-                  <h3 style="font-size:16px; font-weight:800; color:var(--text); margin-top:6px;">{{ $patient?->full_name ?? 'Pasien Anonim' }}</h3>
-                  <p style="font-size:12px; color:var(--muted); margin-top:2px;">
-                    MRN: <b class="mono">{{ $patient?->mrn ?? '-' }}</b> · Dokter: <b>{{ $doctor?->nama_dokter ?? '-' }}</b> ({{ $doctor?->poli?->nama_poli ?? 'Umum' }})
-                  </p>
+          <div id="resepOrdersContainer">
+            @forelse($orders as $order)
+              @php
+                $patient = $order->patient;
+                $doctor = $order->doctor;
+                $plan = $order->medicalRecord?->plan ?? [];
+                $meds = $plan['medications'] ?? [];
+                $status = $plan['prescription_status'] ?? 'perlu_diproses';
+              @endphp
+              <div class="order-card" data-id="{{ $order->id }}" data-status="{{ $status }}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                  <div>
+                    <span class="mono" style="font-weight:700; color:var(--navy); font-size:12px; background:var(--blue-soft); padding:3px 8px; border-radius:6px;">{{ $order->booking_code }}</span>
+                    <h3 style="font-size:16px; font-weight:800; color:var(--text); margin-top:6px;">{{ $patient?->full_name ?? 'Pasien' }}</h3>
+                    <p style="font-size:12px; color:var(--muted); margin-top:2px;">
+                      MRN: <b class="mono">{{ $patient?->mrn ?? '-' }}</b> · Dokter: <b>{{ $doctor?->nama_dokter ?? '-' }}</b> ({{ $doctor?->poli?->nama_poli ?? 'Umum' }})
+                    </p>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="order-status-badge-container">
+                      @if($status === 'perlu_diproses')
+                        <span class="badge" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca; font-size:11px; padding:4px 10px;">⏳ PERLU DIPROSES</span>
+                      @elseif($status === 'sedang_diracik')
+                        <span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-size:11px; padding:4px 10px;">🧪 SEDANG DIRACIK</span>
+                      @else
+                        <span class="badge in" style="font-size:11px; padding:4px 10px;">✓ SELESAI &amp; DISERAHKAN</span>
+                      @endif
+                    </div>
+                    <small style="display:block; color:var(--muted); margin-top:4px;">{{ $order->booking_date }} · {{ $order->booking_time }}</small>
+                  </div>
                 </div>
-                <div style="text-align:right;">
-                  <span class="badge in" style="font-size:11px; padding:4px 10px;">LUNAS / SIAP PROSES</span>
-                  <small style="display:block; color:var(--muted); margin-top:4px;">{{ $order->booking_date }} · {{ $order->booking_time }}</small>
+
+                <!-- Daftar Obat di Resep -->
+                <div style="background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <b style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted);">Daftar Obat &amp; Berapa Kali Penggunaan:</b>
+                    <span class="mono" style="font-size:11px; color:var(--muted); font-weight:600;">{{ count($meds) }} Jenis Obat</span>
+                  </div>
+                  @if(is_array($meds) && count($meds) > 0)
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                      @foreach($meds as $med)
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid var(--line); border-radius:8px; padding:10px 12px; gap:12px; flex-wrap:wrap;">
+                          <div>
+                            <div style="font-weight:700; color:var(--navy); font-size:13px;">
+                              {{ $med['name'] ?? 'Obat' }}
+                              @if(!empty($med['kode_obat']))
+                                <span class="mono" style="font-size:10.5px; background:var(--bg); border:1px solid var(--line); padding:2px 6px; border-radius:4px; margin-left:4px; font-weight:600; color:var(--muted);">{{ $med['kode_obat'] }}</span>
+                              @endif
+                            </div>
+                            <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">
+                              Dosis / Instruksi: <b>{{ $med['dose'] ?? '1 tablet' }}</b>
+                            </div>
+                          </div>
+                          <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px;">
+                              Aturan Pakai: {{ $med['frequency'] ?? '3x1 sehari sesudah makan' }}
+                            </div>
+                            <div style="text-align:right; min-width:60px;">
+                              <span class="mono" style="font-weight:800; font-size:13px; color:var(--text);">{{ $med['quantity'] ?? 10 }}</span>
+                              <small style="color:var(--muted); display:block; font-size:10.5px;">{{ $med['satuan'] ?? 'Item' }}</small>
+                            </div>
+                          </div>
+                        </div>
+                      @endforeach
+                    </div>
+                  @else
+                    <p style="color:var(--muted); font-size:12px;">Tidak ada rincian obat khusus tercatat.</p>
+                  @endif
                 </div>
-              </div>
 
-              <!-- Daftar Obat di Resep -->
-              <div style="background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:12px;">
-                <b style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:8px;">Item Obat Diresepkan:</b>
-                @if(is_array($meds) && count($meds) > 0)
-                  <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
-                    @foreach($meds as $med)
-                      <li style="display:flex; justify-content:space-between; font-size:12.5px;">
-                        <span><b style="color:var(--navy);">{{ $med['name'] ?? 'Obat' }}</b> ({{ $med['dose'] ?? '-' }})</span>
-                        <span class="mono" style="color:var(--muted);">{{ $med['instructions'] ?? '-' }}</span>
-                      </li>
-                    @endforeach
-                  </ul>
-                @else
-                  <p style="color:var(--muted); font-size:12px;">Tidak ada rincian obat khusus tercatat.</p>
-                @endif
-              </div>
+                <!-- Action Footer & Timeline Info -->
+                <div class="order-action-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding-top:4px;">
+                  <div class="order-status-info" style="font-size:11.5px; color:var(--muted);">
+                    @if($status === 'perlu_diproses')
+                      <span>💡 Klik <b>ACC &amp; Mulai Racik</b> untuk mengonfirmasi resep dari dokter.</span>
+                    @elseif($status === 'sedang_diracik')
+                      <span style="color:#b45309; font-weight:600;">🧪 Sedang diracik oleh <b>{{ $plan['pharmacist_name'] ?? 'Apoteker' }}</b> sejak {{ $plan['acc_at'] ?? 'tadi' }}.</span>
+                    @else
+                      <span style="color:var(--green); font-weight:600;">✓ Diserahkan oleh <b>{{ $plan['pharmacist_name'] ?? 'Apoteker' }}</b> pada {{ $plan['completed_at'] ?? '-' }}. Stok telah dikurangkan.</span>
+                    @endif
+                  </div>
 
-              <div style="display:flex; justify-content:flex-end; gap:8px;">
-                <button type="button" class="btn2" onclick="toast('Menyalin rincian resep {{ $patient?->full_name }}...')">Cetak Resep</button>
-                <button type="button" class="btn2 pri" onclick="toast('Resep {{ $patient?->full_name }} selesai disiapkan dan diserahkan!')">Selesai &amp; Serahkan Obat</button>
+                  <div class="order-action-buttons" style="display:flex; gap:8px;">
+                    @if($status === 'perlu_diproses')
+                      <button type="button" class="btn2" onclick="cetakEtiket({{ $order->id }}, '{{ addslashes($patient?->full_name ?? 'Pasien') }}', '{{ $order->booking_code }}')">Cetak Resep</button>
+                      <button type="button" class="btn2 pri" onclick="accResep({{ $order->id }})">✓ ACC &amp; Mulai Racik Obat</button>
+                    @elseif($status === 'sedang_diracik')
+                      <button type="button" class="btn2" onclick="cetakEtiket({{ $order->id }}, '{{ addslashes($patient?->full_name ?? 'Pasien') }}', '{{ $order->booking_code }}')">Cetak Etiket</button>
+                      <button type="button" class="btn2 pri" style="background:#059669; border-color:#059669;" onclick="selesaiResep({{ $order->id }})">💊 Selesai &amp; Serahkan Obat</button>
+                    @else
+                      <button type="button" class="btn2 pri" onclick="cetakEtiket({{ $order->id }}, '{{ addslashes($patient?->full_name ?? 'Pasien') }}', '{{ $order->booking_code }}')">Cetak Salinan Etiket</button>
+                    @endif
+                  </div>
+                </div>
+
               </div>
-            </div>
-          @empty
-            <div class="empty">
-              Belum ada antrean resep yang perlu diproses saat ini.
-            </div>
-          @endforelse
+            @empty
+              <div class="empty">
+                Belum ada antrean resep yang perlu diproses saat ini.
+              </div>
+            @endforelse
+          </div>
+          <div id="resepEmptyState" style="display:none;" class="empty">
+            Tidak ada antrean resep pada status ini.
+          </div>
         </div>
       </section>
 
@@ -1242,6 +1368,42 @@
         <button class="btn2 pri" type="submit">Simpan Obat</button>
       </div>
     </form>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL: CETAK ETIKET RESEP OBAT                                         -->
+  <!-- ====================================================================== -->
+  <div class="modal" id="etiketModal">
+    <div class="dlg" style="max-width:480px">
+      <div class="dlg-h">
+        <h4>Etiket &amp; Salinan Resep</h4>
+        <button type="button" class="x" onclick="closeModals()">×</button>
+      </div>
+      <div class="dlg-b" id="etiketPrintArea">
+        <div style="text-align:center; border-bottom:2px dashed #cbd5e1; padding-bottom:12px; margin-bottom:12px;">
+          <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--navy);">KLINIK MARISTELLA</h3>
+          <p style="margin:2px 0 0; font-size:11px; color:var(--muted);">Instalasi Farmasi &amp; Apotek · Pelayanan Resep Pasien</p>
+        </div>
+        <div style="font-size:12px; line-height:1.6; margin-bottom:14px; background:#f8fafc; padding:10px 12px; border-radius:8px; border:1px solid #e2e8f0;">
+          <div style="display:flex; justify-content:space-between;"><span>No. Booking:</span> <b id="etiketBookingCode" class="mono">-</b></div>
+          <div style="display:flex; justify-content:space-between;"><span>Nama Pasien:</span> <b id="etiketPatientName">-</b></div>
+          <div style="display:flex; justify-content:space-between;"><span>Waktu Cetak:</span> <span id="etiketDate">{{ date('d M Y, H:i') }}</span></div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <b style="font-size:11px; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:8px;">Rincian Obat &amp; Aturan Pakai:</b>
+          <div id="etiketMedsList" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+        <div style="text-align:center; font-size:11px; color:var(--muted); border-top:1px dashed #cbd5e1; padding-top:10px;">
+          Semoga Lekas Sembuh · Minum obat secara teratur sesuai aturan pakai
+        </div>
+      </div>
+      <div class="dlg-f">
+        <button type="button" class="btn2" onclick="closeModals()">Tutup</button>
+        <button type="button" class="btn2 pri" onclick="window.print()">Cetak (Print)</button>
+      </div>
+    </div>
   </div>
 
   <!-- TOAST FEEDBACK NOTIFICATION -->
@@ -1553,9 +1715,218 @@
       });
     }
 
+    // ==========================================
+    // WORKFLOW RESEP PASIEN APOTEK
+    // ==========================================
+    let currentResepSubtab = 'all';
+
+    function filterResepStatus(status) {
+      currentResepSubtab = status;
+
+      // Update active style pada sub-tab tombol
+      document.querySelectorAll('.resep-subtab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.subtab === status);
+      });
+
+      applyResepFilter();
+    }
+
+    function applyResepFilter() {
+      const cards = document.querySelectorAll('#resepOrdersContainer .order-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cardStatus = card.dataset.status;
+        const isVisible = (currentResepSubtab === 'all') || (cardStatus === currentResepSubtab);
+        card.style.display = isVisible ? 'block' : 'none';
+        if (isVisible) visibleCount++;
+      });
+
+      const emptyState = document.getElementById('resepEmptyState');
+      if (emptyState) {
+        emptyState.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
+      }
+    }
+
+    function updateResepBadges() {
+      const cards = document.querySelectorAll('#resepOrdersContainer .order-card');
+      let allCount = cards.length;
+      let perluCount = 0;
+      let racikCount = 0;
+      let selesaiCount = 0;
+
+      cards.forEach(card => {
+        const st = card.dataset.status;
+        if (st === 'perlu_diproses') perluCount++;
+        else if (st === 'sedang_diracik') racikCount++;
+        else if (st === 'selesai') selesaiCount++;
+      });
+
+      if ($('#badgeCountAll')) $('#badgeCountAll').textContent = allCount;
+      if ($('#badgeCountPerlu')) $('#badgeCountPerlu').textContent = perluCount;
+      if ($('#badgeCountRacik')) $('#badgeCountRacik').textContent = racikCount;
+      if ($('#badgeCountSelesai')) $('#badgeCountSelesai').textContent = selesaiCount;
+      if ($('#resepTotalHeader')) $('#resepTotalHeader').textContent = `${allCount} Antrean Resep`;
+
+      const activeCount = perluCount + racikCount;
+      const navBadge = $('#resepCountBadge');
+      if (navBadge) {
+        navBadge.textContent = activeCount;
+        navBadge.style.display = activeCount > 0 ? '' : 'none';
+      }
+    }
+
+    // ACC RESEP & MULAI RACIK
+    async function accResep(bookingId) {
+      const card = document.querySelector(`.order-card[data-id="${bookingId}"]`);
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      toast('Mengonfirmasi & memulai peracikan...');
+
+      try {
+        const response = await fetch(`/apoteker/resep/${bookingId}/acc`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Gagal meng-ACC resep.');
+        }
+
+        if (card) {
+          card.dataset.status = 'sedang_diracik';
+
+          const badgeContainer = card.querySelector('.order-status-badge-container');
+          if (badgeContainer) {
+            badgeContainer.innerHTML = '<span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-size:11px; padding:4px 10px;">🧪 SEDANG DIRACIK</span>';
+          }
+
+          const infoEl = card.querySelector('.order-status-info');
+          if (infoEl) {
+            infoEl.innerHTML = '<span style="color:#b45309; font-weight:600;">🧪 Sedang diracik oleh <b>Apoteker</b> sejak baru saja.</span>';
+          }
+
+          const actionsEl = card.querySelector('.order-action-buttons');
+          if (actionsEl) {
+            actionsEl.innerHTML = `
+              <button type="button" class="btn2" onclick="cetakEtiket(${bookingId})">Cetak Etiket</button>
+              <button type="button" class="btn2 pri" style="background:#059669; border-color:#059669;" onclick="selesaiResep(${bookingId})">💊 Selesai &amp; Serahkan Obat</button>
+            `;
+          }
+        }
+
+        updateResepBadges();
+        applyResepFilter();
+        toast(data.message || 'Resep berhasil di-ACC! Obat sedang diracik.');
+
+      } catch (err) {
+        toast('Error: ' + err.message);
+        console.error(err);
+      }
+    }
+
+    // SELESAI & SERAHKAN OBAT
+    async function selesaiResep(bookingId) {
+      const card = document.querySelector(`.order-card[data-id="${bookingId}"]`);
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+      toast('Menyelesaikan & menyerahkan obat...');
+
+      try {
+        const response = await fetch(`/apoteker/resep/${bookingId}/selesai`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Gagal menyelesaikan resep.');
+        }
+
+        if (card) {
+          card.dataset.status = 'selesai';
+
+          const badgeContainer = card.querySelector('.order-status-badge-container');
+          if (badgeContainer) {
+            badgeContainer.innerHTML = '<span class="badge in" style="font-size:11px; padding:4px 10px;">✓ SELESAI &amp; DISERAHKAN</span>';
+          }
+
+          const infoEl = card.querySelector('.order-status-info');
+          if (infoEl) {
+            infoEl.innerHTML = '<span style="color:var(--green); font-weight:600;">✓ Diserahkan oleh <b>Apoteker</b>. Stok obat telah dikurangkan.</span>';
+          }
+
+          const actionsEl = card.querySelector('.order-action-buttons');
+          if (actionsEl) {
+            actionsEl.innerHTML = `
+              <button type="button" class="btn2 pri" onclick="cetakEtiket(${bookingId})">Cetak Salinan Etiket</button>
+            `;
+          }
+        }
+
+        updateResepBadges();
+        applyResepFilter();
+        toast(data.message || 'Obat telah diserahkan dan stok diperbarui!');
+
+      } catch (err) {
+        toast('Error: ' + err.message);
+        console.error(err);
+      }
+    }
+
+    // CETAK ETIKET RESEP OBAT
+    function cetakEtiket(bookingId, patientName, bookingCode) {
+      const card = document.querySelector(`.order-card[data-id="${bookingId}"]`);
+      if (!card) return;
+
+      const pName = patientName || card.querySelector('h3')?.textContent || 'Pasien';
+      const bCode = bookingCode || card.querySelector('.mono')?.textContent || 'RSP-001';
+
+      if ($('#etiketBookingCode')) $('#etiketBookingCode').textContent = bCode;
+      if ($('#etiketPatientName')) $('#etiketPatientName').textContent = pName;
+
+      // Ambil daftar obat dari card
+      const medsItems = card.querySelectorAll('[style*="background:#ffffff"]');
+      const etiketMedsList = $('#etiketMedsList');
+      if (etiketMedsList) {
+        if (medsItems.length > 0) {
+          etiketMedsList.innerHTML = Array.from(medsItems).map(el => {
+            const name = el.querySelector('[style*="font-weight:700"]')?.textContent.trim() || 'Obat';
+            const rule = el.querySelector('[style*="background:#eff6ff"]')?.textContent.trim() || '3x1';
+            const qty = el.querySelector('.mono')?.textContent.trim() || '10';
+            return `
+              <div style="padding:6px 0; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <b style="color:var(--navy); font-size:12.5px;">${name}</b>
+                  <div style="font-size:11.5px; color:#1e40af; font-weight:600; margin-top:2px;">${rule}</div>
+                </div>
+                <div style="font-weight:700; font-size:12px; color:var(--text);">${qty} unit</div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          etiketMedsList.innerHTML = '<p style="color:var(--muted); font-size:12px;">Rincian obat terapi standar.</p>';
+        }
+      }
+
+      $('#etiketModal')?.classList.add('open');
+    }
+
     // Inisialisasi awal
     document.addEventListener('DOMContentLoaded', () => {
       render();
+      applyResepFilter();
     });
   </script>
 

@@ -75,7 +75,7 @@ class DoctorController extends Controller
             $dbQueues = Queue::with([
                 'booking.patient',
                 'booking.doctor',
-                'booking.medicalRecord'
+                'booking.medicalRecord',
             ])
                 ->whereHas('booking', function ($q) use ($doctor) {
                     $q->where('doctor_id', $doctor->id);
@@ -160,16 +160,13 @@ class DoctorController extends Controller
                             'spo2' => '99',
                             'weight' => '56',
                             'height' => '162',
-                            'physical_exam' =>
-                                'Pemeriksaan fisik tanda vital dalam batas normal.',
+                            'physical_exam' => 'Pemeriksaan fisik tanda vital dalam batas normal.',
                         ],
 
                         'assessment' => $rec?->assessmen ?? [
-                            'primary_diagnosis' =>
-                                'R51 - Konsultasi Medis Spesialis',
+                            'primary_diagnosis' => 'R51 - Konsultasi Medis Spesialis',
                             'secondary_diagnosis' => '',
-                            'clinical_notes' =>
-                                'Pemeriksaan klinis telah dicatat.',
+                            'clinical_notes' => 'Pemeriksaan klinis telah dicatat.',
                         ],
 
                         'plan' => $rec?->plan ?? [
@@ -181,10 +178,8 @@ class DoctorController extends Controller
                                     'notes' => '',
                                 ],
                             ],
-                            'clinical_action' =>
-                                'Pemeriksaan selesai dicatat oleh dokter.',
-                            'return_date' =>
-                                now()->addDays(14)->format('d M Y'),
+                            'clinical_action' => 'Pemeriksaan selesai dicatat oleh dokter.',
+                            'return_date' => now()->addDays(14)->format('d M Y'),
                         ],
                     ];
                 }
@@ -242,8 +237,7 @@ class DoctorController extends Controller
                     ],
 
                     'complaint' => [
-                        'symptoms' =>
-                            $booking?->symptoms ?? 'Konsultasi keluhan umum',
+                        'symptoms' => $booking?->symptoms ?? 'Konsultasi keluhan umum',
                         'duration' => $booking?->duration ?? '1 - 3 Hari',
                         'severity' => $booking?->severity ?? 'Sedang',
                         'notes' => $booking?->notes
@@ -275,8 +269,7 @@ class DoctorController extends Controller
             'name' => $doctorModel?->nama_dokter
                 ?? ($authUser?->name ?? 'Dr. Dokter Spesialis'),
 
-            'specialty' =>
-                ($doctorModel?->poli?->nama_poli ?? 'Spesialis').
+            'specialty' => ($doctorModel?->poli?->nama_poli ?? 'Spesialis').
                 ' ('.($doctorModel?->spesialisasi ?? 'Dokter').')',
 
             'hospital' => 'Klinik Maristella',
@@ -324,8 +317,7 @@ class DoctorController extends Controller
                 ],
 
                 'complaint' => [
-                    'symptoms' =>
-                        'Belum ada antrean pasien untuk jadwal Anda hari ini.',
+                    'symptoms' => 'Belum ada antrean pasien untuk jadwal Anda hari ini.',
                     'duration' => '-',
                     'severity' => '-',
                     'notes' => '',
@@ -410,6 +402,7 @@ class DoctorController extends Controller
             'secondary_diagnosis' => ['nullable', 'string'],
             'clinical_notes' => ['nullable', 'string'],
             'therapy_plan' => ['nullable', 'string'],
+            'medications_json' => ['nullable', 'string'],
             'return_date' => ['nullable', 'string'],
         ]);
 
@@ -423,18 +416,44 @@ class DoctorController extends Controller
             );
         }
 
-        // Parse medication lines into structured array if present
+        // Parse medication lines or structured medications_json into structured array
         $meds = [];
 
-        if (! empty($validated['therapy_plan'])) {
+        if ($request->filled('medications_json')) {
+            $parsed = json_decode($request->input('medications_json'), true);
+            if (is_array($parsed) && count($parsed) > 0) {
+                foreach ($parsed as $p) {
+                    $meds[] = [
+                        'obat_id' => $p['obat_id'] ?? null,
+                        'kode_obat' => $p['kode_obat'] ?? '',
+                        'name' => $p['name'] ?? 'Obat',
+                        'quantity' => (int) ($p['quantity'] ?? $p['qty'] ?? 10),
+                        'dose' => $p['dose'] ?? '1 tablet',
+                        'frequency' => $p['frequency'] ?? '3x1 sehari sesudah makan',
+                        'notes' => $p['notes'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        if (empty($meds) && ! empty($validated['therapy_plan'])) {
             $lines = explode("\n", trim($validated['therapy_plan']));
 
             foreach ($lines as $line) {
                 if (trim($line)) {
+                    $cleanLine = trim($line);
+                    $freq = '3x1 sehari sesudah makan';
+                    $dose = '1 tablet';
+
+                    if (preg_match('/(1x1|2x1|3x1|4x1[^\n\r\)]*)/i', $cleanLine, $fMatches)) {
+                        $freq = trim($fMatches[1]);
+                    }
+
                     $meds[] = [
-                        'name' => trim($line),
-                        'dose' => 'Sesuai resep',
-                        'frequency' => 'Rutin',
+                        'name' => $cleanLine,
+                        'dose' => $dose,
+                        'frequency' => $freq,
+                        'quantity' => 10,
                         'notes' => '',
                     ];
                 }
@@ -452,14 +471,12 @@ class DoctorController extends Controller
                 'spo2' => $validated['spo2'] ?? '99',
                 'weight' => $validated['weight'] ?? '',
                 'height' => $validated['height'] ?? '',
-                'physical_exam' =>
-                    $validated['physical_exam'] ?? 'Dalam batas normal.',
+                'physical_exam' => $validated['physical_exam'] ?? 'Dalam batas normal.',
             ],
 
             'assessment' => [
                 'primary_diagnosis' => $validated['primary_diagnosis'],
-                'secondary_diagnosis' =>
-                    $validated['secondary_diagnosis'] ?? '',
+                'secondary_diagnosis' => $validated['secondary_diagnosis'] ?? '',
                 'clinical_notes' => $validated['clinical_notes'] ?? '',
             ],
 
@@ -468,20 +485,21 @@ class DoctorController extends Controller
                     ? $meds
                     : [
                         [
-                            'name' =>
-                                $validated['primary_diagnosis'].
+                            'name' => $validated['primary_diagnosis'].
                                 ' Therapy Regimen',
                             'dose' => '1 unit',
                             'frequency' => 'Rutin',
+                            'quantity' => 1,
                             'notes' => '',
                         ],
                     ],
 
-                'clinical_action' =>
-                    'Pemeriksaan selesai dicatat oleh dokter.',
+                'clinical_action' => 'Pemeriksaan selesai dicatat oleh dokter.',
 
-                'return_date' =>
-                    $validated['return_date'] ?? '14 hari ke depan',
+                'return_date' => $validated['return_date'] ?? '14 hari ke depan',
+
+                'prescription_status' => 'perlu_diproses',
+                'prescribed_at' => now()->toIso8601String(),
             ],
         ];
 
@@ -511,7 +529,7 @@ class DoctorController extends Controller
 
             $booking->update([
                 'status' => 'completed',
-                'payment_status' => 'unpaid',
+                'payment_status' => $booking->payment_status ?: 'paid',
             ]);
 
             Queue::where('booking_id', $booking->id)
@@ -540,8 +558,7 @@ class DoctorController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' =>
-                    'Rekam Medis SOAP berhasil disimpan untuk pasien '.
+                'message' => 'Rekam Medis SOAP berhasil disimpan untuk pasien '.
                     $queues[$queueId]['patient']['name'],
                 'queue_id' => $queueId,
             ]);

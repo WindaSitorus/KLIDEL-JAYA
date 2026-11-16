@@ -191,16 +191,39 @@ class ApotekerController extends Controller
             ];
         }
 
-        // 3. Ambil antrean resep pasien yang sudah dibayar dan memiliki rekam medis
+        // 3. Ambil antrean resep pasien yang memiliki rekam medis dengan obat
         $orders = Booking::with([
             'patient',
             'doctor.poli',
             'medicalRecord',
         ])
-            ->where('payment_status', 'paid')
             ->whereHas('medicalRecord')
             ->latest('id')
-            ->get();
+            ->get()
+            ->filter(function ($booking) {
+                $meds = $booking->medicalRecord?->plan['medications'] ?? [];
+
+                return is_array($meds) && count($meds) > 0;
+            })
+            ->values();
+
+        $perluCount = $orders->filter(function ($o) {
+            $st = $o->medicalRecord?->plan['prescription_status'] ?? 'perlu_diproses';
+
+            return $st === 'perlu_diproses';
+        })->count();
+
+        $racikCount = $orders->filter(function ($o) {
+            $st = $o->medicalRecord?->plan['prescription_status'] ?? 'perlu_diproses';
+
+            return $st === 'sedang_diracik';
+        })->count();
+
+        $selesaiCount = $orders->filter(function ($o) {
+            $st = $o->medicalRecord?->plan['prescription_status'] ?? 'perlu_diproses';
+
+            return $st === 'selesai';
+        })->count();
 
         $totalItemResep = $orders->sum(function ($booking) {
             $medications = $booking->medicalRecord?->plan['medications'] ?? [];
@@ -215,6 +238,9 @@ class ApotekerController extends Controller
             'stats' => [
                 'total_drugs' => count($drugs),
                 'total_orders' => $orders->count(),
+                'perlu_count' => $perluCount,
+                'racik_count' => $racikCount,
+                'selesai_count' => $selesaiCount,
                 'total_obat_resep' => $totalItemResep,
             ],
         ]);
@@ -304,5 +330,105 @@ class ApotekerController extends Controller
             'success' => true,
             'message' => 'Stok Opname berhasil diselesaikan! Stok sistem telah diperbarui.',
         ]);
+    }
+
+    /**
+     * ACC Resep Pasien (Status berubah menjadi 'sedang_diracik').
+     */
+    public function accResep(Request $request, int $bookingId): JsonResponse|RedirectResponse
+    {
+        $booking = Booking::with('medicalRecord', 'patient')->findOrFail($bookingId);
+        $record = $booking->medicalRecord;
+
+        if (! $record) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Rekam medis tidak ditemukan.'], 404);
+            }
+
+            return back()->with('error', 'Rekam medis tidak ditemukan.');
+        }
+
+        $plan = $record->plan ?? [];
+        $plan['prescription_status'] = 'sedang_diracik';
+        $plan['acc_at'] = now()->format('Y-m-d H:i');
+        $plan['pharmacist_name'] = Auth::user()?->name ?? 'Apoteker';
+
+        $record->plan = $plan;
+        $record->save();
+
+        $patientName = $booking->patient?->full_name ?? 'Pasien';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'status' => 'sedang_diracik',
+                'message' => "Resep pasien {$patientName} berhasil di-ACC! Obat sedang diracik.",
+            ]);
+        }
+
+        return back()->with('success', "Resep pasien {$patientName} berhasil di-ACC! Obat sedang diracik.");
+    }
+
+    /**
+     * Selesaikan & Serahkan Obat (Status berubah menjadi 'selesai', stok berkurang otomatis).
+     */
+    public function selesaiResep(Request $request, int $bookingId): JsonResponse|RedirectResponse
+    {
+        $booking = Booking::with('medicalRecord', 'patient')->findOrFail($bookingId);
+        $record = $booking->medicalRecord;
+
+        if (! $record) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Rekam medis tidak ditemukan.'], 404);
+            }
+
+            return back()->with('error', 'Rekam medis tidak ditemukan.');
+        }
+
+        $plan = $record->plan ?? [];
+        $plan['prescription_status'] = 'selesai';
+        $plan['completed_at'] = now()->format('Y-m-d H:i');
+        $plan['pharmacist_name'] = Auth::user()?->name ?? 'Apoteker';
+
+        $record->plan = $plan;
+        $record->save();
+
+        // Potong stok obat di database obats
+        $medications = $plan['medications'] ?? [];
+        $deductedItems = [];
+
+        foreach ($medications as $med) {
+            $obat = null;
+            if (! empty($med['kode_obat'])) {
+                $obat = Obat::where('kode_obat', $med['kode_obat'])->first();
+            }
+            if (! $obat && ! empty($med['name'])) {
+                $cleanName = trim(explode('—', $med['name'])[0]);
+                $cleanName = trim(explode('-', $cleanName)[0]);
+                $cleanName = trim(explode('(', $cleanName)[0]);
+                $obat = Obat::where('nama_obat', 'like', "%{$cleanName}%")->first();
+            }
+
+            if ($obat) {
+                $qty = (int) ($med['quantity'] ?? $med['qty'] ?? 10);
+                $oldStock = $obat->stok;
+                $newStock = max(0, $oldStock - $qty);
+                $obat->update(['stok' => $newStock]);
+                $deductedItems[] = "{$obat->nama_obat} (-{$qty})";
+            }
+        }
+
+        $patientName = $booking->patient?->full_name ?? 'Pasien';
+        $deductMsg = count($deductedItems) > 0 ? ' Stok berkurang: '.implode(', ', $deductedItems) : '';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'status' => 'selesai',
+                'message' => "Obat untuk pasien {$patientName} selesai diracik dan diserahkan!{$deductMsg}",
+            ]);
+        }
+
+        return back()->with('success', "Obat untuk pasien {$patientName} selesai diracik dan diserahkan!{$deductMsg}");
     }
 }

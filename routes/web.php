@@ -104,6 +104,8 @@ Route::middleware(['apoteker'])
         Route::post('/tambah-obat', [ApotekerController::class, 'storeObat'])->name('tambahObat');
         Route::post('/update-stok', [ApotekerController::class, 'updateStok'])->name('updateStok');
         Route::post('/selesaikan-opname', [ApotekerController::class, 'selesaikanOpname'])->name('selesaikanOpname');
+        Route::post('/resep/{bookingId}/acc', [ApotekerController::class, 'accResep'])->name('resep.acc');
+        Route::post('/resep/{bookingId}/selesai', [ApotekerController::class, 'selesaiResep'])->name('resep.selesai');
     });
 
 // =====================================================

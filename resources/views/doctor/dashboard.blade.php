@@ -586,33 +586,62 @@
                   Cari Obat dari Database Klinik
                 </label>
 
-                <input
-                  type="text"
-                  id="search_obat"
-                  autocomplete="off"
-                  placeholder="Ketik nama obat, kode obat, atau kategori..."
-                  data-search-url="{{ route('doctor.obat.search') }}"
-                  class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                >
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="search_obat"
+                    autocomplete="off"
+                    placeholder="Ketik nama obat, kode obat, atau kategori (misal: Paracetamol, Amoxicillin)..."
+                    data-search-url="{{ route('doctor.obat.search') }}"
+                    class="w-full text-xs p-3 pr-10 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  >
+                  <div class="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                  </div>
+                </div>
 
                 <p class="text-[11px] text-slate-400 mt-1">
-                  Ketik minimal 2 karakter untuk mencari obat.
+                  Ketik minimal 2 karakter untuk mencari obat dari database klinik.
                 </p>
 
                 <!-- Hasil Pencarian -->
                 <div
                   id="hasil-pencarian-obat"
-                  class="mt-2 space-y-2"
+                  class="mt-2 space-y-2 max-h-60 overflow-y-auto"
                   aria-live="polite"
                 ></div>
 
               </div>
 
-              <!-- Resep Obat -->
+              <!-- Daftar Resep Obat Terpilih -->
+              <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                  <label class="block text-xs font-bold text-slate-800">
+                    Daftar Resep Obat Pasien (Tersinkron ke Apoteker)
+                  </label>
+                  <span id="selected-meds-count" class="text-[11px] font-semibold text-slate-500">0 obat dipilih</span>
+                </div>
+
+                <!-- Hidden Input for structured JSON submitted to server -->
+                <input type="hidden" name="medications_json" id="medications_json" value="">
+
+                <!-- Selected Medications Container -->
+                <div id="prescribed-medications-list" class="space-y-2.5">
+                  <!-- Rendered dynamically by JavaScript -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-meds-alert" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-center text-xs text-slate-500">
+                  Belum ada obat yang dipilih dari database. Cari obat di atas dan klik <b>"+ Tambah ke Resep"</b>.
+                </div>
+              </div>
+
+              <!-- Resep Obat / Terapi Farmakologi -->
               <div class="mb-3">
 
-                <label for="therapy_plan" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Terapi Farmakologi / Resep Obat (1 baris per obat)
+                <label for="therapy_plan" class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                  <span>Ringkasan / Catatan Terapi Farmakologi</span>
+                  <span class="text-[10px] text-slate-400 font-normal">Tersinkron otomatis</span>
                 </label>
 
                 @php
@@ -620,7 +649,7 @@
 
                   if (!empty($activeQueue['soap']['plan']['medications'])) {
                     foreach ($activeQueue['soap']['plan']['medications'] as $m) {
-                      $medLines[] = $m['name'].' — '.$m['dose'].' ('.$m['frequency'].')';
+                      $medLines[] = ($m['name'] ?? 'Obat').' — '.($m['quantity'] ?? 10).' '.($m['satuan'] ?? 'item').' · ('.($m['frequency'] ?? '3x1').')';
                     }
                   }
 
@@ -630,13 +659,13 @@
                 <textarea
                   id="therapy_plan"
                   name="therapy_plan"
-                  rows="4"
-                  placeholder="Obat yang dipilih akan muncul di sini. Isi dosis dan aturan pakainya."
+                  rows="3"
+                  placeholder="Obat yang dipilih akan muncul di sini beserta aturan pakainya."
                   class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all font-mono"
-                >{{ old('therapy_plan', $medText ?: "Sumatriptan 50mg — 1 tablet saat serangan\nDomperidone 10mg — 3x1 tablet sebelum makan") }}</textarea>
+                >{{ old('therapy_plan', $medText ?: "Sumatriptan 50mg — 10 tablet · (1 tablet saat serangan)\nDomperidone 10mg — 10 tablet · (3x1 tablet sebelum makan)") }}</textarea>
 
                 <p class="text-[11px] text-slate-400 mt-1">
-                  Pilih obat dari hasil pencarian, kemudian lengkapi dosis dan aturan pakainya.
+                  Resep akan langsung diteruskan ke Apoteker dengan status <b>Perlu Diproses</b> setelah disimpan.
                 </p>
 
               </div>
@@ -990,40 +1019,201 @@
 
 
     // ==========================================
-    // SEARCH OBAT DARI DATABASE KLINIK
+    // MANAJEMEN RESEP & PENCARIAN OBAT DOKTER
     // ==========================================
     document.addEventListener('DOMContentLoaded', function () {
 
       const searchInput = document.getElementById('search_obat');
       const resultContainer = document.getElementById('hasil-pencarian-obat');
       const therapyPlan = document.getElementById('therapy_plan');
+      const medsListEl = document.getElementById('prescribed-medications-list');
+      const emptyAlert = document.getElementById('empty-meds-alert');
+      const medsCountEl = document.getElementById('selected-meds-count');
+      const medsJsonInput = document.getElementById('medications_json');
 
-      // Pastikan elemen pencarian tersedia
       if (!searchInput || !resultContainer || !therapyPlan) {
         return;
       }
 
+      // Initial data dari server (jika sudah ada rekam medis sebelumnya)
+      const rawInitialMeds = @json($activeQueue['soap']['plan']['medications'] ?? []);
+      let selectedMedications = [];
+
+      if (Array.isArray(rawInitialMeds) && rawInitialMeds.length > 0) {
+        selectedMedications = rawInitialMeds.map((m, idx) => ({
+          id: 'init_' + idx + '_' + Date.now(),
+          obat_id: m.obat_id || null,
+          kode_obat: m.kode_obat || '',
+          name: m.name || 'Obat',
+          satuan: m.satuan || 'Item',
+          stok: m.stok || 100,
+          quantity: parseInt(m.quantity || m.qty || 10),
+          frequency: m.frequency || '3x1 sehari sesudah makan',
+          custom_frequency: '',
+          dose: m.dose || '1 tablet',
+          notes: m.notes || ''
+        }));
+      }
+
+      // Common frequency presets
+      const FREQ_OPTIONS = [
+        '3x1 sehari sesudah makan',
+        '2x1 sehari sesudah makan',
+        '1x1 sehari sesudah makan',
+        '3x1 sehari sebelum makan',
+        '2x1 sehari sebelum makan',
+        '1x1 malam sebelum tidur',
+        'Bila demam / nyeri (PRN)',
+        'Oles tipis pada area sakit',
+        'Tetes pada mata/telinga',
+        'Kustom / Aturan Lain...'
+      ];
+
+      function syncToForm() {
+        if (medsJsonInput) {
+          medsJsonInput.value = JSON.stringify(selectedMedications);
+        }
+
+        if (medsCountEl) {
+          medsCountEl.textContent = `${selectedMedications.length} obat dipilih`;
+        }
+
+        if (emptyAlert) {
+          emptyAlert.style.display = selectedMedications.length === 0 ? 'block' : 'none';
+        }
+
+        // Sinkronisasi teks therapy_plan
+        if (selectedMedications.length > 0) {
+          const lines = selectedMedications.map(m => {
+            const freq = m.frequency === 'Kustom / Aturan Lain...' && m.custom_frequency ? m.custom_frequency : m.frequency;
+            return `${m.name} — ${m.quantity} ${m.satuan || 'item'} · (${freq}, ${m.dose || '1 tablet'})`;
+          });
+          therapyPlan.value = lines.join('\n');
+        }
+      }
+
+      function renderPrescribedList() {
+        if (!medsListEl) return;
+        medsListEl.innerHTML = '';
+
+        selectedMedications.forEach((med, index) => {
+          const card = document.createElement('div');
+          card.className = 'border border-slate-200 rounded-xl p-3.5 bg-slate-50/80 hover:bg-white hover:border-[#012D68]/30 transition-all shadow-xs';
+          card.dataset.id = med.id;
+
+          // Header: Nama obat, kode, sisa stok, & tombol hapus
+          const header = document.createElement('div');
+          header.className = 'flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-200/80';
+          header.innerHTML = `
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="w-2 h-2 rounded-full bg-[#012D68]"></span>
+              <strong class="text-xs font-bold text-slate-900">${med.name}</strong>
+              ${med.kode_obat ? `<span class="font-mono text-[10px] bg-slate-200 text-slate-700 font-bold px-1.5 py-0.5 rounded">${med.kode_obat}</span>` : ''}
+              ${med.stok !== undefined ? `<span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-medium">Stok: ${med.stok}</span>` : ''}
+            </div>
+            <button type="button" class="btn-remove-med text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded-lg transition-colors" title="Hapus dari resep">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          `;
+
+          // Inputs Row
+          const inputsGrid = document.createElement('div');
+          inputsGrid.className = 'grid grid-cols-1 sm:grid-cols-3 gap-2.5';
+
+          // Kolom 1: Jumlah / Qty
+          const colQty = document.createElement('div');
+          colQty.innerHTML = `
+            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Jumlah (${med.satuan || 'Item'})</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" min="1" class="inp-med-qty w-full text-xs p-2 rounded-lg border border-slate-200 focus:border-[#012D68] focus:ring-1 focus:ring-blue-100 bg-white" value="${med.quantity || 10}">
+            </div>
+          `;
+
+          // Kolom 2: Berapa kali penggunaan obat (Frekuensi)
+          const colFreq = document.createElement('div');
+          const isCustomFreq = !FREQ_OPTIONS.includes(med.frequency) || med.frequency === 'Kustom / Aturan Lain...';
+          const selectedFreq = isCustomFreq ? 'Kustom / Aturan Lain...' : med.frequency;
+
+          let freqOptionsHtml = FREQ_OPTIONS.map(opt => `<option value="${opt}" ${opt === selectedFreq ? 'selected' : ''}>${opt}</option>`).join('');
+
+          colFreq.innerHTML = `
+            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Berapa Kali Penggunaan / Aturan</label>
+            <select class="sel-med-freq w-full text-xs p-2 rounded-lg border border-slate-200 focus:border-[#012D68] focus:ring-1 focus:ring-blue-100 bg-white">
+              ${freqOptionsHtml}
+            </select>
+            <input type="text" placeholder="Tuliskan frekuensi kustom..." class="inp-custom-freq mt-1.5 w-full text-xs p-2 rounded-lg border border-amber-300 focus:border-[#012D68] bg-amber-50/50 ${isCustomFreq ? '' : 'hidden'}" value="${isCustomFreq ? (med.custom_frequency || med.frequency) : ''}">
+          `;
+
+          // Kolom 3: Dosis / Petunjuk Khusus
+          const colDose = document.createElement('div');
+          colDose.innerHTML = `
+            <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Dosis / Petunjuk Khusus</label>
+            <input type="text" placeholder="mis. 1 tablet / 1 sendok takar" class="inp-med-dose w-full text-xs p-2 rounded-lg border border-slate-200 focus:border-[#012D68] focus:ring-1 focus:ring-blue-100 bg-white" value="${med.dose || '1 tablet'}">
+          `;
+
+          inputsGrid.append(colQty, colFreq, colDose);
+          card.append(header, inputsGrid);
+          medsListEl.appendChild(card);
+
+          // Event Listeners pada item
+          card.querySelector('.btn-remove-med').addEventListener('click', () => {
+            selectedMedications = selectedMedications.filter(item => item.id !== med.id);
+            renderPrescribedList();
+            syncToForm();
+          });
+
+          const qtyInput = card.querySelector('.inp-med-qty');
+          qtyInput.addEventListener('input', (e) => {
+            med.quantity = Math.max(1, parseInt(e.target.value) || 1);
+            syncToForm();
+          });
+
+          const freqSelect = card.querySelector('.sel-med-freq');
+          const customFreqInput = card.querySelector('.inp-custom-freq');
+          freqSelect.addEventListener('change', (e) => {
+            med.frequency = e.target.value;
+            if (e.target.value === 'Kustom / Aturan Lain...') {
+              customFreqInput.classList.remove('hidden');
+              customFreqInput.focus();
+            } else {
+              customFreqInput.classList.add('hidden');
+            }
+            syncToForm();
+          });
+
+          customFreqInput.addEventListener('input', (e) => {
+            med.custom_frequency = e.target.value;
+            syncToForm();
+          });
+
+          const doseInput = card.querySelector('.inp-med-dose');
+          doseInput.addEventListener('input', (e) => {
+            med.dose = e.target.value;
+            syncToForm();
+          });
+        });
+
+        syncToForm();
+      }
+
+      // Initial render
+      renderPrescribedList();
+
       let searchTimeout;
 
       searchInput.addEventListener('input', function () {
-
         clearTimeout(searchTimeout);
-
         const keyword = this.value.trim();
 
-        // Minimal 2 karakter
         if (keyword.length < 2) {
           resultContainer.replaceChildren();
           return;
         }
 
-        resultContainer.textContent = 'Sedang mencari obat...';
+        resultContainer.innerHTML = '<div class="p-3 text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2"><svg class="animate-spin h-3.5 w-3.5 text-[#012D68]" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Mencari obat di database klinik...</div>';
 
-        // Delay agar tidak mengirim permintaan setiap karakter
         searchTimeout = setTimeout(async function () {
-
           try {
-
             const response = await fetch(
               searchInput.dataset.searchUrl + '?q=' + encodeURIComponent(keyword),
               {
@@ -1039,126 +1229,84 @@
             }
 
             const obats = await response.json();
-
             resultContainer.replaceChildren();
 
-            // Jika tidak ada obat yang cocok
             if (!Array.isArray(obats) || obats.length === 0) {
-
-              resultContainer.textContent = 'Obat tidak ditemukan.';
+              resultContainer.innerHTML = '<div class="p-3 text-xs text-slate-500 bg-slate-50 rounded-xl border border-slate-200">Obat tidak ditemukan dalam database.</div>';
               return;
-
             }
 
-            // Tampilkan hasil pencarian
             obats.forEach(function (obat) {
-
               const card = document.createElement('div');
+              card.className = 'border border-slate-200 hover:border-[#012D68]/40 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 bg-white shadow-xs transition-all';
 
-              card.className =
-                'border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 bg-slate-50';
-
-              // Informasi obat
               const info = document.createElement('div');
-
               info.className = 'flex-1 min-w-0';
 
-              // Nama obat
-              const name = document.createElement('b');
-
-              name.className =
-                'block text-xs font-bold text-slate-900';
-
+              const name = document.createElement('strong');
+              name.className = 'block text-xs font-bold text-slate-900';
               name.textContent = obat.nama_obat;
 
-              // Detail obat
               const details = document.createElement('p');
+              details.className = 'text-[11px] text-slate-500 mt-0.5';
+              details.innerHTML = `<span class="font-mono font-bold text-slate-700">${obat.kode_obat}</span> · Kategori: <b>${obat.kategori}</b> · Satuan: ${obat.satuan || 'Item'}`;
 
-              details.className =
-                'text-[11px] text-slate-500 mt-1';
+              const stockPrice = document.createElement('p');
+              stockPrice.className = 'text-[11px] mt-1 flex items-center gap-2';
+              stockPrice.innerHTML = `
+                <span class="font-bold text-[#012D68]">Rp${Number(obat.harga).toLocaleString('id-ID')}</span>
+                <span class="text-slate-300">|</span>
+                <span class="font-semibold ${obat.stok > 10 ? 'text-emerald-600' : 'text-amber-600'}">Sisa Stok: ${obat.stok}</span>
+              `;
 
-              details.textContent =
-                'Kode: ' + obat.kode_obat +
-                ' | Kategori: ' + obat.kategori +
-                ' | Satuan: ' + obat.satuan;
+              info.append(name, details, stockPrice);
 
-              // Harga obat
-              const price = document.createElement('p');
-
-              price.className =
-                'text-xs font-bold text-[#012D68] mt-1';
-
-              price.textContent =
-                'Rp' + Number(obat.harga).toLocaleString('id-ID');
-
-              // Stok obat
-              const stock = document.createElement('p');
-
-              stock.className =
-                'text-[11px] text-slate-500 mt-1';
-
-              stock.textContent = 'Stok: ' + obat.stok;
-
-              info.append(
-                name,
-                details,
-                price,
-                stock
-              );
-
-              // Tombol pilih obat
               const button = document.createElement('button');
-
               button.type = 'button';
+              button.className = 'px-3.5 py-2 rounded-xl bg-[#012D68] hover:bg-[#083E88] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5';
+              button.innerHTML = `
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ Tambah ke Resep</span>
+              `;
 
-              button.className =
-                'px-3 py-2 rounded-lg bg-[#012D68] hover:bg-[#083E88] text-white text-[11px] font-bold transition-colors';
-
-              button.textContent = 'Pilih Obat';
-
-              // Ketika tombol dipilih
               button.addEventListener('click', function () {
-
-                const prescription =
-                  obat.nama_obat + ' — [isi dosis dan aturan pakai]';
-
-                const currentText = therapyPlan.value.trim();
-
-                therapyPlan.value = currentText
-                  ? currentText + '\n' + prescription
-                  : prescription;
+                // Periksa apakah obat sudah ada di daftar resep
+                const existing = selectedMedications.find(m => m.kode_obat === obat.kode_obat || m.obat_id === obat.id);
+                if (existing) {
+                  existing.quantity += 10;
+                } else {
+                  selectedMedications.push({
+                    id: 'med_' + obat.id + '_' + Date.now(),
+                    obat_id: obat.id,
+                    kode_obat: obat.kode_obat,
+                    name: obat.nama_obat,
+                    satuan: obat.satuan || 'Strip',
+                    stok: obat.stok,
+                    quantity: 10,
+                    frequency: '3x1 sehari sesudah makan',
+                    custom_frequency: '',
+                    dose: '1 tablet',
+                    notes: ''
+                  });
+                }
 
                 // Kosongkan pencarian
                 searchInput.value = '';
-
-                // Hilangkan hasil pencarian
                 resultContainer.replaceChildren();
 
-                // Arahkan fokus ke kolom resep
-                therapyPlan.focus();
-
+                // Re-render list resep
+                renderPrescribedList();
               });
 
-              card.append(
-                info,
-                button
-              );
-
+              card.append(info, button);
               resultContainer.appendChild(card);
-
             });
 
           } catch (error) {
-
-            resultContainer.textContent =
-              'Terjadi kesalahan saat mengambil data obat.';
-
+            resultContainer.innerHTML = '<div class="p-3 text-xs text-red-500 bg-red-50 rounded-xl border border-red-200">Terjadi kesalahan saat mencari obat.</div>';
             console.error(error);
-
           }
-
-        }, 300);
-
+        }, 250);
       });
 
     });
