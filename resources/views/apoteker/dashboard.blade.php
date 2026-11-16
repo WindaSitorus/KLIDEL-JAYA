@@ -999,7 +999,7 @@
 
         <div class="alert">
           <i></i>
-          Masuk sebagai Apoteker ({{ $apoteker['name'] }}) — ketuk baris untuk melihat riwayat obat, ubah angka "Aktual" untuk mencatat hasil hitung.
+          Masuk sebagai Apoteker ({{ $apoteker['name'] }}) — ketuk baris obat untuk melihat detail dan riwayat mutasi obat.
         </div>
 
         <div class="grid">
@@ -1020,8 +1020,7 @@
                 <tr>
                   <th>JENIS OBAT</th>
                   <th>RAK</th>
-                  <th class="r">SISTEM</th>
-                  <th class="r">AKTUAL</th>
+                  <th class="r">STOK</th>
                 </tr>
               </thead>
               <tbody id="rows">
@@ -1233,12 +1232,8 @@
             <input name="rak" required placeholder="mis. A-05" style="text-transform:uppercase">
           </div>
           <div class="fld">
-            <label>STOK SISTEM</label>
+            <label>JUMLAH STOK</label>
             <input name="sys" type="number" min="0" value="0" required>
-          </div>
-          <div class="fld">
-            <label>STOK AKTUAL</label>
-            <input name="act" type="number" min="0" value="0" required>
           </div>
         </div>
       </div>
@@ -1349,21 +1344,19 @@
     function renderRows() {
       const l = list();
       const cntEl = $('#cnt');
-      const diffCount = l.filter(d => d.act !== d.sys).length;
       if (cntEl) {
-        cntEl.textContent = `${l.length} jenis · ${diffCount} selisih`;
+        cntEl.textContent = `${l.length} jenis obat`;
       }
 
       const rowsEl = $('#rows');
       if (!rowsEl) return;
 
       if (!l.length) {
-        rowsEl.innerHTML = '<tr><td colspan="4" class="empty">Tidak ada obat pada kategori ini.</td></tr>';
+        rowsEl.innerHTML = '<tr><td colspan="3" class="empty">Tidak ada obat pada kategori ini.</td></tr>';
         return;
       }
 
       rowsEl.innerHTML = l.map(d => {
-        const df = d.act - d.sys;
         return `
           <tr data-id="${d.id}" class="${d.id === sel ? 'sel' : ''}">
             <td class="sku">
@@ -1372,54 +1365,15 @@
             </td>
             <td><span class="rak">${d.rak}</span></td>
             <td class="r sys">${d.sys}</td>
-            <td class="r act ${df !== 0 ? 'bad' : ''}">
-              <input type="number" min="0" value="${d.act}" data-id="${d.id}">
-              <span class="diff ${df !== 0 ? '' : 'ok'}">
-                ${df !== 0 ? `${df > 0 ? '+' : '−'}${Math.abs(df)} vs sistem` : 'sesuai'}
-              </span>
-            </td>
           </tr>
         `;
       }).join('');
 
       // Click row to select
       rowsEl.querySelectorAll('tr[data-id]').forEach(tr => {
-        tr.onclick = e => {
-          if (e.target.tagName === 'INPUT') return;
+        tr.onclick = () => {
           sel = tr.dataset.id;
           render();
-        };
-      });
-
-      // Interactive input for actual stock
-      rowsEl.querySelectorAll('input[data-id]').forEach(input => {
-        input.onfocus = () => {
-          sel = input.dataset.id;
-          renderPanel();
-          rowsEl.querySelectorAll('tr').forEach(t => t.classList.toggle('sel', t.dataset.id === sel));
-        };
-
-        input.onchange = () => {
-          const d = DRUGS.find(x => x.id === input.dataset.id);
-          if (d) {
-            d.act = Math.max(0, parseInt(input.value || 0));
-            counted.add(d.id);
-            render();
-
-            // Kirim update ke backend secara asynchronous
-            fetch("{{ route('apoteker.updateStok') }}", {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-              },
-              body: JSON.stringify({ kode_obat: d.id, stok_aktual: d.act })
-            }).then(r => r.json()).then(res => {
-              toast(`${d.name}: aktual ${d.act} tercatat`);
-            }).catch(() => {
-              toast(`${d.name}: tersimpan di sesi lokal`);
-            });
-          }
         };
       });
     }
@@ -1462,7 +1416,7 @@
     function renderCounts() {
       const hLines = $('#hLines');
       if (hLines) {
-        hLines.textContent = `${DRUGS.length} jenis · ${counted.size} terhitung`;
+        hLines.textContent = `${DRUGS.length} jenis obat`;
       }
     }
 
@@ -1513,8 +1467,8 @@
         return;
       }
 
-      const act = parseInt(g('act')) || 0;
       const sys = parseInt(g('sys')) || 0;
+      const act = sys;
       const name = g('name');
       const catVal = g('cat');
       const rak = g('rak').toUpperCase();
