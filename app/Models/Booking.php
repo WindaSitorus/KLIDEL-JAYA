@@ -103,6 +103,78 @@ class Booking extends Model
     }
 
     /**
+     * Build the patient-facing bill breakdown from the doctor's examination result.
+     *
+     * Medicines and prices come from the SOAP plan saved by the doctor, so the
+     * patient sees exactly what was prescribed instead of placeholder data.
+     *
+     * @return array{
+     *     booking_id: int,
+     *     booking_code: string,
+     *     doctor_name: string,
+     *     specialty: string,
+     *     tariff_plan: string,
+     *     consultation_fee: float,
+     *     medicine_cost: float,
+     *     total_amount: float,
+     *     prescription_status: ?string,
+     *     medications: list<array{name: string, kode_obat: ?string, satuan: string, quantity: int, harga: float, subtotal: float, dose: string, frequency: string, notes: string}>
+     * }
+     */
+    public function billDetails(): array
+    {
+        $plan = $this->medicalRecord?->plan ?? [];
+
+        $medications = collect($plan['medications'] ?? [])
+            ->filter(fn ($medication): bool => is_array($medication) && ! empty($medication['name']))
+            ->map(function (array $medication): array {
+                $quantity = max(1, (int) ($medication['quantity'] ?? 1));
+                $price = (float) ($medication['harga'] ?? 0);
+
+                return [
+                    'name' => (string) $medication['name'],
+                    'kode_obat' => $medication['kode_obat'] ?? null,
+                    'satuan' => (string) ($medication['satuan'] ?? 'Item'),
+                    'quantity' => $quantity,
+                    'harga' => $price,
+                    'subtotal' => (float) ($medication['subtotal'] ?? $quantity * $price),
+                    'dose' => (string) ($medication['dose'] ?? ''),
+                    'frequency' => (string) ($medication['frequency'] ?? ''),
+                    'notes' => (string) ($medication['notes'] ?? ''),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $medicineCost = (float) ($plan['medicine_cost'] ?? array_sum(array_column($medications, 'subtotal')));
+        $totalAmount = (float) ($this->total_amount ?? 0);
+        $consultationFee = (float) ($plan['consultation_fee']
+            ?? $this->doctor?->price_num
+            ?? max(0, $totalAmount - $medicineCost));
+
+        if ($totalAmount <= 0) {
+            $totalAmount = $consultationFee + $medicineCost;
+        }
+
+        $tariffPlan = $this->medicalRecord
+            ? (empty($medications) ? 'consultation_only' : 'with_medicine')
+            : (string) ($this->tariff_plan ?: 'consultation_only');
+
+        return [
+            'booking_id' => $this->id,
+            'booking_code' => (string) $this->booking_code,
+            'doctor_name' => (string) ($this->doctor?->nama_dokter ?? 'Dokter Pemeriksa'),
+            'specialty' => (string) ($this->doctor?->spesialisasi ?? ''),
+            'tariff_plan' => $tariffPlan,
+            'consultation_fee' => $consultationFee,
+            'medicine_cost' => $medicineCost,
+            'total_amount' => $totalAmount,
+            'prescription_status' => $plan['prescription_status'] ?? null,
+            'medications' => $medications,
+        ];
+    }
+
+    /**
      * The attributes that should be cast.
      *
      * @return array<string, string>

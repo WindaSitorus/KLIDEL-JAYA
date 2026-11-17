@@ -146,9 +146,17 @@ class HomeController extends Controller
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',
         ];
 
+        $bill = $this->resolveBillDetails($latestBooking, $nextAppointment);
+
+        if ($latestBooking) {
+            $nextAppointment['tariff_plan'] = $bill['tariff_plan'];
+            $nextAppointment['total_amount'] = $bill['total_amount'];
+        }
+
         return view('home', [
             'user' => $user,
             'nextAppointment' => $nextAppointment,
+            'bill' => $bill,
             'latestBooking' => $latestBooking,
             'appointmentMode' => $appointmentMode,
             'isDoctorExamined' => $isDoctorExamined,
@@ -271,12 +279,41 @@ class HomeController extends Controller
     }
 
     /**
+     * Resolve the bill breakdown (consultation + prescribed medicines) for the patient view.
+     *
+     * @param  array<string, mixed>  $nextAppointment
+     * @return array<string, mixed>
+     */
+    private function resolveBillDetails(?Booking $booking, array $nextAppointment = []): array
+    {
+        if ($booking) {
+            return $booking->billDetails();
+        }
+
+        $totalAmount = (float) ($nextAppointment['total_amount'] ?? 0);
+
+        return [
+            'booking_id' => null,
+            'booking_code' => (string) ($nextAppointment['booking_code'] ?? '-'),
+            'doctor_name' => (string) ($nextAppointment['doctor_name'] ?? 'Dokter Pemeriksa'),
+            'specialty' => (string) ($nextAppointment['specialty'] ?? ''),
+            'tariff_plan' => 'consultation_only',
+            'consultation_fee' => $totalAmount,
+            'medicine_cost' => 0.0,
+            'total_amount' => $totalAmount,
+            'prescription_status' => null,
+            'medications' => [],
+        ];
+    }
+
+    /**
      * Get real-time appointment and examination status (for automatic client trigger).
      */
     public function getAppointmentStatus(): JsonResponse
     {
         $appointmentData = $this->resolveAppointmentState();
         $latestBooking = $appointmentData['booking'];
+        $bill = $this->resolveBillDetails($latestBooking);
 
         return response()->json([
             'success' => true,
@@ -288,9 +325,10 @@ class HomeController extends Controller
             'doctor_name' => $latestBooking?->doctor?->nama_dokter ?? 'Dr. Saran Mitchell',
             'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Orthopedist',
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
-            'total_amount' => (float) ($latestBooking?->total_amount ?? 435000.00),
+            'total_amount' => $latestBooking ? $bill['total_amount'] : 435000.00,
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',
-            'tariff_plan' => $latestBooking?->tariff_plan ?? 'with_medicine',
+            'tariff_plan' => $latestBooking ? $bill['tariff_plan'] : 'with_medicine',
+            'bill' => $bill,
         ]);
     }
 

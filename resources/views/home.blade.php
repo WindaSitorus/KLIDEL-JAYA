@@ -253,6 +253,10 @@
                                 <span id="desktop-tariff-label">{{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter' }}</span>
                             </span>
                         </div>
+                        <p id="desktop-medicine-summary" class="text-[10.5px] text-slate-500 dark:text-slate-400 truncate -mt-0.5 mb-1 {{ empty($bill['medications']) ? 'hidden' : '' }}" title="{{ collect($bill['medications'])->pluck('name')->implode(', ') }}">
+                            Obat: <span class="font-semibold text-slate-700 dark:text-slate-200">{{ collect($bill['medications'])->pluck('name')->implode(', ') }}</span>
+                            · Rp {{ number_format((float) $bill['medicine_cost'], 0, ',', '.') }}
+                        </p>
 
                         <!-- Action Buttons: Rincian & Bayar Sekarang -->
                         <div id="desktop-action-buttons-unpaid" class="grid grid-cols-2 gap-2 mt-0.5">
@@ -639,6 +643,10 @@
                             <span id="mobile-tariff-label">{{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter' }}</span>
                         </span>
                     </div>
+                    <p id="mobile-medicine-summary" class="text-[10px] text-slate-500 dark:text-slate-400 truncate -mt-0.5 mb-1 {{ empty($bill['medications']) ? 'hidden' : '' }}" title="{{ collect($bill['medications'])->pluck('name')->implode(', ') }}">
+                        Obat: <span class="font-semibold text-slate-700 dark:text-slate-200">{{ collect($bill['medications'])->pluck('name')->implode(', ') }}</span>
+                        · Rp {{ number_format((float) $bill['medicine_cost'], 0, ',', '.') }}
+                    </p>
                     <div id="mobile-action-buttons-unpaid" class="grid grid-cols-2 gap-2 mt-0.5">
                         <button type="button" class="btn-open-bill-drawer h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-[11px] flex items-center justify-center gap-1 transition-colors">
                             <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1079,7 +1087,12 @@
                 </small>
             </div>
 
-            <!-- Itemized Services & Medicine List -->
+            <!-- Itemized Services & Medicine List (from doctor's examination) -->
+            @php
+                $billMedications = $bill['medications'] ?? [];
+                $formatRupiah = fn ($value) => 'Rp '.number_format((float) $value, 0, ',', '.');
+            @endphp
+            <script type="application/json" id="bill-data">@json($bill)</script>
             <div class="items">
                 <div class="h">
                     <span>Bill Name</span>
@@ -1088,49 +1101,52 @@
                 <div class="row">
                     <svg><use href="#i-tooth"/></svg>
                     <div>
-                        <span id="drawer-item-treatment-title">Treatment (2)</span>
-                        <small id="drawer-item-treatment-desc" class="block text-[11px] text-slate-400 font-normal">Konsultasi Dokter Ortopedi &amp; Terapi Sendi</small>
+                        <span id="drawer-item-treatment-title">Jasa Konsultasi (1)</span>
+                        <small id="drawer-item-treatment-desc" class="block text-[11px] text-slate-400 font-normal">{{ $bill['doctor_name'] }}{{ $bill['specialty'] ? ' · '.$bill['specialty'] : '' }}</small>
                     </div>
-                    <span class="tt" id="drawer-item-treatment-amount">Total: Rp 300.000</span>
-                </div>
-                <div class="row" id="drawer-row-component">
-                    <svg><use href="#i-wrench"/></svg>
-                    <div>
-                        <span id="drawer-item-component-title">Component used (1)</span>
-                        <small id="drawer-item-component-desc" class="block text-[11px] text-slate-400 font-normal">Elastic Knee Support &amp; Perban Medis</small>
-                    </div>
-                    <span class="tt" id="drawer-item-component-amount">Total: Rp 120.000</span>
+                    <span class="tt" id="drawer-item-treatment-amount">{{ $formatRupiah($bill['consultation_fee']) }}</span>
                 </div>
                 <div class="row" id="drawer-row-medicine">
                     <svg><use href="#i-pill"/></svg>
                     <div>
-                        <span id="drawer-item-medicine-title">Medicine (1)</span>
-                        <small id="drawer-item-medicine-desc" class="block text-[11px] text-slate-400 font-normal">Analgesik Anti-Inflamasi &amp; Kalsium Kompleks</small>
+                        <span id="drawer-item-medicine-title">Obat ({{ count($billMedications) }})</span>
+                        <small id="drawer-item-medicine-desc" class="block text-[11px] text-slate-400 font-normal">
+                            {{ count($billMedications) ? collect($billMedications)->pluck('name')->implode(', ') : 'Tidak ada resep obat dari dokter' }}
+                        </small>
                     </div>
-                    <span class="tt" id="drawer-item-medicine-amount">Total: Rp 15.000</span>
+                    <span class="tt" id="drawer-item-medicine-amount">{{ $formatRupiah($bill['medicine_cost']) }}</span>
                 </div>
-                <button type="button" class="btn view" id="btn-toggle-item-breakdown">
-                    <span id="view-details-text">View Details</span>
+                <button type="button" class="btn view" id="btn-toggle-item-breakdown" aria-expanded="true" aria-controls="items-breakdown-panel">
+                    <span id="view-details-text">Sembunyikan Rincian</span>
                 </button>
             </div>
 
-            <!-- Detailed Breakdown Accordion (Hidden by default, toggled by View Details) -->
-            <div id="items-breakdown-panel" class="hidden -mt-2 mb-4 p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 text-[11.5px] space-y-1.5">
-                <div class="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>1. Jasa Konsultasi Dr. Saran Mitchell</span>
-                    <b class="font-semibold">Rp 180.000</b>
+            <!-- Detailed Breakdown: consultation + every prescribed medicine with qty x price -->
+            <div id="items-breakdown-panel" class="-mt-2 mb-4 p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 text-[11.5px] space-y-2">
+                <div class="flex justify-between gap-3 text-slate-600 dark:text-slate-300">
+                    <span>Jasa Konsultasi <span data-bill-doctor>{{ $bill['doctor_name'] }}</span></span>
+                    <b class="font-semibold whitespace-nowrap" data-bill-consultation>{{ $formatRupiah($bill['consultation_fee']) }}</b>
                 </div>
-                <div class="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>2. Terapi Fisik &amp; Evaluasi Traksi Tulang</span>
-                    <b class="font-semibold">Rp 120.000</b>
-                </div>
-                <div class="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>3. Elastic Bandage &amp; Support Kit</span>
-                    <b class="font-semibold">Rp 120.000</b>
-                </div>
-                <div class="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>4. Paket Obat Nyeri &amp; Vitamin Tulang (10 hari)</span>
-                    <b class="font-semibold">Rp 15.000</b>
+                <div class="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700">
+                    <span class="block text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Resep Obat dari Dokter</span>
+                    <ul id="drawer-medicine-list" class="space-y-2">
+                        @forelse ($billMedications as $medication)
+                            <li class="flex justify-between gap-3">
+                                <div class="min-w-0">
+                                    <b class="block font-semibold text-slate-800 dark:text-slate-100">{{ $medication['name'] }}</b>
+                                    <small class="block text-[10.5px] text-slate-500 dark:text-slate-400">
+                                        {{ $medication['quantity'] }} {{ $medication['satuan'] }} × {{ $formatRupiah($medication['harga']) }}
+                                    </small>
+                                    @if ($medication['frequency'] || $medication['dose'])
+                                        <small class="block text-[10.5px] text-slate-400">Aturan pakai: {{ trim($medication['dose'].' · '.$medication['frequency'], ' ·') }}</small>
+                                    @endif
+                                </div>
+                                <b class="font-semibold whitespace-nowrap text-slate-700 dark:text-slate-200">{{ $formatRupiah($medication['subtotal']) }}</b>
+                            </li>
+                        @empty
+                            <li class="italic text-slate-400">Dokter tidak meresepkan obat (hanya konsultasi).</li>
+                        @endforelse
+                    </ul>
                 </div>
             </div>
 
@@ -1146,7 +1162,7 @@
             <!-- Total Price Summary -->
             <div class="sum">
                 <span>Subtotal</span>
-                <span id="drawer-subtotal-display">Rp 435.000</span>
+                <span id="drawer-subtotal-display">{{ $formatRupiah($bill['total_amount']) }}</span>
             </div>
             <div class="sum">
                 <span style="display:flex;gap:6px;align-items:center">
@@ -1156,7 +1172,7 @@
             </div>
             <div class="sum total">
                 <span>Total</span>
-                <span id="drawer-total-display">Rp 435.000</span>
+                <span id="drawer-total-display">{{ $formatRupiah($bill['total_amount']) }}</span>
             </div>
 
             <!-- Security Assurance -->
@@ -1169,7 +1185,7 @@
             <div id="drawer-paid-actions" class="hidden mb-4 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center">
                 <div class="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-bold text-[13px] mb-1">
                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>Tagihan #BILL00124 Lunas</span>
+                    <span>Tagihan <span data-bill-code>{{ $bill['booking_code'] }}</span> Lunas</span>
                 </div>
                 <p class="text-[11.5px] text-emerald-600 dark:text-emerald-400 mb-2.5">Pembayaran resmi telah tercatat dan kuitansi telah terbit.</p>
                 <button type="button" class="btn-open-success-modal w-full h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[12px] flex items-center justify-center gap-1.5 transition-all shadow-xs">
@@ -1318,49 +1334,39 @@
 
         <h2 id="success-modal-title">Payment success</h2>
         <div class="amt-l">Total Amount Paid</div>
-        <div class="amt" id="success-amount">Rp 435.000</div>
-        <div class="meta" id="success-meta">14 Agu 2026<i>•</i>Bill ID: #BILL00124<i>•</i>Poliklinik Ortopedi</div>
+        <div class="amt" id="success-amount">{{ $formatRupiah($bill['total_amount']) }}</div>
+        <div class="meta" id="success-meta">{{ now()->translatedFormat('d M Y') }}<i>•</i>Bill ID: <span data-bill-code>{{ $bill['booking_code'] }}</span><i>•</i><span data-bill-specialty>{{ $bill['specialty'] ?: 'Poliklinik' }}</span></div>
 
         <div class="details">
             <h3>Payment Details</h3>
             <div class="acc">
-                <!-- Accordion Item 1: Treatment -->
+                <!-- Accordion Item 1: Consultation -->
                 <div class="acc-item open" id="success-acc-treatment">
                     <button type="button" class="acc-head" aria-expanded="true">
                         <svg class="ico"><use href="#i-tooth"/></svg>
-                        <span id="success-item-treatment-title">Treatment (2)</span>
-                        <span class="tt" id="success-item-treatment-amount">Total: Rp 300.000</span>
+                        <span id="success-item-treatment-title">Jasa Konsultasi (1)</span>
+                        <span class="tt" id="success-item-treatment-amount">{{ $formatRupiah($bill['consultation_fee']) }}</span>
                         <svg class="chev"><use href="#i-down"/></svg>
                     </button>
                     <div class="acc-body" id="success-body-treatment">
-                        <div id="success-sub-consult"><span>Jasa Konsultasi Dr. Saran Mitchell</span><span id="success-val-consult">Rp 180.000</span></div>
-                        <div id="success-sub-therapy"><span>Terapi Traksi &amp; Fisik Ortopedi</span><span id="success-val-therapy">Rp 120.000</span></div>
+                        <div><span>Jasa Konsultasi {{ $bill['doctor_name'] }}</span><span>{{ $formatRupiah($bill['consultation_fee']) }}</span></div>
                     </div>
                 </div>
 
-                <!-- Accordion Item 2: Component used -->
-                <div class="acc-item" id="success-acc-component">
-                    <button type="button" class="acc-head" aria-expanded="false">
-                        <svg class="ico"><use href="#i-wrench"/></svg>
-                        <span id="success-item-component-title">Component used (1)</span>
-                        <span class="tt" id="success-item-component-amount">Total: Rp 120.000</span>
-                        <svg class="chev"><use href="#i-down"/></svg>
-                    </button>
-                    <div class="acc-body" id="success-body-component">
-                        <div><span>Elastic Knee Support Bandage</span><span id="success-val-component">Rp 120.000</span></div>
-                    </div>
-                </div>
-
-                <!-- Accordion Item 3: Medicine -->
-                <div class="acc-item" id="success-acc-medicine">
-                    <button type="button" class="acc-head" aria-expanded="false">
+                <!-- Accordion Item 2: Prescribed Medicine -->
+                <div class="acc-item open" id="success-acc-medicine">
+                    <button type="button" class="acc-head" aria-expanded="true">
                         <svg class="ico"><use href="#i-pill"/></svg>
-                        <span id="success-item-medicine-title">Medicine (1)</span>
-                        <span class="tt" id="success-item-medicine-amount">Total: Rp 15.000</span>
+                        <span id="success-item-medicine-title">Obat ({{ count($billMedications) }})</span>
+                        <span class="tt" id="success-item-medicine-amount">{{ $formatRupiah($bill['medicine_cost']) }}</span>
                         <svg class="chev"><use href="#i-down"/></svg>
                     </button>
                     <div class="acc-body" id="success-body-medicine">
-                        <div><span>Paket Analgesik &amp; Kalsium Kompleks (10 hari)</span><span id="success-val-medicine">Rp 15.000</span></div>
+                        @forelse ($billMedications as $medication)
+                            <div><span>{{ $medication['name'] }} ({{ $medication['quantity'] }} {{ $medication['satuan'] }} × {{ $formatRupiah($medication['harga']) }})</span><span>{{ $formatRupiah($medication['subtotal']) }}</span></div>
+                        @empty
+                            <div><span class="italic text-slate-400">Pemeriksaan konsultasi saja tanpa resep obat</span><span>Rp 0</span></div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -1374,7 +1380,7 @@
                 </div>
                 <div class="r">
                     <span>Amount paid</span>
-                    <b id="success-amount-paid">Rp 435.000</b>
+                    <b id="success-amount-paid">{{ $formatRupiah($bill['total_amount']) }}</b>
                 </div>
                 <div class="r">
                     <span>Change money</span>

@@ -37,9 +37,8 @@ class HomeViewTest extends TestCase
         $response->assertSee('Payment Details');
         $response->assertSee('Print Receipt');
         $response->assertSee('Back to calendar');
-        $response->assertSee('Treatment (2)');
-        $response->assertSee('Component used (1)');
-        $response->assertSee('Medicine (1)');
+        $response->assertSee('Jasa Konsultasi');
+        $response->assertSee('Obat');
         $response->assertSee('Detail Transaction');
     }
 }
