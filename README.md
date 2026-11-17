@@ -1,21 +1,17 @@
-# Sistem Informasi Klinik Gabe Medika
+# Sistem Informasi Klinik Maristella
 
 <p align="center">
-  <img src="public/images/gabe-medica-logo.png" alt="Logo Gabe Medika" width="320">
+  <img src="public/images/maristella-logo-horizontal.png" alt="Logo Klinik Maristella" width="340">
 </p>
 
 <p align="center">
-  <strong>Solusi Digital Terintegrasi Layanan Kesehatan, Penjadwalan Dokter, Antrean Real-Time, dan Rekam Medis SOAP</strong><br>
+  <strong>Solusi Digital Terintegrasi Layanan Kesehatan Primer: Manajemen Dokter & Akun, Penjadwalan, Antrean Real-Time, Rekam Medis Elektronik SOAP, Farmasi Apoteker, dan Pembayaran Kasir</strong><br>
   Proyek Mata Kuliah Pemrograman dan Pengujian Web (PPW)<br>
   <strong>Program Studi Sarjana Sistem Informasi — Fakultas Informatika dan Teknik Elektro<br>Institut Teknologi Del</strong><br>
   Tahun Ajaran 2026/2027
 </p>
 
-<<<<<<< HEAD
-Laravel is a web application framework with expressive, elegant syntax. We believe,development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-=======
 ---
->>>>>>> e2bb6d09c4eb8f8acf7106437c8631c879acd288
 
 ## 👥 Disusun Oleh (Kelompok)
 
@@ -31,91 +27,108 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 ## 📌 Daftar Isi
 1. [Tentang Sistem](#-tentang-sistem)
 2. [Latar Belakang & Masalah](#-latar-belakang--masalah)
-3. [Deskripsi Aktor & Fitur Sistem (Use Case)](#-deskripsi-aktor--fitur-sistem-use-case)
-4. [Alur Proses Bisnis (BPMN)](#-alur-proses-bisnis-bpmn)
+3. [Peran Pengguna & Fitur Utama (Use Case)](#-peran-pengguna--fitur-utama-use-case)
+4. [Alur Bisnis Terintegrasi (End-to-End Workflow)](#-alur-bisnis-terintegrasi-end-to-end-workflow)
 5. [Arsitektur & Tumpukan Teknologi (Tech Stack)](#-arsitektur--tumpukan-teknologi-tech-stack)
-6. [Perancangan Basis Data (ERD & Spesifikasi Tabel)](#-perancangan-basis-data-erd--spesifikasi-tabel)
+6. [Perancangan Basis Data (ERD & Spesifikasi Entitas)](#-perancangan-basis-data-erd--spesifikasi-entitas)
 7. [Struktur Direktori Proyek](#-struktur-direktori-proyek)
 8. [Daftar Rute & Endpoint (Routing)](#-daftar-rute--endpoint-routing)
 9. [Panduan Instalasi & Menjalankan Aplikasi](#-panduan-instalasi--menjalankan-aplikasi)
-10. [Akun Demo & Quick Login](#-akun-demo--quick-login)
-11. [Pengujian Perangkat Lunak (Testing)](#-pengujian-perangkat-lunak-testing)
+10. [Akun Demo & Akses Cepat (Quick Login)](#-akun-demo--akses-cepat-quick-login)
+11. [Pengujian Perangkat Lunak (Automated Testing)](#-pengujian-perangkat-lunak-automated-testing)
 
 ---
 
 ## 🏥 Tentang Sistem
 
-**Gabe Medika** adalah platform sistem informasi klinik berbasis web yang dirancang untuk mendigitalkan seluruh siklus layanan kesehatan primer. Sistem ini menjembatani interaksi antara **Pasien**, **Dokter**, **Resepsionis**, dan **Administrator Klinik** dalam satu ekosistem terpadu.
+**Klinik Maristella** adalah platform sistem informasi manajemen klinik modern berbasis web yang dirancang untuk mendigitalkan seluruh siklus pelayanan rawat jalan. Sistem ini menghubungkan 4 aktor kunci: **Pasien**, **Dokter Spesialis**, **Apoteker Farmasi**, dan **Administrator Klinik** ke dalam satu kesatuan sistem yang sinkron secara *real-time*.
 
-Aplikasi mengadopsi standar perancangan modern dengan tata letak desktop 3-zona (*Sidebar Navigasi*, *Area Konten Utama*, dan *Panel Sticky Booking*) serta antarmuka responsif adaptif untuk pengguna perangkat bergerak (*mobile bottom-sheet*).
+Aplikasi mengusung standar estetika profesional modern dengan warna utama **Deep Royal Navy** (`#012D68`), navigasi responsif, tata letak desktop modular, serta integrasi otomatis antara penetapan diagnosis dokter, peresepan obat, peracikan farmasi, kalkulasi biaya tagihan transparan, dan pencatatan transaksi keuangan.
 
 ---
 
 ## ❗ Latar Belakang & Masalah
 
-Pada sistem layanan klinik konvensional (*current system*):
-1. **Pendaftaran Manual:** Pasien harus datang langsung (*walk-in*) mengambil nomor antrean fisik atau mendaftar melalui pesan singkat, menyebabkan penumpukan fisik di ruang tunggu klinik.
-2. **Penjadwalan Rentan Bentrok:** Jadwal praktik dokter dicatat secara manual di buku agenda, memicu bentrok waktu konsultasi dan ketidakjelasan kuota harian.
-3. **Rekam Medis Fisik Berisiko:** Pencatatan riwayat kesehatan pasien menggunakan map kertas yang rawan tercecer, rusak, serta memperlambat proses temu kembali data historis saat pasien berkunjung kembali.
+Pada pengelolaan klinik konvensional:
+1. **Pendaftaran Manual & Penumpukan Antrean:** Pasien harus mendaftar secara fisik di loket, menimbulkan antrean panjang dan ketidakpastian jam konsultasi.
+2. **Keterbatasan Akses Dokter:** Pasien tidak dapat melihat profil, keahlian, dan tarif dokter secara transparan sebelum berkonsultasi.
+3. **Pencatatan Rekam Medis Terpisah:** Rekam medis berbasis kertas rentan rusak dan tidak terhubung langsung dengan bagian farmasi serta kasir.
+4. **Ketidaksesuaian Tagihan Obat:** Biaya obat yang diresepkan dokter sering kali tidak sinkron dengan tagihan yang dibayarkan pasien.
+5. **Pengelolaan Akun Tenaga Medis Manual:** Pendaftaran dokter dan pembuatan akun login portal medis belum terintegrasi dalam satu dasbor terpadu.
 
-**Gabe Medika** mentransformasi proses tersebut menjadi **sistem terkomputerisasi daring (target system)**: reservasi slot waktu mandiri, nomor antrean otomatis dengan estimasi waktu kedatangan, serta pencatatan rekam medis elektronik berstandar **SOAP** (*Subjective, Objective, Assessment, Plan*).
+**Klinik Maristella** menghadirkan solusi menyeluruh:
+- Pasien dapat memilih dokter dan membuat janji secara daring.
+- Dokter memeriksa pasien dengan rekam medis digital berstandar **SOAP** (*Subjective, Objective, Assessment, Plan*) dan meresepkan obat langsung dari katalog farmasi aktif.
+- Apoteker menerima resep secara *real-time*, memvalidasi (*ACC*), meracik, dan menyerahkan obat dengan pengurangan stok otomatis.
+- Pasien menerima rincian tagihan transparan yang merinci jasa dokter dan daftar obat riil yang diresepkan beserta aturan pakainya.
+- Administrator mengelola seluruh master data dokter, membuatkan akun login dokter secara langsung, serta memantau analitik keuangan dan laporan transaksi.
 
 ---
 
-## 🎯 Deskripsi Aktor & Fitur Sistem (Use Case)
-
-Sistem Informasi Gabe Medika membagi interaksi pengguna ke dalam 4 aktor utama sesuai batasan Use Case sistem:
+## 🎯 Peran Pengguna & Fitur Utama (Use Case)
 
 ### 1. Pasien (Patient / User)
-- **Registrasi & Autentikasi Akun:** Pembuatan akun mandiri dengan validasi identitas (NIK dan tanggal lahir).
-- **Pencarian Dokter & Filter Spesialisasi:** Menemukan dokter berdasarkan nama, poli (Kardiologi, Neurologi, Ortopedi), rating, serta tarif konsultasi.
-- **Reservasi / Booking Online:** Memilih tanggal dan slot jam praktik dokter secara interaktif dengan notifikasi toast konfirmasi.
-- **Status Tiket Antrean:** Memantau nomor urut dan status kehadiran secara langsung.
-- **Riwayat Medis Pasien:** Mengakses catatan hasil diagnosis dan resep terapi dari kunjungan terdahulu.
+- **Beranda & Pencarian Dokter:** Menjelajahi daftar dokter spesialis (Kardiologi, Neurologi, Ortopedi, dan spesialisasi lainnya) lengkap dengan foto, rating, jam ketersediaan, dan tarif.
+- **Reservasi / Booking Konsultasi:** Memilih dokter, tanggal, jam praktik, dan menginput gejala keluhan secara mandiri.
+- **Monitoring Status Janji Temu Real-Time:**
+  - *Sebelum Periksa (Upcoming):* Kartu janji temu aktif menunggu pemanggilan dokter.
+  - *Sesudah Periksa (Unpaid):* Menerima notifikasi tagihan setelah dokter menyelesaikan pemeriksaan SOAP.
+  - *Lunas (Welcome State):* Kartu bertransformasi setelah pembayaran selesai tercatat.
+- **Rincian Tagihan Interaktif:** Drawer rincian biaya yang menampilkan jasa konsultasi dokter dan daftar lengkap obat yang diresepkan (nama obat, jumlah, harga satuan, subtotal, dan aturan pakai).
+- **Pembayaran Kasir & Kuitansi Digital:** Melakukan konfirmasi pembayaran tunai/kartu dan mencetak bukti kuitansi resmi (*Payment Success Receipt*).
+- **Rekam Medis Elektronik (RME):** Memantau riwayat diagnosis dan terapi berjalan dari kunjungan-kunjungan sebelumnya.
 
-### 2. Resepsionis (Receptionist)
-- **Monitoring Data Booking:** Memantau seluruh reservasi daring yang masuk secara harian.
-- **Verifikasi Kedatangan (Check-in):** Mengonfirmasi kehadiran pasien saat tiba di loket klinik dan menerbitkan nomor antrean harian aktif.
-- **Pendaftaran Pasien Langsung (Walk-in):** Memfasilitasi pasien yang datang tanpa reservasi daring langsung ke poli yang dituju.
-- **Manajemen Alur Antrean:** Mengatur status pemanggilan pasien (*Waiting*, *Calling*, *Done*).
+### 2. Dokter Spesialis (Doctor)
+- **Portal Kerja Dokter Eksklusif (`/doctor`):** Ruang kerja dokter yang menampilkan antrean pasien yang khusus dijadwalkan untuk dokter tersebut.
+- **Pemeriksaan Klinis Berstandar SOAP:**
+  - **Subjective (S):** Anamnesis keluhan utama dan durasi gejala.
+  - **Objective (O):** Tanda-tanda vital (tekanan darah, detak jantung, laju nafas, suhu, SpO2, berat badan, tinggi badan) dan observasi fisik.
+  - **Assessment (A):** Diagnosis primer dan sekunder sesuai kode standar medis.
+  - **Plan (P):** Tindakan klinis, anjuran kontrol kembali, dan peresepan obat farmasi.
+- **Katalog & Pencarian Obat Terpadu (`/doctor/obat/search`):** Memilih obat aktif dari master database lengkap dengan aturan pakai, dosis, dan kalkulasi harga otomatis.
+- **Penyelesaian Antrean Pasien:** Menyimpan rekam medis yang secara otomatis meneruskan resep ke apoteker dan menerbitkan tagihan ke pasien.
 
-### 3. Dokter (Doctor)
-- **Monitoring Antrean Poli Harian:** Memantau daftar pasien yang siap diperiksa di ruang praktiknya.
-- **Akses Data Pasien:** Memeriksa identitas dasar, usia, dan riwayat keluhan pasien.
-- **Input Rekam Medis SOAP:**
-  - **S (Subjective):** Keluhan utama dan gejala yang dirasakan pasien.
-  - **O (Objective):** Hasil pemeriksaan fisik, tanda-tanda vital (tensi, nadi, suhu), dan observasi klinis.
-  - **A (Assessment):** Diagnosis medis dokter.
-  - **P (Plan):** Rencana penanganan terapeutik, tindakan, dan peresepan obat.
-- **Riwayat Rekam Medis:** Peninjauan riwayat medis longitudinal pasien dari pemeriksaan-pemeriksaan sebelumnya.
+### 3. Apoteker (Pharmacist)
+- **Dasbor Manajemen Farmasi (`/apoteker`):** Memantau inventori obat dan antrean resep medis.
+- **Pemrosesan Resep Real-Time:**
+  - *Perlu Diproses:* Menerima resep baru yang diinput dokter dari lembar SOAP.
+  - *Sedang Diracik (ACC Resep):* Mengonfirmasi ketersediaan obat dan memulai proses penyiapan.
+  - *Selesai & Serahkan:* Menandai resep telah diserahkan ke pasien dan **mengurangi stok obat secara otomatis**.
+- **Master Data Obat & Stok Opname:** Menambah obat baru, memperbarui stok masuk, dan melakukan penyesuaian fisik stok opname.
 
 ### 4. Administrator Klinik (Admin)
-- **Master Data Poli:** Penambahan, pengubahan, dan pengarsipan bidang spesialisasi poli klinik.
-- **Master Data Dokter:** Manajemen profil dokter, nomor izin praktik, serta asosiasi dengan poli terkait.
-- **Pengelolaan Jadwal & Kuota Praktik:** Konfigurasi hari praktik, jam mulai, jam selesai, dan kuota maksimum per sesi.
-- **Verifikasi Akun Pengguna:** Validasi dan aktivasi akun pasien serta staf klinik.
-- **Dashboard Kalender Konsultasi:** Kalender interaktif pemantauan okupansi jadwal dan slot praktik dokter.
+- **Manajemen Dokter & Akun Login (CRUD Terpadu) (`/admin/doctors`):**
+  - Mendaftarkan dokter baru sekaligus membuat akun pengguna (`users`) bertipe `role: 'doctor'`.
+  - Mengonfigurasi nama lengkap, poliklinik, spesialisasi, tarif sesi konsultasi, jam kerja, pengalaman, dan foto profil.
+  - Mengubah profil dokter dan memperbarui email/password login dokter.
+  - Menghapus data dokter dan akun login terkait secara aman.
+  - Memastikan dokter yang didaftarkan **langsung tampil di beranda pasien** dan **bisa langsung login ke portal dokter**.
+- **Riwayat Pembayaran & Transaksi (`/admin`):** Memantau arus kas klinik, invoice tagihan, metode bayar, dan status pembayaran.
+- **Analitik Kinerja Klinik:** Grafik harian kunjungan pasien, tingkat pertumbuhan pengunjung, tindakan medis, dan total penerimaan.
+- **Ekspor Laporan Keuangan:** Mengunduh rekap riwayat transaksi ke format CSV/Excel.
+- **Kalender Jadwal Dokter (`/admin/calendar`):** Memantau keterisian slot janji temu dari seluruh dokter secara terpusat.
 
 ---
 
-## 🔄 Alur Proses Bisnis (BPMN)
+## 🔄 Alur Bisnis Terintegrasi (End-to-End Workflow)
 
 ```
-[ PASIEN ]           [ RESEPSIONIS / ADMIN ]           [ DOKTER ]
-    |                           |                          |
-    |-- 1. Pendaftaran Online ->|                          |
-    |   (Pilih Dokter & Slot)   |                          |
-    |                           |-- 2. Validasi & Kuota    |
-    |<- 3. Kode Reservasi ------|                          |
-    |                           |                          |
-    |-- 4. Kedatangan/Check-in->|                          |
-    |                           |-- 5. Terbitkan Antrean   |
-    |                           |                          |
-    |                           |------------------------->|-- 6. Panggil Pasien
-    |                                                      |-- 7. Pemeriksaan Medis
-    |                                                      |-- 8. Input SOAP & Resep
-    |                                                      |
-    |<- 9. Pembayaran Kasir & Penyerahan Obat -------------|
+[ PASIEN ]                  [ DOKTER ]                 [ APOTEKER ]              [ ADMINISTRATOR ]
+    |                           |                           |                            |
+    |-- 1. Booking Dokter ----->|                           |                            |-- Kelola Dokter
+    |   (Pilih Jadwal & Poli)   |                           |                            |   & Akun Login
+    |                           |                           |                            |
+    |                           |-- 2. Panggil Antrean      |                            |
+    |                           |-- 3. Periksa Medis        |                            |
+    |                           |-- 4. Input SOAP & Resep --|                            |
+    |                           |      (Pilih Obat & Tarif) |                            |
+    |                           |                           |-- 5. ACC Resep             |
+    |                           |                           |-- 6. Racik & Serahkan Obat |
+    |                           |                           |      (Stok Terpotong Auto) |
+    |                           |                           |                            |
+    |<-- 7. Terima Rincian Tagihan (Jasa Dokter + Obat) ----|                            |
+    |-- 8. Bayar di Kasir/Portal ------------------------------------------------------->|-- 9. Transaksi Masuk
+    |<-- 10. Kuitansi Pembayaran Terbit -------------------------------------------------|      ke Laporan Kasir
 ```
 
 ---
@@ -123,50 +136,53 @@ Sistem Informasi Gabe Medika membagi interaksi pengguna ke dalam 4 aktor utama s
 ## 💻 Arsitektur & Tumpukan Teknologi (Tech Stack)
 
 ### Backend
-- **Framework:** [Laravel 13](https://laravel.com/) (arsitektur Model-View-Controller)
+- **Framework:** [Laravel 12 / 13](https://laravel.com/) (Arsitektur Model-View-Controller)
 - **Bahasa Pemrograman:** PHP 8.3 / PHP 8.5
-- **ORM:** Eloquent ORM
-- **Testing:** PHPUnit 12
+- **ORM:** Eloquent ORM dengan relasi relasional penuh
+- **Keamanan:** Autentikasi berbasis sesi, *Role-Based Access Control* (RBAC), hashing Bcrypt, dan perlindungan CSRF
+- **Testing:** PHPUnit 12 & Laravel Test Suite
 
 ### Frontend
 - **Templating Engine:** Laravel Blade
 - **CSS Framework:** [Tailwind CSS v4](https://tailwindcss.com/) dengan skema token kustom
 - **Interaktivitas:** Vanilla JavaScript modern & React JSX Component (`DoctorRecommendations.jsx`)
 - **Asset Bundler:** [Vite 8](https://vitejs.dev/)
-- **Ikonografi & Desain:** SVG Sprites kustom, tipografi Plus Jakarta Sans & Inter, palet warna resmi **Deep Royal Navy** (`#012D68`)
+- **Ikonografi & Desain:** SVG Sprites kustom, tipografi Plus Jakarta Sans & Inter, palet resmi *Deep Royal Navy* (`#012D68`)
 
 ### Basis Data
-- **DBMS:** MySQL (Lingkungan Produksi / Staging) & SQLite (Lingkungan Pengembangan Lokal)
-- **Struktur:** 8 tabel relasional ternormalisasi dengan integritas referensial penuh
+- **DBMS:** SQLite (Lingkungan Pengembangan Lokal) & MySQL (Lingkungan Staging/Produksi)
+- **Struktur:** 10 tabel relasional ternormalisasi dengan integritas referensial penuh
 
 ---
 
-## 🗄️ Perancangan Basis Data (ERD & Spesifikasi Tabel)
-
-Basis data Gabe Medika dirancang berbasis relasi integritas tinggi (*referential integrity*):
+## 🗄️ Perancangan Basis Data (ERD & Spesifikasi Entitas)
 
 ```mermaid
 erDiagram
-    USERS ||--o| DOCTORS : "memiliki_akun"
-    USERS ||--o| PATIENTS : "memiliki_akun"
-    POLIS ||--o{ DOCTORS : "memiliki"
+    USERS ||--o| DOCTORS : "memiliki_profil"
+    USERS ||--o| PATIENTS : "memiliki_profil"
+    POLIS ||--o{ DOCTORS : "menaungi"
     DOCTORS ||--o{ SCHEDULES : "mempunyai"
-    DOCTORS ||--o{ BOOKINGS : "melayani"
-    PATIENTS ||--o{ BOOKINGS : "melakukan"
-    SCHEDULES ||--o{ BOOKINGS : "dipilih"
-    BOOKINGS ||--|| QUEUES : "menghasilkan"
-    BOOKINGS ||--|| MEDICAL_RECORDS : "memiliki"
+    DOCTORS ||--o{ BOOKINGS : "menangani"
+    PATIENTS ||--o{ BOOKINGS : "mendaftarkan"
+    SCHEDULES ||--o{ BOOKINGS : "dijadwalkan"
+    BOOKINGS ||--|| QUEUES : "menerbitkan"
+    BOOKINGS ||--|| MEDICAL_RECORDS : "menghasilkan"
+    BOOKINGS ||--o{ PAYMENTS : "memiliki_tagihan"
 
     USERS {
         bigint id PK
+        string name
         string email UK
         string password
-        string role
+        string role "admin, doctor, apoteker, user"
     }
 
     POLIS {
         bigint id PK
+        string slug UK
         string nama_poli
+        string name_en
         text deskripsi
     }
 
@@ -176,23 +192,35 @@ erDiagram
         bigint poli_id FK
         string nama_dokter
         string spesialisasi
+        decimal price_num
+        string price
+        decimal rating
+        string availability
+        string experience
+        string patients
+        string image
+        string initials
     }
 
     SCHEDULES {
         bigint id PK
         bigint doctor_id FK
         string hari
-        time jam_mulai
-        time jam_selesai
+        string jam_mulai
+        string jam_selesai
         int kuota
     }
 
     PATIENTS {
         bigint id PK
         bigint user_id FK
+        string mrn UK
         string nik UK
         string full_name
+        string phone
         date dob
+        string gender
+        string address
     }
 
     BOOKINGS {
@@ -202,41 +230,56 @@ erDiagram
         bigint doctor_id FK
         bigint schedule_id FK
         date booking_date
-        time booking_time
-        string booking_source
-        string status
+        string booking_time
+        string symptoms
+        string status "confirmed, completed, cancelled"
+        string tariff_plan "consultation_only, with_medicine"
+        decimal total_amount
+        string payment_status "unpaid, paid"
     }
 
     QUEUES {
         bigint id PK
         bigint booking_id FK,UK
-        int queue_number
+        string queue_number
         date queue_date
-        string status
+        string time_slot
+        string status "waiting, in_progress, completed"
     }
 
     MEDICAL_RECORDS {
         bigint id PK
         bigint booking_id FK,UK
         text subjective
-        text objective
-        text assessmen
-        text plan
+        json objective
+        json assessmen
+        json plan "medications, medicine_cost, consultation_fee, prescription_status"
+    }
+
+    PAYMENTS {
+        bigint id PK
+        bigint booking_id FK
+        bigint patient_id FK
+        bigint doctor_id FK
+        string invoice_number
+        string payment_method "cash, card, qris, va"
+        decimal amount
+        string status "confirmed, pending, canceled"
+        timestamp paid_at
+    }
+
+    OBATS {
+        bigint id PK
+        string kode_obat UK
+        string nama_obat
+        string kategori
+        string satuan
+        decimal harga
+        int stok
+        int stok_minimum
+        boolean is_active
     }
 ```
-
-### Kamus Data (Data Dictionary)
-
-| Tabel | Kolom Utama | Tipe Data | Keterangan |
-| :--- | :--- | :--- | :--- |
-| `users` | `id`, `email`, `password`, `role` | BIGINT, VARCHAR, VARCHAR, VARCHAR | Otentikasi & kontrol peran (`admin`, `resepsionis`, `dokter`, `user`) |
-| `polis` | `id`, `nama_poli`, `deskripsi` | BIGINT, VARCHAR, TEXT | Master spesialisasi poli klinik (Kardiologi, Neurologi, dsb.) |
-| `doctors` | `id`, `user_id`, `poli_id`, `nama_dokter`, `spesialisasi` | BIGINT, BIGINT, BIGINT, VARCHAR, VARCHAR | Profil data dokter dan penempatan poli |
-| `schedules` | `id`, `doctor_id`, `hari`, `jam_mulai`, `jam_selesai`, `kuota` | BIGINT, BIGINT, VARCHAR, TIME, TIME, INT | Slot jadwal jam kerja dan batas kuota harian |
-| `patients` | `id`, `user_id`, `nik`, `full_name`, `dob` | BIGINT, BIGINT, VARCHAR, VARCHAR, DATE | Identitas kependudukan dan demografi pasien |
-| `bookings` | `id`, `booking_code`, `patient_id`, `doctor_id`, `schedule_id`, `booking_date`, `status` | BIGINT, VARCHAR, BIGINT, BIGINT, BIGINT, DATE, VARCHAR | Transaksi pendaftaran online maupun walk-in |
-| `queues` | `id`, `booking_id`, `queue_number`, `queue_date`, `status` | BIGINT, BIGINT, INT, DATE, VARCHAR | Tiket antrean harian (`waiting`, `calling`, `done`) |
-| `medical_records` | `id`, `booking_id`, `subjective`, `objective`, `assessmen`, `plan` | BIGINT, BIGINT, TEXT, TEXT, TEXT, TEXT | Catatan rekam medis digital berstandar SOAP |
 
 ---
 
@@ -247,123 +290,151 @@ KLIDEL-JAYA/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── AdminController.php     # Controller dashboard kalender admin
-│   │   │   ├── AuthController.php      # Controller autentikasi & login
-│   │   │   ├── Controller.php          # Base controller
-│   │   │   ├── DoctorController.php    # Controller portal dokter & rekam medis SOAP
-│   │   │   └── HomeController.php      # Controller dashboard beranda pasien & RME
+│   │   │   ├── AdminController.php         # Dasbor riwayat pembayaran, statistik & ekspor CSV
+│   │   │   ├── AdminDoctorController.php   # CRUD data dokter & pembuatan akun login dokter
+│   │   │   ├── ApotekerController.php      # Manajemen farmasi, pemrosesan resep & stok obat
+│   │   │   ├── AuthController.php          # Autentikasi multi-role & quick login
+│   │   │   ├── DoctorController.php        # Portal dokter, antrean, pencarian obat & lembar SOAP
+│   │   │   ├── HomeController.php          # Portal pasien, rincian tagihan, pembayaran & RME
+│   │   │   └── ObatController.php          # Resource controller master data obat
 │   │   └── Middleware/
-│   │       ├── AdminMiddleware.php     # Proteksi rute khusus administrator
-│   │       └── DoctorMiddleware.php    # Proteksi rute khusus dokter
+│   │       ├── AdminMiddleware.php         # Pembatasan akses khusus administrator
+│   │       ├── ApotekerMiddleware.php      # Pembatasan akses khusus apoteker
+│   │       └── DoctorMiddleware.php        # Pembatasan akses khusus dokter
 │   ├── Models/
-│   │   └── User.php                    # Model entitas pengguna & RBAC helper
-│   └── Providers/
-│       └── AppServiceProvider.php
+│   │   ├── Booking.php                     # Model transaksi booking & billDetails()
+│   │   ├── Doctor.php                      # Model profil dokter & relasi
+│   │   ├── MedicalRecord.php               # Model rekam medis SOAP
+│   │   ├── Obat.php                        # Model master obat farmasi
+│   │   ├── Patient.php                     # Model data pasien
+│   │   ├── Payment.php                     # Model transaksi pembayaran
+│   │   ├── Poli.php                        # Model spesialisasi poliklinik
+│   │   ├── Queue.php                       # Model antrean harian
+│   │   ├── Schedule.php                    # Model jadwal kerja dokter
+│   │   └── User.php                        # Model otentikasi & pengecekan peran (RBAC)
 ├── bootstrap/
-│   └── app.php                         # Inisialisasi aplikasi Laravel & middleware
-├── config/                             # Konfigurasi aplikasi, database, auth, dsb.
+│   └── app.php                             # Inisialisasi framework, rute & middleware
+├── config/                                 # Konfigurasi aplikasi, basis data, auth, dll.
 ├── database/
-│   ├── factories/
-│   ├── migrations/                     # Skema migrasi tabel basis data
+│   ├── migrations/                         # Berkas migrasi skema tabel basis data
 │   └── seeders/
-│       └── DatabaseSeeder.php          # Seeder data pengguna demo (Admin, Dokter & Pasien)
+│       └── DatabaseSeeder.php              # Seeder data awal pengguna, dokter, poli & obat
 ├── public/
+│   ├── css/                                # Berkas stylesheet terkompilasi
 │   ├── images/
-│   │   ├── 3d/                         # Aset visual 3D (mikroskop, stetoskop)
-│   │   ├── doctors/                    # Foto profil dokter
-│   │   ├── gabe-medica-logo.png        # Logo resmi Gabe Medika
-│   │   └── login-hero.png              # Ilustrasi halaman login
-│   └── index.php                       # Front controller aplikasi
+│   │   ├── 3d/                             # Ilustrasi 3D pop-out (mikroskop, stetoskop)
+│   │   ├── doctors/                        # Foto profil avatar dokter
+│   │   ├── maristella-icon.png             # Favicon Klinik Maristella
+│   │   └── maristella-logo-horizontal.png  # Logo horizontal resmi
+│   └── js/                                 # Skrip JavaScript front-end produksi
 ├── resources/
 │   ├── css/
-│   │   └── app.css                     # Desain token, styling Tailwind v4 & tema
+│   │   └── app.css                         # Skema desain token & Tailwind CSS v4
 │   ├── js/
-│   │   ├── components/
-│   │   │   └── DoctorRecommendations.jsx # Komponen React kartu dokter 3D pop-out
-│   │   └── app.js                      # Handler logika UI, filter, & booking panel
+│   │   └── app.js                          # Logika interaktif antarmuka, sinkronisasi bill & booking
 │   └── views/
 │       ├── admin/
-│       │   └── calendar.blade.php      # Tampilan kalender konsultasi multi-dokter
+│       │   ├── calendar.blade.php          # Kalender jadwal konsultasi multi-dokter
+│       │   ├── dashboard.blade.php         # Dasbor riwayat pembayaran & analitik
+│       │   └── doctors/
+│       │       └── index.blade.php         # Antarmuka CRUD dokter & pendaftaran akun
+│       ├── apoteker/
+│       │   └── dashboard.blade.php         # Dasbor apotek, racik resep & stok opname
 │       ├── auth/
-│       │   └── login.blade.php         # Tampilan portal masuk (login split-screen)
+│       │   └── login.blade.php             # Halaman login multi-peran
 │       ├── doctor/
-│       │   └── dashboard.blade.php     # Tampilan portal kerja dokter & lembar SOAP
+│       │   └── dashboard.blade.php         # Dasbor ruang periksa dokter & input SOAP
 │       ├── layouts/
-│       │   └── app.blade.php           # Template layout induk responsif
-│       ├── home.blade.php              # Tampilan beranda & katalog booking pasien
-│       └── rekam-medis.blade.php       # Tampilan rekam medis elektronik (RME) pasien
+│       │   └── app.blade.php               # Template tata letak induk
+│       ├── home.blade.php                  # Halaman utama pasien & katalog dokter
+│       └── rekam-medis.blade.php           # Tampilan rekam medis elektronik pasien
 ├── routes/
-│   ├── console.php
-│   └── web.php                         # Definisi rute web aplikasi
+│   └── web.php                             # Definisi seluruh endpoint & rute aplikasi
 ├── tests/
 │   └── Feature/
-│       ├── AuthRoleTest.php            # Pengujian otentikasi & proteksi hak akses
-│       ├── DoctorPortalTest.php        # Pengujian fitur portal dokter & SOAP
-│       └── HomeViewTest.php            # Pengujian rendering view beranda
-├── composer.json                       # Konfigurasi dependensi PHP & skrip setup
-├── package.json                        # Konfigurasi dependensi Node.js & Vite
-└── README.md                           # Dokumentasi komprehensif proyek
+│       ├── AdminDoctorCrudTest.php         # Pengujian CRUD dokter & akun login oleh admin
+│       ├── ApotekerResepWorkflowTest.php   # Pengujian alur resep farmasi & pengurangan stok
+│       ├── AuthRoleTest.php                # Pengujian otentikasi & proteksi hak akses
+│       ├── DatabaseIntegrationTest.php     # Pengujian integrasi basis data end-to-end
+│       ├── DoctorPortalTest.php            # Pengujian portal periksa dokter & SOAP
+│       ├── HomeViewTest.php                # Pengujian rendering portal pasien
+│       ├── PatientDoctorPaymentLifecycleTest.php # Pengujian siklus hidup 5 langkah klinik
+│       └── PatientPrescriptionBillTest.php # Pengujian sinkronisasi tagihan obat riil ke pasien
+├── composer.json
+├── package.json
+└── README.md
 ```
 
 ---
 
 ## 🌐 Daftar Rute & Endpoint (Routing)
 
-| Metode HTTP | Endpoint URI | Nama Rute | Controller & Method | Middleware | Deskripsi |
+| Metode | URI | Nama Rute | Controller & Method | Middleware | Keterangan |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `GET` | `/login` | `login` | `AuthController@showLoginForm` | `guest` | Menampilkan formulir masuk portal |
-| `GET` | `/login/dokter` | `login.doctor` | `AuthController@showDoctorLoginForm` | `guest` | Formulir masuk khusus portal dokter |
-| `POST` | `/login` | `login.post` | `AuthController@login` | `guest` | Memproses otentikasi kredensial |
+| `GET` | `/login` | `login` | `AuthController@showLoginForm` | `guest` | Formulir login portal umum |
+| `GET` | `/login/dokter` | `login.doctor` | `AuthController@showDoctorLoginForm` | `guest` | Formulir login khusus portal dokter |
+| `POST` | `/login` | `login.post` | `AuthController@login` | `guest` | Pemrosesan otentikasi login |
 | `POST` | `/logout` | `logout` | `AuthController@logout` | `auth` | Mengakhiri sesi pengguna aktif |
-| `GET` | `/quick-login/{role}` | `quick-login` | `AuthController@quickLogin` | - | Masuk instan untuk pengujian (`admin`/`doctor`/`user`) |
-| `GET` | `/` | `home` | `HomeController@index` | - | Beranda pasien & direktori dokter |
-| `GET` | `/calendar` | `calendar` | `HomeController@calendar` | - | Kalender jadwal konsultasi pasien |
-| `GET` | `/rekam-medis` | `rekam-medis` | `HomeController@medicalRecords` | - | Tampilan rekam medis elektronik (RME) pasien |
-| `GET` | `/doctor` | `doctor.dashboard` | `DoctorController@index` | `auth`, `doctor` | Portal ruang kerja dokter, antrean, data pasien & lembar SOAP |
-| `POST` | `/doctor/soap/{queueId}` | `doctor.saveSoap` | `DoctorController@saveSoap` | `auth`, `doctor` | Menyimpan rekam medis SOAP klinis & menyelesaikan antrean |
-| `GET` | `/admin` | `admin.dashboard` | `AdminController@index` | `auth`, `admin` | Portal kalender & operasional administrator |
-| `GET` | `/admin/calendar` | `admin.calendar` | `AdminController@index` | `auth`, `admin` | Tampilan kalender jadwal dokter terpadu |
+| `GET` | `/quick-login/{role}` | `quick-login` | `AuthController@quickLogin` | - | Pintasan login instan pengujian |
+| `GET` | `/` | `home` | `HomeController@index` | - | Beranda pasien, katalog dokter & tagihan |
+| `GET` | `/appointment-status` | `appointment.status` | `HomeController@getAppointmentStatus` | - | Sinkronisasi status janji temu & bill otomatis |
+| `POST` | `/booking` | `booking.store` | `HomeController@storeBooking` | - | Pendaftaran janji temu konsultasi pasien |
+| `POST` | `/payment` | `payment.process` | `HomeController@processPayment` | - | Pemrosesan pembayaran tagihan pasien |
+| `GET` | `/calendar` | `calendar` | `HomeController@calendar` | - | Tampilan kalender konsultasi pasien |
+| `GET` | `/rekam-medis` | `rekam-medis` | `HomeController@medicalRecords` | - | Rekam Medis Elektronik (RME) pasien |
+| `GET` | `/doctor` | `doctor.dashboard` | `DoctorController@index` | `auth`, `doctor` | Portal antrean & periksa medis dokter |
+| `POST` | `/doctor/soap/{queueId}` | `doctor.saveSoap` | `DoctorController@saveSoap` | `auth`, `doctor` | Penyimpanan rekam medis SOAP & resep obat |
+| `GET` | `/doctor/obat/search` | `doctor.obat.search` | `DoctorController@searchObat` | `auth`, `doctor` | Pencarian master obat aktif untuk resep |
+| `GET` | `/apoteker` | `apoteker.dashboard` | `ApotekerController@index` | `auth`, `apoteker` | Dasbor pemrosesan resep & inventori farmasi |
+| `POST` | `/apoteker/tambah-obat` | `apoteker.tambahObat` | `ApotekerController@storeObat` | `auth`, `apoteker` | Menambahkan item obat baru ke apotek |
+| `POST` | `/apoteker/update-stok` | `apoteker.updateStok` | `ApotekerController@updateStok` | `auth`, `apoteker` | Memperbarui stok masuk obat |
+| `POST` | `/apoteker/selesaikan-opname` | `apoteker.selesaikanOpname` | `ApotekerController@selesaikanOpname` | `auth`, `apoteker` | Finalisasi catatan penyesuaian stok opname |
+| `POST` | `/apoteker/resep/{bookingId}/acc` | `apoteker.resep.acc` | `ApotekerController@accResep` | `auth`, `apoteker` | ACC resep dokter (*status: sedang diracik*) |
+| `POST` | `/apoteker/resep/{bookingId}/selesai` | `apoteker.resep.selesai` | `ApotekerController@selesaiResep` | `auth`, `apoteker` | Selesai & serahkan obat (*stok terpotong auto*) |
+| `GET` | `/admin` | `admin.dashboard` | `AdminController@index` | `auth`, `admin` | Dasbor keuangan & analitik administrator |
+| `GET` | `/admin/calendar` | `admin.calendar` | `AdminController@calendar` | `auth`, `admin` | Kalender jadwal praktik seluruh dokter |
+| `GET` | `/admin/export-csv` | `admin.exportCsv` | `AdminController@exportCsv` | `auth`, `admin` | Unduh rekap pembayaran format CSV |
+| `POST` | `/admin/transaction` | `admin.storeTransaction` | `AdminController@storeTransaction` | `auth`, `admin` | Pembuatan transaksi manual loket admin |
+| `GET` | `/admin/doctors` | `admin.doctors.index` | `AdminDoctorController@index` | `auth`, `admin` | **Daftar & kelola data dokter klinik** |
+| `POST` | `/admin/doctors` | `admin.doctors.store` | `AdminDoctorController@store` | `auth`, `admin` | **Daftar dokter baru + akun login portal** |
+| `GET` | `/admin/doctors/{doctor}` | `admin.doctors.show` | `AdminDoctorController@show` | `auth`, `admin` | **Detail data dokter untuk modal edit** |
+| `PUT` | `/admin/doctors/{doctor}` | `admin.doctors.update` | `AdminDoctorController@update` | `auth`, `admin` | **Perbarui data dokter & kredensial akun** |
+| `DELETE` | `/admin/doctors/{doctor}` | `admin.doctors.destroy` | `AdminDoctorController@destroy` | `auth`, `admin` | **Hapus dokter & akun login terkait** |
 
 ---
 
 ## 🚀 Panduan Instalasi & Menjalankan Aplikasi
 
-Ikuti tahapan berikut untuk menjalankan proyek di lingkungan pengembangan lokal:
+Ikuti langkah-langkah berikut untuk menjalankan sistem di komputer lokal Anda:
 
 ### 1. Prasyarat Sistem
-- **PHP:** Versi `>= 8.3` (ekstensi `pdo`, `sqlite3` atau `pdo_mysql`, `mbstring`, `openssl` aktif)
+- **PHP:** Versi `>= 8.3` (ekstensi aktif: `pdo`, `sqlite3` atau `pdo_mysql`, `mbstring`, `openssl`, `bcmath`)
 - **Composer:** Versi `>= 2.0`
 - **Node.js & NPM:** Node.js `>= 18.x` & NPM `>= 9.x`
-- **Web Server & DBMS:** Laragon / XAMPP (MySQL atau SQLite lokal)
+- **Lingkungan Lokal:** Laragon / XAMPP / Native CLI
 
 ### 2. Kloning Repositori
 ```bash
-git clone https://github.com/WindaSitorus/KLIDEL-JAYA.git
+git clone https://github.com/josuaaasianturiii/KLIDEL-JAYA.git
 cd KLIDEL-JAYA
 ```
 
 ### 3. Konfigurasi Lingkungan (.env)
-Salin berkas konfigurasi template:
+Salin berkas konfigurasi bawaan:
 ```bash
 cp .env.example .env
 ```
 
-Sesuaikan koneksi basis data pada berkas `.env` (secara bawaan dikonfigurasi untuk SQLite):
+Secara *default*, aplikasi telah terkonfigurasi menggunakan **SQLite** agar dapat langsung dijalankan tanpa setup database rumit:
 ```env
-APP_NAME="Gabe Medica"
+APP_NAME="Klinik Maristella"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=sqlite
-# Jika menggunakan MySQL di Laragon:
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=gabe_medica
-# DB_USERNAME=root
-# DB_PASSWORD=
 ```
+*(Opsional: Jika ingin menggunakan MySQL di Laragon/XAMPP, ubah `DB_CONNECTION=mysql` dan sesuaikan kredensial basis data Anda).*
 
 ### 4. Instalasi Dependensi Backend & Generate Key
 ```bash
@@ -372,82 +443,71 @@ php artisan key:generate
 ```
 
 ### 5. Migrasi & Seeding Basis Data
-Jalankan migrasi untuk menyusun tabel serta memasukkan data awal pengguna demo:
+Jalankan migrasi skema tabel beserta data awal pengguna, dokter, poliklinik, dan master obat:
 ```bash
-# Jika menggunakan SQLite, pastikan berkas database/database.sqlite tersedia:
+# Pastikan file database/database.sqlite tersedia jika menggunakan SQLite:
 touch database/database.sqlite
 
 php artisan migrate --seed
 ```
 
-### 6. Instalasi Dependensi Frontend & Kompilasi Aset
+### 6. Instalasi Dependensi Frontend
 ```bash
 npm install
-npm run build
 ```
-> *Untuk pengembangan aktif dengan Live-Reload/Hot Module Replacement (HMR):*
-> ```bash
-> npm run dev
-> ```
 
-### 7. Menjalankan Server Lokal
+### 7. Menjalankan Server Aplikasi
+Jalankan server pengembangan Laravel:
 ```bash
 php artisan serve
 ```
-Akses aplikasi melalui peramban web pada alamat: [http://localhost:8000](http://localhost:8000).
+Akses aplikasi melalui peramban pada alamat: **[http://localhost:8000](http://localhost:8000)**.
 
 ---
 
-## 🔑 Akun Demo & Quick Login
+## 🔑 Akun Demo & Akses Cepat (Quick Login)
 
-Untuk mempermudah demonstrasi dan evaluasi aplikasi, tersedia akun siap pakai:
+Untuk keperluan demonstrasi dan pengujian alur layanan, tersedia akun bawaan untuk masing-masing peran pengguna:
 
-| Peran (Role) | Alamat Email | Kata Sandi | Pintasan Quick-Login |
+| Peran (Role) | Alamat Email | Kata Sandi | Tautan Pintasan Masuk Instan |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@aihealth.com` | `password` | [Akses Cepat Admin](http://localhost:8000/quick-login/admin) |
-| **Dokter (Doctor)** | `dokter@aihealth.com` | `password` | [Akses Cepat Dokter](http://localhost:8000/quick-login/doctor) |
-| **Pasien (User)** | `user@aihealth.com` | `password` | [Akses Cepat Pasien](http://localhost:8000/quick-login/user) |
+| **Administrator** | `admin@aihealth.com` | `password` | [Quick-Login Admin](http://localhost:8000/quick-login/admin) |
+| **Dokter 1 (Neurologi)** | `anaya@aihealth.com` / `dokter@aihealth.com` | `password` | [Quick-Login Dr. Anaya](http://localhost:8000/quick-login/doctor) |
+| **Dokter 2 (Kardiologi)** | `lina@aihealth.com` | `password` | [Quick-Login Dr. Lina](http://localhost:8000/quick-login/lina) |
+| **Dokter 3 (Ortopedi)** | `saran@aihealth.com` | `password` | [Quick-Login Dr. Saran](http://localhost:8000/quick-login/saran) |
+| **Apoteker (Farmasi)** | `apoteker@aihealth.com` | `password` | [Quick-Login Apoteker](http://localhost:8000/quick-login/apoteker) |
+| **Pasien (User)** | `user@aihealth.com` | `password` | [Quick-Login Pasien](http://localhost:8000/quick-login/user) |
 
 ---
 
-## 🧪 Pengujian Perangkat Lunak (Testing)
+## 🧪 Pengujian Perangkat Lunak (Automated Testing)
 
-Proyek ini dilengkapi dengan unit & feature testing berbasis **PHPUnit** untuk memastikan keandalan rute, keamanan autorisasi RBAC, serta integritas tampilan:
+Sistem Informasi Klinik Maristella dilengkapi dengan pengujian otomatis menggunakan **PHPUnit** untuk memverifikasi fungsionalitas, validasi input, konsistensi data, dan pembatasan hak akses:
 
-Jalankan seluruh rangkaian pengujian otomatis dengan perintah:
+Jalankan seluruh rangkaian pengujian dengan perintah:
 ```bash
 php artisan test
 ```
-atau menggunakan binary PHPUnit langsung:
+atau langsung menggunakan *test runner*:
 ```bash
 vendor/bin/phpunit
 ```
 
-### Cakupan Pengujian:
-- **Auth & Role Access (`AuthRoleTest`):**
-  - `test_login_page_renders_successfully`: Memastikan halaman login termuat dengan elemen-elemen penting.
-  - `test_user_login_redirects_to_home`: Memastikan login sebagai pasien mengarahkan ke dashboard utama pasien.
-  - `test_admin_login_redirects_to_admin_portal`: Memastikan login sebagai administrator dialihkan ke portal admin.
-  - `test_guest_is_redirected_from_admin_dashboard`: Memastikan pengguna anonim dicegah mengakses portal admin.
-  - `test_regular_user_cannot_access_admin_dashboard`: Memastikan akun pasien biasa tidak diizinkan masuk ke rute `/admin`.
-  - `test_admin_can_access_admin_calendar_dashboard`: Memverifikasi hak akses administrator pada dashboard kalender.
-  - `test_quick_login_for_user`, `test_quick_login_for_doctor`, `test_quick_login_for_admin`: Memastikan fungsi quick-login bekerja sesuai peran.
-- **Portal Dokter & Rekam Medis SOAP (`DoctorPortalTest`):**
-  - `test_guest_is_redirected_from_doctor_dashboard`: Memastikan tamu diarahkan ke login saat mengakses portal dokter.
-  - `test_regular_user_cannot_access_doctor_dashboard`: Memastikan akun pasien dilarang mengakses portal dokter.
-  - `test_doctor_can_access_dashboard`: Memastikan dokter dapat mengakses dashboard kerja dokter.
-  - `test_doctor_dashboard_displays_daily_queues`: Memverifikasi tampilan antrean harian poliklinik beserta metriknya.
-  - `test_doctor_dashboard_displays_patient_details`: Memverifikasi tampilan data demografi dan riwayat alergi pasien.
-  - `test_doctor_can_save_soap_medical_record`: Memverifikasi penyimpanan formulir pemeriksaan klinis SOAP dan update status antrean.
-  - `test_doctor_dashboard_displays_medical_history`: Memverifikasi riwayat rekam medis terdahulu pasien.
-  - `test_doctor_login_redirects_to_doctor_dashboard`: Memverifikasi login dokter otomatis mengarahkan ke `/doctor`.
-- **Beranda Pasien & Katalog (`HomeViewTest`):**
-  - `test_home_page_renders_successfully`: Memverifikasi struktur data view dokter, janji temu, dan kategori terpasang sempurna.
-  - `test_booking_registration_modal_renders_in_home`: Memastikan formulir intake pendaftaran konsultasi klinis ter-render dengan field keluhan, durasi, keparahan, dan kontak.
+### Ringkasan Suite Pengujian:
+- **`AdminDoctorCrudTest` (7 Tests):** Memverifikasi akses dasbor manajemen dokter, pendaftaran dokter baru beserta akun user login, pengujian login langsung dokter baru ke portal medis, pemunculan otomatis dokter di katalog pasien, pembaruan data & akun, penghapusan dokter, dan proteksi hak akses non-admin.
+- **`PatientPrescriptionBillTest` (1 Test):** Memverifikasi bahwa obat dan tarif riil yang diresepkan dokter pada lembar SOAP tampil akurat pada kartu tagihan pasien, drawer rincian, dan kuitansi pembayaran.
+- **`ApotekerResepWorkflowTest` (4 Tests):** Memverifikasi pencarian obat oleh dokter, transisi resep ke apoteker (*perlu_diproses*), verifikasi *ACC* resep (*sedang_diracik*), dan pemotongan stok otomatis saat obat diserahkan (*selesai*).
+- **`PatientDoctorPaymentLifecycleTest` (1 Test):** Memverifikasi siklus hidup lengkap 5 langkah dari pendaftaran pasien, pemeriksaan dokter, penerbitan tagihan, pembayaran kasir, hingga pencatatan transaksi di dasbor admin.
+- **`DoctorPortalTest` (8 Tests):** Memverifikasi pemanggilan antrean dokter harian, isolasi privasi data pasien antar dokter, pengisian rekam medis SOAP, dan riwayat pemeriksaan medis terdahulu.
+- **`AuthRoleTest` (8 Tests):** Memverifikasi otentikasi peran (RBAC), pengalihan rute login sesuai peran, dan proteksi middleware (`AdminMiddleware`, `DoctorMiddleware`, `ApotekerMiddleware`).
+- **`DatabaseIntegrationTest` (10 Tests):** Memverifikasi integritas relasional basis data, perhitungan KPI, mutasi stok obat, dan validitas transaksi pembayaran.
+- **`HomeViewTest` (1 Test):** Memverifikasi rendering antarmuka beranda pasien dan komponen booking.
+
+**Total Pengujian:** **43 Feature Tests Lolos (100% Passed, 333 Assertions)**.
 
 ---
 
 <p align="center">
-  Dibuat dengan dedikasi untuk kemajuan pelayanan kesehatan digital di Indonesia.<br>
+  Dibuat dengan dedikasi untuk kemajuan digitalisasi layanan kesehatan di Indonesia.<br>
   <strong>&copy; 2026/2027 Kelompok Sistem Informasi — Institut Teknologi Del</strong>
 </p>
