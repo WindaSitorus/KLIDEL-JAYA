@@ -268,16 +268,20 @@
 
       <div class="spacer"></div>
 
-      <div class="user-card">
-        <div class="avatar">
-          {{ $user['initials'] ?? 'AL' }}
+      <a href="{{ route('profile.edit') }}" class="user-card" title="Kelola Profil Saya" style="text-decoration:none;">
+        <div class="avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
+          @if(!empty($user['avatar_url']))
+            <img src="{{ $user['avatar_url'] }}" alt="{{ $user['name'] }}" style="width:100%;height:100%;object-fit:cover;">
+          @else
+            {{ $user['initials'] ?? 'AL' }}
+          @endif
           <i class="status"></i>
         </div>
         <div class="min-w-0 flex-1">
           <strong>{{ $user['name'] ?? 'Amélie Laurent' }}</strong>
-          <small>{{ $user['role'] ?? 'Administrator' }}</small>
+          <small>{{ $user['role'] ?? 'Administrator' }} · Profil</small>
         </div>
-      </div>
+      </a>
 
       <form action="{{ route('logout') }}" method="POST">
         @csrf

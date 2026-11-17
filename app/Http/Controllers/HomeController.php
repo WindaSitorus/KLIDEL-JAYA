@@ -7,7 +7,7 @@ use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Poli;
-use App\Models\Queue;
+use App\Services\BookingService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,8 +23,11 @@ class HomeController extends Controller
         $authUser = auth()->user();
         $user = [
             'name' => $authUser?->name ?? 'Rina Anggraini',
+            'email' => $authUser?->email ?? 'user@aihealth.com',
+            'phone' => $authUser?->phone ?? '+62 812-5550-1920',
+            'avatar_url' => $authUser?->avatar_url ?? '',
             'role' => $authUser ? ($authUser->isAdmin() ? 'Administrator' : ($authUser->isDoctor() ? 'Dokter Spesialis' : 'Pasien')) : 'Pasien',
-            'initials' => $authUser ? strtoupper(substr($authUser->name, 0, 1).substr(trim(strstr($authUser->name, ' ') ?: ''), 0, 1)) : 'RA',
+            'initials' => $authUser ? $authUser->initials : 'RA',
             'is_logged_in' => auth()->check(),
             'is_admin' => $authUser?->isAdmin() ?? false,
             'is_doctor' => $authUser?->isDoctor() ?? false,
@@ -428,7 +431,7 @@ class HomeController extends Controller
     /**
      * Store a newly created consultation booking in database.
      */
-    public function storeBooking(Request $request): JsonResponse
+    public function storeBooking(Request $request, BookingService $bookingService): JsonResponse
     {
         $validated = $request->validate([
             'patient_name' => ['required', 'string'],
@@ -440,101 +443,87 @@ class HomeController extends Controller
             'doctor_id' => ['nullable', 'integer'],
             'booking_date' => ['nullable', 'string'],
             'booking_time' => ['nullable', 'string'],
+            'jam_mulai' => ['nullable', 'string'],
+            'jam_selesai' => ['nullable', 'string'],
         ]);
 
-        $doctor = null;
-        if (Schema::hasTable('doctors')) {
-            $doctor = isset($validated['doctor_id'])
-                ? Doctor::find($validated['doctor_id'])
-                : Doctor::first();
+        $booking = $bookingService->createBooking($validated, auth()->user());
 
-            if (! $doctor) {
-                $doctor = Doctor::first();
-            }
-        }
-
-        // Find or create patient record
-        $patient = null;
-        if (Schema::hasTable('patients')) {
-            $patient = Patient::firstOrCreate(
-                ['phone' => $validated['phone']],
-                [
-                    'mrn' => '#GM-'.fake()->unique()->numerify('####'),
-                    'full_name' => $validated['patient_name'],
-                    'user_id' => auth()->id(),
-                ]
-            );
-        }
-
-        $bookingCode = 'BK-'.now()->format('Ymd').'-'.strtoupper(substr(uniqid(), -4));
-
-        $booking = null;
-        if (Schema::hasTable('bookings') && $patient) {
-            $booking = Booking::create([
-                'booking_code' => $bookingCode,
-                'patient_id' => $patient->id,
-                'doctor_id' => $doctor ? $doctor->id : 1,
-                'booking_date' => now()->toDateString(),
-                'booking_time' => $validated['booking_time'] ?? '09:00 AM',
-                'booking_source' => 'online',
-                'symptoms' => $validated['symptoms'],
-                'duration' => $validated['duration'] ?? '1 - 3 Hari',
-                'severity' => $validated['severity'] ?? 'Sedang',
-                'notes' => $validated['notes'] ?? null,
-                'status' => 'confirmed',
-                'tariff_plan' => 'consultation_only',
-                'total_amount' => (float) ($doctor?->price_num ?? 180000.00),
-                'payment_status' => 'unpaid',
-            ]);
-        }
-
-        $queue = null;
-        if (Schema::hasTable('queues') && $booking) {
-            $prefix = match ($doctor?->id) {
-                1 => 'B', 2 => 'A', 3 => 'C', default => 'A'
-            };
-            $queueCount = Queue::whereDate('queue_date', now()->toDateString())->count();
-            $queueNumber = $prefix.'-'.str_pad((string) ($queueCount + 1), 2, '0', STR_PAD_LEFT);
-
-            $queue = Queue::create([
-                'booking_id' => $booking->id,
-                'queue_number' => $queueNumber,
-                'queue_date' => now()->toDateString(),
-                'time_slot' => $validated['booking_time'] ?? '09:00 AM',
-                'status' => 'waiting',
-            ]);
-
-            session(['current_booking_id' => $booking->id]);
-            session()->forget('last_examined_booking_id');
-            session()->forget('just_paid_booking_id');
-        }
+        session(['current_booking_id' => $booking->id]);
+        session()->forget('last_examined_booking_id');
+        session()->forget('just_paid_booking_id');
 
         return response()->json([
             'success' => true,
-            'message' => 'Pendaftaran Berhasil! Sesi dengan '.($doctor?->nama_dokter ?? 'Dokter').' telah dijadwalkan.',
+            'message' => 'Pendaftaran Berhasil! Sesi dengan '.($booking->doctor?->nama_dokter ?? 'Dokter').' telah dijadwalkan.',
             'booking' => $booking,
-            'queue' => $queue,
+            'queue' => $booking->queue,
+        ]);
+    }
+
+    /**
+     * Cancel an existing consultation booking.
+     */
+    public function cancelBooking(Request $request, Booking $booking, BookingService $bookingService): JsonResponse
+    {
+        $cancelledBooking = $bookingService->cancelBooking($booking, auth()->user());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal booking berhasil dibatalkan. Slot jam kini kembali kosong.',
+            'booking' => $cancelledBooking,
+        ]);
+    }
+
+    /**
+     * Return JSON data of doctors, schedules, and bookings for interactive calendar.
+     */
+    public function calendarData(Request $request, BookingService $bookingService): JsonResponse
+    {
+        $doctorId = $request->has('doctor_id') && $request->get('doctor_id') !== 'all' && is_numeric($request->get('doctor_id'))
+            ? (int) $request->get('doctor_id')
+            : null;
+        $date = $request->get('date', now()->toDateString());
+
+        $data = $bookingService->getCalendarData($doctorId, $date);
+
+        return response()->json([
+            'success' => true,
+            'date' => $data['date'],
+            'doctors' => $data['doctors'],
+            'bookings' => $data['bookings'],
         ]);
     }
 
     /**
      * Display the Patient Calendar view.
      */
-    public function calendar(): View
+    public function calendar(Request $request): View
     {
         $authUser = auth()->user();
         $user = [
             'name' => $authUser?->name ?? 'Rina Anggraini',
             'email' => $authUser?->email ?? 'rina@example.com',
+            'phone' => $authUser?->phone ?? '+62 812-5550-1920',
+            'avatar_url' => $authUser?->avatar_url ?? '',
             'role' => $authUser ? ($authUser->isAdmin() ? 'Administrator' : 'Pasien') : 'Pasien',
-            'initials' => $authUser ? strtoupper(substr($authUser->name, 0, 1).substr(trim(strstr($authUser->name, ' ') ?: ''), 0, 1)) : 'RA',
+            'initials' => $authUser ? $authUser->initials : 'RA',
             'is_logged_in' => auth()->check(),
             'is_admin' => $authUser?->isAdmin() ?? false,
         ];
 
+        $doctors = Doctor::with(['poli', 'schedules'])->get();
+        $selectedDate = $request->get('date', now()->toDateString());
+        $allBookings = Booking::with(['patient', 'doctor.poli'])
+            ->whereDate('booking_date', $selectedDate)
+            ->get();
+
         return view('admin.calendar', [
             'user' => $user,
             'role' => 'patient',
+            'doctors' => $doctors,
+            'initialBookings' => $allBookings,
+            'initialDate' => $selectedDate,
         ]);
     }
 

@@ -66,10 +66,10 @@
       <div class="flex items-center gap-3">
 
         <!-- Doctor Profile Pill -->
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-full bg-blue-100 text-[#012D68] overflow-hidden flex items-end justify-center font-bold text-xs border border-white/60">
+        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity" title="Kelola Profil Saya">
+          <div class="w-9 h-9 rounded-full bg-blue-100 text-[#012D68] overflow-hidden flex items-center justify-center font-bold text-xs border border-white/60">
             @if(!empty($doctor['image']))
-              <img src="{{ asset($doctor['image']) }}" alt="{{ $doctor['name'] }}" class="w-full h-full object-cover object-bottom">
+              <img src="{{ asset($doctor['image']) }}" alt="{{ $doctor['name'] }}" class="w-full h-full object-cover">
             @else
               {{ $doctor['initials'] }}
             @endif
@@ -79,7 +79,7 @@
             <b class="block text-xs font-bold text-white">{{ $doctor['name'] }}</b>
             <small class="block text-[10.5px] text-blue-200">{{ $doctor['specialty'] }}</small>
           </div>
-        </div>
+        </a>
 
         <!-- Logout Form -->
         <form action="{{ route('logout') }}" method="POST" class="inline">

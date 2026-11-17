@@ -56,11 +56,11 @@
                     <span class="hidden xl:inline text-[14px]">Rekam Medis</span>
                 </a>
 
-                <!-- Pengaturan -->
-                <button class="nav flex items-center gap-3 p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-tint)]/60 text-left w-full transition-colors" onclick="window.showToast('Membuka Pengaturan...')">
+                <!-- Pengaturan / Profil -->
+                <a href="{{ route('profile.edit') }}" class="nav flex items-center gap-3 p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-tint)]/60 text-left w-full transition-colors" title="Profil & Pengaturan">
                     <svg class="app-svg-icon"><use href="#icon-set"/></svg>
-                    <span class="hidden xl:inline text-[14px]">Pengaturan</span>
-                </button>
+                    <span class="hidden xl:inline text-[14px]">Profil & Pengaturan</span>
+                </a>
 
                 @auth
                     @if (auth()->user()->isAdmin())
@@ -119,13 +119,19 @@
 
                 <!-- User Profile / Auth Action -->
                 @auth
-                    <div class="user-pill flex items-center gap-2.5 pl-2">
-                        <div class="avatar-initials w-11 h-11 text-[14px]">{{ $user['initials'] }}</div>
+                    <a href="{{ route('profile.edit') }}" class="user-pill flex items-center gap-2.5 pl-2 hover:opacity-90 transition-opacity" title="Kelola Profil Saya">
+                        <div class="avatar-initials w-11 h-11 text-[14px] overflow-hidden flex items-center justify-center">
+                            @if(!empty($user['avatar_url']))
+                                <img src="{{ $user['avatar_url'] }}" alt="{{ $user['name'] }}" class="w-full h-full object-cover">
+                            @else
+                                {{ $user['initials'] }}
+                            @endif
+                        </div>
                         <div class="hidden xl:block leading-tight text-left">
                             <b class="block text-[13.5px] text-[var(--color-text)]">{{ $user['name'] }}</b>
                             <small class="block text-[11.5px] text-[var(--color-text-muted)]">{{ $user['role'] }}</small>
                         </div>
-                    </div>
+                    </a>
                 @else
                     <a href="{{ route('login') }}" class="btn-primary !h-11 !px-5 !py-0 flex items-center gap-2 text-[13.5px] rounded-full font-semibold shadow-sm hover:opacity-95 transition-all">
                         <svg class="app-svg-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>

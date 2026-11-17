@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ObatController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,14 +49,36 @@ Route::get('/appointment-status', [HomeController::class, 'getAppointmentStatus'
 Route::post('/booking', [HomeController::class, 'storeBooking'])
     ->name('booking.store');
 
+Route::post('/booking/{booking}/cancel', [HomeController::class, 'cancelBooking'])
+    ->name('booking.cancel');
+
 Route::post('/payment', [HomeController::class, 'processPayment'])
     ->name('payment.process');
 
 Route::get('/calendar', [HomeController::class, 'calendar'])
     ->name('calendar');
 
+Route::get('/calendar/data', [HomeController::class, 'calendarData'])
+    ->name('calendar.data');
+
 Route::get('/rekam-medis', [HomeController::class, 'medicalRecords'])
     ->name('rekam-medis');
+
+// =====================================================
+// USER PROFILE ROUTES (Protected by auth)
+// =====================================================
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+});
+
+// Storage fallback route for Windows environment
+Route::get('/storage/{path}', [ProfileController::class, 'serveStorage'])
+    ->where('path', '.*')
+    ->name('storage.local');
 
 // =====================================================
 // DOCTOR ROUTES

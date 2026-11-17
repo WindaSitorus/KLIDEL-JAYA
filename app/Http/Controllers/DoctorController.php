@@ -250,15 +250,13 @@ class DoctorController extends Controller
 
             'hospital' => 'Klinik Maristella',
 
-            'initials' => $doctorModel?->initials
-                ?: strtoupper(substr($doctorModel?->nama_dokter ?? 'DR', 0, 2)),
+            'initials' => $authUser ? $authUser->initials : ($doctorModel?->initials ?: 'DR'),
 
             'email' => $authUser?->email
                 ?? ($doctorModel?->user?->email ?? 'dokter@aihealth.com'),
 
             'role' => 'Dokter Spesialis',
-            'image' => $doctorModel?->image
-                ?: 'images/doctors/doctor-1.png',
+            'image' => $authUser?->avatar_url ?: ($doctorModel?->image ?: 'images/doctors/doctor-1.png'),
 
             'is_doctor' => true,
         ];
