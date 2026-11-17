@@ -230,7 +230,7 @@ class AdminController extends Controller
             ]
         );
 
-        $amount = $validated['tariff_plan'] === 'consultation_only' ? 180.00 : 435.00;
+        $amount = $validated['tariff_plan'] === 'consultation_only' ? 180000.00 : 435000.00;
         $bookingCode = '#BILL'.strtoupper(substr(uniqid(), -5));
         $bookingDate = $validated['booking_date'] ?? now()->toDateString();
         $bookingTime = $validated['booking_time'] ?? '09:00 AM';

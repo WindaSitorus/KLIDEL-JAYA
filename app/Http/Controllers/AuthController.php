@@ -35,7 +35,7 @@ class AuthController extends Controller
         }
 
         return view('auth.login', [
-            'initialRole' => request('role', 'user')
+            'initialRole' => request('role', 'user'),
         ]);
     }
 

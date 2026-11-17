@@ -9,7 +9,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @else
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <script src="{{ asset('js/app.js') }}" defer></script>
+  @endif
   <style>
     :root {
       --bg-page: #ffffff;
@@ -792,7 +798,7 @@
                       type="button" 
                       class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" 
                       title="Aksi Transaksi"
-                      onclick="alert('Detail Pembayaran:\nInvoice: {{ $displayId }}\nPasien: {{ $payment->patient_name }}\nNominal: ${{ number_format($payment->amount, 2) }}\nStatus: {{ ucfirst($payment->status) }}\nDokter: {{ $docName }}')"
+                      onclick="alert('Detail Pembayaran:\nInvoice: {{ $displayId }}\nPasien: {{ $payment->patient_name }}\nNominal: Rp {{ number_format($payment->amount, 0, ',', '.') }}\nStatus: {{ ucfirst($payment->status) }}\nDokter: {{ $docName }}')"
                     >
                       <svg class="w-4 h-4 mx-auto" fill="currentColor" viewBox="0 0 20 20"><circle cx="4" cy="10" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="16" cy="10" r="1.5"/></svg>
                     </button>
@@ -985,8 +991,8 @@
           <div>
             <label class="block font-bold text-slate-700 mb-1">Layanan / Tarif</label>
             <select name="tariff_plan" class="w-full h-9 px-3 rounded-xl border border-slate-200 text-slate-800">
-              <option value="with_medicine">Konsultasi + Obat ($435.00)</option>
-              <option value="consultation_only">Konsultasi Saja ($180.00)</option>
+              <option value="with_medicine">Konsultasi + Obat (Rp 435.000)</option>
+              <option value="consultation_only">Konsultasi Saja (Rp 180.000)</option>
             </select>
           </div>
           <div>

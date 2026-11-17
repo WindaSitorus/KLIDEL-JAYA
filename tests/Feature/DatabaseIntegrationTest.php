@@ -295,21 +295,21 @@ class DatabaseIntegrationTest extends TestCase
         $this->assertDatabaseHas('bookings', [
             'doctor_id' => $doctor->id,
             'tariff_plan' => 'with_medicine',
-            'total_amount' => 435.00,
+            'total_amount' => 435000.00,
             'payment_status' => 'paid',
             'status' => 'completed',
         ]);
 
         $this->assertDatabaseHas('payments', [
             'patient_name' => 'Kurnia Mega',
-            'amount' => 435.00,
+            'amount' => 435000.00,
             'payment_method' => 'cash',
             'status' => 'confirmed',
         ]);
 
         // Verify KPI revenue increased in dashboard
         $newRevenue = (float) Payment::where('status', '!=', 'canceled')->sum('net_amount');
-        $this->assertEquals($initialRevenue + 435.00, $newRevenue);
+        $this->assertEquals($initialRevenue + 435000.00, $newRevenue);
 
         $dashboardResponse = $this->actingAs($admin)->get(route('admin.dashboard'));
         $dashboardResponse->assertOk();

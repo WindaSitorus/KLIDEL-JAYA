@@ -14,12 +14,12 @@ class ApotekerMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login')
                 ->with('warning', 'Silakan masuk terlebih dahulu.');
         }
 
-        if (!Auth::user()->isApoteker()) {
+        if (! Auth::user()->isApoteker()) {
             abort(403, 'Akses hanya diperbolehkan untuk Apoteker.');
         }
 

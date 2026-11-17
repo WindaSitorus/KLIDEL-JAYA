@@ -100,7 +100,7 @@ class PatientDoctorPaymentLifecycleTest extends TestCase
             ->assertJsonPath('booking_code', $bookingCode)
             ->assertJsonPath('doctor_name', $doctor->nama_dokter)
             ->assertJsonPath('payment_status', 'unpaid')
-            ->assertJsonPath('total_amount', 435);
+            ->assertJsonPath('total_amount', 475000);
 
         // -------------------------------------------------------------
         // STEP 5: Pasien selesai membayar (Processes payment & switches to 'welcome')
@@ -109,7 +109,7 @@ class PatientDoctorPaymentLifecycleTest extends TestCase
             'booking_id' => $bookingId,
             'invoice_number' => $bookingCode,
             'tariff_plan' => 'with_medicine',
-            'amount' => 435.00,
+            'amount' => 475000.00,
             'payment_method' => 'cash',
             'notes' => 'Pembayaran tunai pasien di kasir',
         ]);
@@ -126,7 +126,7 @@ class PatientDoctorPaymentLifecycleTest extends TestCase
         // Verification: Payment recorded in database
         $this->assertDatabaseHas('payments', [
             'invoice_number' => $bookingCode,
-            'amount' => 435.00,
+            'amount' => 475000.00,
             'status' => 'confirmed',
         ]);
 

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('nama_dokter');
             $table->string('spesialisasi');
             $table->decimal('rating', 2, 1)->default(4.8);
-            $table->string('price')->default('$18.0');
-            $table->decimal('price_num', 8, 2)->default(18.00);
+            $table->string('price')->default('Rp 180.000');
+            $table->decimal('price_num', 12, 2)->default(180000.00);
             $table->string('initials', 10)->nullable();
             $table->string('image')->nullable();
             $table->string('availability')->default('9AM - 8PM');

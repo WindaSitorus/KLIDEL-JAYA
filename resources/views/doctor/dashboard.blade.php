@@ -579,60 +579,97 @@
                 </h3>
               </div>
 
-              <!-- Pencarian Obat -->
-              <div class="mb-4">
-
-                <label for="search_obat" class="block text-xs font-semibold text-slate-700 mb-1">
-                  Cari Obat dari Database Klinik
+              <!-- KEPUTUSAN LAYANAN & ESTIMASI BIAYA DOKTER -->
+              <div class="mb-4 p-3.5 bg-blue-50/70 border border-blue-200/90 rounded-xl">
+                <label class="block text-xs font-bold text-slate-800 mb-2">
+                  KEPUTUSAN MEDIS DOKTER (PENENTU LAYANAN &amp; BIAYA):
                 </label>
-
-                <div class="relative">
-                  <input
-                    type="text"
-                    id="search_obat"
-                    autocomplete="off"
-                    placeholder="Ketik nama obat, kode obat, atau kategori (misal: Paracetamol, Amoxicillin)..."
-                    data-search-url="{{ route('doctor.obat.search') }}"
-                    class="w-full text-xs p-3 pr-10 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                  >
-                  <div class="absolute right-3 top-3 text-slate-400 pointer-events-none">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <label class="flex items-start gap-2.5 p-2.5 rounded-lg border-2 cursor-pointer transition-all bg-white border-[#012D68] shadow-xs" id="lbl-dec-meds">
+                    <input type="radio" name="service_decision" value="with_medicine" id="dec-with-meds" checked class="mt-1 text-[#012D68] focus:ring-0">
+                    <div>
+                      <b class="text-xs text-slate-900 block">Butuh Resep Obat Farmasi</b>
+                      <small class="text-[11px] text-slate-500 block leading-tight">Dokter meresepkan obat. Biaya = Jasa Konsultasi + Total Harga Obat. Resep diteruskan ke Apoteker.</small>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all bg-white/70 border-slate-200 hover:border-slate-300" id="lbl-dec-consult">
+                    <input type="radio" name="service_decision" value="consultation_only" id="dec-consult-only" class="mt-1 text-[#012D68] focus:ring-0">
+                    <div>
+                      <b class="text-xs text-slate-900 block">Hanya Konsultasi / Edukasi</b>
+                      <small class="text-[11px] text-slate-500 block leading-tight">Pasien hanya butuh konsultasi/terapi non-obat. Biaya = Hanya Jasa Dokter. Tidak dikirim ke Apoteker.</small>
+                    </div>
+                  </label>
+                </div>
+                
+                <!-- Ringkasan Penetapan Biaya oleh Dokter -->
+                <div class="mt-3 pt-2.5 border-t border-blue-100 flex flex-wrap items-center justify-between text-xs gap-2">
+                  <div class="text-slate-600">
+                    Jasa Dokter: <b class="text-slate-800">Rp {{ number_format((float)($doctor['price_num'] ?? 180000), 0, ',', '.') }}</b>
+                    <span id="doc-calc-med-plus" class="inline"> + Biaya Obat: <b id="doc-calc-med-cost" class="text-emerald-700">Rp 0</b></span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-slate-500 text-[11px]">Total Tagihan Ditetapkan:</span>
+                    <b id="doc-calc-total-cost" class="text-sm font-extrabold text-[#012D68]">Rp {{ number_format((float)($doctor['price_num'] ?? 180000), 0, ',', '.') }}</b>
                   </div>
                 </div>
-
-                <p class="text-[11px] text-slate-400 mt-1">
-                  Ketik minimal 2 karakter untuk mencari obat dari database klinik.
-                </p>
-
-                <!-- Hasil Pencarian -->
-                <div
-                  id="hasil-pencarian-obat"
-                  class="mt-2 space-y-2 max-h-60 overflow-y-auto"
-                  aria-live="polite"
-                ></div>
-
               </div>
 
-              <!-- Daftar Resep Obat Terpilih -->
-              <div class="mb-4">
-                <div class="flex items-center justify-between mb-2">
-                  <label class="block text-xs font-bold text-slate-800">
-                    Daftar Resep Obat Pasien (Tersinkron ke Apoteker)
+              <div id="doctor-meds-section">
+                <!-- Pencarian Obat -->
+                <div class="mb-4">
+
+                  <label for="search_obat" class="block text-xs font-semibold text-slate-700 mb-1">
+                    Cari Obat dari Database Klinik
                   </label>
-                  <span id="selected-meds-count" class="text-[11px] font-semibold text-slate-500">0 obat dipilih</span>
+
+                  <div class="relative">
+                    <input
+                      type="text"
+                      id="search_obat"
+                      autocomplete="off"
+                      placeholder="Ketik nama obat, kode obat, atau kategori (misal: Paracetamol, Amoxicillin)..."
+                      data-search-url="{{ route('doctor.obat.search') }}"
+                      class="w-full text-xs p-3 pr-10 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                    >
+                    <div class="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                  </div>
+
+                  <p class="text-[11px] text-slate-400 mt-1">
+                    Ketik minimal 2 karakter untuk mencari obat dari database klinik.
+                  </p>
+
+                  <!-- Hasil Pencarian -->
+                  <div
+                    id="hasil-pencarian-obat"
+                    class="mt-2 space-y-2 max-h-60 overflow-y-auto"
+                    aria-live="polite"
+                  ></div>
+
                 </div>
 
-                <!-- Hidden Input for structured JSON submitted to server -->
-                <input type="hidden" name="medications_json" id="medications_json" value="">
+                <!-- Daftar Resep Obat Terpilih -->
+                <div class="mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="block text-xs font-bold text-slate-800">
+                      Daftar Resep Obat Pasien (Tersinkron ke Apoteker)
+                    </label>
+                    <span id="selected-meds-count" class="text-[11px] font-semibold text-slate-500">0 obat dipilih</span>
+                  </div>
 
-                <!-- Selected Medications Container -->
-                <div id="prescribed-medications-list" class="space-y-2.5">
-                  <!-- Rendered dynamically by JavaScript -->
-                </div>
+                  <!-- Hidden Input for structured JSON submitted to server -->
+                  <input type="hidden" name="medications_json" id="medications_json" value="">
 
-                <!-- Empty State -->
-                <div id="empty-meds-alert" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-center text-xs text-slate-500">
-                  Belum ada obat yang dipilih dari database. Cari obat di atas dan klik <b>"+ Tambah ke Resep"</b>.
+                  <!-- Selected Medications Container -->
+                  <div id="prescribed-medications-list" class="space-y-2.5">
+                    <!-- Rendered dynamically by JavaScript -->
+                  </div>
+
+                  <!-- Empty State -->
+                  <div id="empty-meds-alert" class="p-3.5 rounded-xl border border-dashed border-slate-200 bg-slate-50/70 text-center text-xs text-slate-500">
+                    Belum ada obat yang dipilih dari database. Cari obat di atas dan klik <b>"+ Tambah ke Resep"</b>.
+                  </div>
                 </div>
               </div>
 
@@ -1047,12 +1084,62 @@
           name: m.name || 'Obat',
           satuan: m.satuan || 'Item',
           stok: m.stok || 100,
+          harga: parseFloat(m.harga || 15000),
           quantity: parseInt(m.quantity || m.qty || 10),
           frequency: m.frequency || '3x1 sehari sesudah makan',
           custom_frequency: '',
           dose: m.dose || '1 tablet',
           notes: m.notes || ''
         }));
+      }
+
+      const doctorPriceNum = {{ (float) ($doctor['price_num'] ?? 180000) }};
+      const decWithMeds = document.getElementById('dec-with-meds');
+      const decConsultOnly = document.getElementById('dec-consult-only');
+      const lblDecMeds = document.getElementById('lbl-dec-meds');
+      const lblDecConsult = document.getElementById('lbl-dec-consult');
+      const medsSection = document.getElementById('doctor-meds-section');
+      const docMedPlus = document.getElementById('doc-calc-med-plus');
+      const docMedCost = document.getElementById('doc-calc-med-cost');
+      const docTotalCost = document.getElementById('doc-calc-total-cost');
+
+      function updatePricingAndDecision() {
+        const isWithMeds = decWithMeds && decWithMeds.checked;
+        if (lblDecMeds && lblDecConsult) {
+          if (isWithMeds) {
+            lblDecMeds.className = 'flex items-start gap-2.5 p-2.5 rounded-lg border-2 cursor-pointer transition-all bg-white border-[#012D68] shadow-xs';
+            lblDecConsult.className = 'flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all bg-white/70 border-slate-200 hover:border-slate-300';
+            if (medsSection) medsSection.style.display = 'block';
+            if (docMedPlus) docMedPlus.style.display = 'inline';
+          } else {
+            lblDecConsult.className = 'flex items-start gap-2.5 p-2.5 rounded-lg border-2 cursor-pointer transition-all bg-white border-[#012D68] shadow-xs';
+            lblDecMeds.className = 'flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition-all bg-white/70 border-slate-200 hover:border-slate-300';
+            if (medsSection) medsSection.style.display = 'none';
+            if (docMedPlus) docMedPlus.style.display = 'none';
+          }
+        }
+
+        let totalMed = 0;
+        if (isWithMeds) {
+          selectedMedications.forEach(m => {
+            const h = parseFloat(m.harga || 0) || 15000;
+            const q = parseInt(m.quantity || 1) || 1;
+            totalMed += (h * q);
+          });
+        }
+
+        if (docMedCost) {
+          docMedCost.textContent = 'Rp ' + totalMed.toLocaleString('id-ID');
+        }
+        if (docTotalCost) {
+          const grandTotal = isWithMeds ? (doctorPriceNum + totalMed) : doctorPriceNum;
+          docTotalCost.textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
+        }
+      }
+
+      if (decWithMeds && decConsultOnly) {
+        decWithMeds.addEventListener('change', updatePricingAndDecision);
+        decConsultOnly.addEventListener('change', updatePricingAndDecision);
       }
 
       // Common frequency presets
@@ -1082,6 +1169,8 @@
           emptyAlert.style.display = selectedMedications.length === 0 ? 'block' : 'none';
         }
 
+        updatePricingAndDecision();
+
         // Sinkronisasi teks therapy_plan
         if (selectedMedications.length > 0) {
           const lines = selectedMedications.map(m => {
@@ -1110,6 +1199,7 @@
               <strong class="text-xs font-bold text-slate-900">${med.name}</strong>
               ${med.kode_obat ? `<span class="font-mono text-[10px] bg-slate-200 text-slate-700 font-bold px-1.5 py-0.5 rounded">${med.kode_obat}</span>` : ''}
               ${med.stok !== undefined ? `<span class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-medium">Stok: ${med.stok}</span>` : ''}
+              <span class="text-[10px] text-[#012D68] bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded font-bold">Rp ${Number(med.harga || 15000).toLocaleString('id-ID')}/${med.satuan || 'Item'}</span>
             </div>
             <button type="button" class="btn-remove-med text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded-lg transition-colors" title="Hapus dari resep">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -1282,6 +1372,7 @@
                     name: obat.nama_obat,
                     satuan: obat.satuan || 'Strip',
                     stok: obat.stok,
+                    harga: parseFloat(obat.harga || 0),
                     quantity: 10,
                     frequency: '3x1 sehari sesudah makan',
                     custom_frequency: '',

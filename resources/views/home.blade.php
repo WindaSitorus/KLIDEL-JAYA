@@ -8,7 +8,7 @@
         'specialty' => '-',
         'category' => 'all',
         'rating' => 5.0,
-        'price' => '$0.0',
+        'price' => 'Rp 0',
         'initials' => 'DR',
         'image' => 'images/doctors/doctor-1.png',
         'availability' => '9AM - 5PM',
@@ -237,24 +237,21 @@
                                 <div class="flex items-baseline justify-between text-[11px] mt-0.5">
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-slate-400 text-[10.5px]">Total:</span>
-                                        <b id="desktop-total-display" class="text-[14px] font-extrabold text-[#012D68] dark:text-blue-400">${{ number_format((float) ($nextAppointment['total_amount'] ?? 435), 2) }}</b>
+                                        <b id="desktop-total-display" class="text-[14px] font-extrabold text-[#012D68] dark:text-blue-400">Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}</b>
                                     </div>
                                     <span id="desktop-after-ref-code" class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Ref: {{ $nextAppointment['booking_code'] }}</span>
                                 </div>
-                                <span id="desktop-service-desc" class="hidden">Layanan Ortopedi &amp; 1 Resep Obat Klinik</span>
+                                <span id="desktop-service-desc" class="hidden">Layanan Poliklinik Maristella</span>
                             </div>
                         </div>
 
-                        <!-- Pilihan Cakupan Tarif Sistem (Sleek Segmented) -->
-                        <div class="grid grid-cols-2 gap-1.5 p-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[10.5px] my-1" role="group" aria-label="Pilihan Cakupan Tarif">
-                            <button type="button" class="btn-select-tariff-plan py-1 px-1.5 rounded-lg font-bold text-center transition-all border-2 border-[#012D68] dark:border-blue-400 bg-white dark:bg-[#101E35] text-[#012D68] dark:text-blue-300 shadow-xs flex items-center justify-center gap-1" data-plan="with_medicine">
-                                <span>Konsultasi + Obat</span>
-                                <span class="text-[10px] opacity-80 font-normal">($435.00)</span>
-                            </button>
-                            <button type="button" class="btn-select-tariff-plan py-1 px-1.5 rounded-lg font-medium text-center transition-all border border-transparent bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center gap-1" data-plan="consultation_only">
-                                <span>Konsultasi Saja</span>
-                                <span class="text-[10px] opacity-80 font-normal">($180.00)</span>
-                            </button>
+                        <!-- Penetapan Tindakan & Resep oleh Dokter (Readonly) -->
+                        <div class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[11px] my-1 flex items-center justify-between" id="desktop-tariff-badge-container">
+                            <span class="text-slate-500 dark:text-slate-400 font-medium text-[10.5px]">Keputusan Dokter:</span>
+                            <span id="desktop-tariff-badge" class="font-bold text-[#012D68] dark:text-blue-300 inline-flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span id="desktop-tariff-label">{{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter' }}</span>
+                            </span>
                         </div>
 
                         <!-- Action Buttons: Rincian & Bayar Sekarang -->
@@ -265,7 +262,7 @@
                             </button>
                             <button type="button" class="btn-trigger-payment h-9 rounded-xl bg-gradient-to-r from-[#012D68] to-[#023E8A] dark:from-blue-600 dark:to-blue-700 hover:brightness-110 active:scale-[0.98] text-white font-bold text-[12px] flex items-center justify-center gap-1.5 transition-all shadow-xs">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                <span id="desktop-pay-btn-label">Bayar Sekarang ($435.00)</span>
+                                <span id="desktop-pay-btn-label">Bayar Sekarang (Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }})</span>
                             </button>
                         </div>
 
@@ -628,22 +625,19 @@
                             <div class="flex items-baseline justify-between text-[10.5px] mt-0.5">
                                 <div class="flex items-baseline gap-1">
                                     <span class="text-slate-400 text-[10px]">Total:</span>
-                                    <b id="mobile-total-display" class="text-[13.5px] font-extrabold text-[#012D68] dark:text-blue-400">${{ number_format((float) ($nextAppointment['total_amount'] ?? 435), 2) }}</b>
+                                    <b id="mobile-total-display" class="text-[13.5px] font-extrabold text-[#012D68] dark:text-blue-400">Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}</b>
                                 </div>
                                 <span id="mobile-after-ref-code" class="text-[9.5px] text-slate-400 dark:text-slate-500 font-mono">{{ $nextAppointment['booking_code'] }}</span>
                             </div>
                         </div>
                     </div>
-                    <!-- Pilihan Cakupan Tarif Sistem Mobile (Sleek Segmented) -->
-                    <div class="grid grid-cols-2 gap-1 p-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[10px] my-1">
-                        <button type="button" class="btn-select-tariff-plan py-1 px-1 rounded-lg border-2 border-[#012D68] dark:border-blue-400 bg-white dark:bg-[#101E35] text-[#012D68] dark:text-blue-300 font-bold text-center transition-all shadow-xs flex items-center justify-center gap-1" data-plan="with_medicine">
-                            <span>+ Obat</span>
-                            <span class="opacity-80">($435)</span>
-                        </button>
-                        <button type="button" class="btn-select-tariff-plan py-1 px-1 rounded-lg border border-transparent bg-transparent text-slate-500 dark:text-slate-400 font-medium text-center transition-all hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1" data-plan="consultation_only">
-                            <span>Konsul Saja</span>
-                            <span class="opacity-80">($180)</span>
-                        </button>
+                    <!-- Penetapan Tindakan & Resep oleh Dokter Mobile (Readonly) -->
+                    <div class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-[10.5px] my-1 flex items-center justify-between" id="mobile-tariff-badge-container">
+                        <span class="text-slate-500 dark:text-slate-400 font-medium text-[10px]">Keputusan Dokter:</span>
+                        <span id="mobile-tariff-badge" class="font-bold text-[#012D68] dark:text-blue-300 inline-flex items-center gap-1">
+                            <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span id="mobile-tariff-label">{{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter' }}</span>
+                        </span>
                     </div>
                     <div id="mobile-action-buttons-unpaid" class="grid grid-cols-2 gap-2 mt-0.5">
                         <button type="button" class="btn-open-bill-drawer h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-[11px] flex items-center justify-center gap-1 transition-colors">
@@ -652,7 +646,7 @@
                         </button>
                         <button type="button" class="btn-trigger-payment h-8 rounded-xl bg-gradient-to-r from-[#012D68] to-[#023E8A] dark:from-blue-600 dark:to-blue-700 text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-xs">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                            <span id="mobile-pay-btn-label">Bayar ($435.00)</span>
+                            <span id="mobile-pay-btn-label">Bayar (Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }})</span>
                         </button>
                     </div>
                     <div id="mobile-action-buttons-paid" class="hidden grid grid-cols-2 gap-2 mt-0.5">
@@ -893,7 +887,7 @@
                     </div>
                     <div class="text-right flex-shrink-0">
                         <small class="text-[11px] text-slate-400 block">Tarif Sesi</small>
-                        <b id="modal-doc-price" class="text-[15px] font-bold text-[#012D68] dark:text-blue-400">$18.0</b>
+                        <b id="modal-doc-price" class="text-[15px] font-bold text-[#012D68] dark:text-blue-400">Rp 180.000</b>
                     </div>
                 </div>
 
@@ -1069,19 +1063,20 @@
                 </div>
             </div>
 
-            <!-- Tariff Plan Selector in Drawer -->
-            <div class="mb-3">
-                <span class="lbl">Cakupan Layanan (Tarif Resmi Sistem)</span>
-                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-[11px]" role="radiogroup">
-                    <button type="button" class="btn-select-tariff-plan p-2 rounded-lg font-bold text-left transition-all border-2 border-[#012D68] bg-white dark:bg-[#101E35] text-[#012D68] dark:text-blue-300 shadow-xs" data-plan="with_medicine">
-                        <span class="block text-[11.5px]">Konsultasi + Beli Obat</span>
-                        <b class="text-[#012D68] dark:text-blue-400 text-[13px]">$435.00</b>
-                    </button>
-                    <button type="button" class="btn-select-tariff-plan p-2 rounded-lg font-semibold text-left transition-all border border-slate-200 dark:border-slate-700 bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200" data-plan="consultation_only">
-                        <span class="block text-[11.5px]">Konsultasi Saja</span>
-                        <b class="text-slate-800 dark:text-slate-200 text-[13px]">$180.00</b>
-                    </button>
+            <!-- Keputusan Dokter Pemeriksa (Readonly) -->
+            <div class="mb-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-[12px]">
+                <span class="lbl" style="margin-bottom:4px">Keputusan Dokter Pemeriksa</span>
+                <div class="flex items-center justify-between mt-1">
+                    <span id="drawer-tariff-name" class="font-bold text-[#012D68] dark:text-blue-300">
+                        {{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter' }}
+                    </span>
+                    <b id="drawer-tariff-badge-price" class="text-[#012D68] dark:text-blue-400 text-[13px]">
+                        Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}
+                    </b>
                 </div>
+                <small class="text-slate-500 dark:text-slate-400 text-[11px] block mt-1">
+                    *Jenis tindakan dan kebutuhan obat ditentukan oleh dokter saat pemeriksaan medis.
+                </small>
             </div>
 
             <!-- Itemized Services & Medicine List -->
@@ -1096,7 +1091,7 @@
                         <span id="drawer-item-treatment-title">Treatment (2)</span>
                         <small id="drawer-item-treatment-desc" class="block text-[11px] text-slate-400 font-normal">Konsultasi Dokter Ortopedi &amp; Terapi Sendi</small>
                     </div>
-                    <span class="tt" id="drawer-item-treatment-amount">Total: $300.00</span>
+                    <span class="tt" id="drawer-item-treatment-amount">Total: Rp 300.000</span>
                 </div>
                 <div class="row" id="drawer-row-component">
                     <svg><use href="#i-wrench"/></svg>
@@ -1104,7 +1099,7 @@
                         <span id="drawer-item-component-title">Component used (1)</span>
                         <small id="drawer-item-component-desc" class="block text-[11px] text-slate-400 font-normal">Elastic Knee Support &amp; Perban Medis</small>
                     </div>
-                    <span class="tt" id="drawer-item-component-amount">Total: $120.00</span>
+                    <span class="tt" id="drawer-item-component-amount">Total: Rp 120.000</span>
                 </div>
                 <div class="row" id="drawer-row-medicine">
                     <svg><use href="#i-pill"/></svg>
@@ -1112,7 +1107,7 @@
                         <span id="drawer-item-medicine-title">Medicine (1)</span>
                         <small id="drawer-item-medicine-desc" class="block text-[11px] text-slate-400 font-normal">Analgesik Anti-Inflamasi &amp; Kalsium Kompleks</small>
                     </div>
-                    <span class="tt" id="drawer-item-medicine-amount">Total: $15.00</span>
+                    <span class="tt" id="drawer-item-medicine-amount">Total: Rp 15.000</span>
                 </div>
                 <button type="button" class="btn view" id="btn-toggle-item-breakdown">
                     <span id="view-details-text">View Details</span>
@@ -1123,19 +1118,19 @@
             <div id="items-breakdown-panel" class="hidden -mt-2 mb-4 p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 text-[11.5px] space-y-1.5">
                 <div class="flex justify-between text-slate-600 dark:text-slate-300">
                     <span>1. Jasa Konsultasi Dr. Saran Mitchell</span>
-                    <b class="font-semibold">$180.00</b>
+                    <b class="font-semibold">Rp 180.000</b>
                 </div>
                 <div class="flex justify-between text-slate-600 dark:text-slate-300">
                     <span>2. Terapi Fisik &amp; Evaluasi Traksi Tulang</span>
-                    <b class="font-semibold">$120.00</b>
+                    <b class="font-semibold">Rp 120.000</b>
                 </div>
                 <div class="flex justify-between text-slate-600 dark:text-slate-300">
                     <span>3. Elastic Bandage &amp; Support Kit</span>
-                    <b class="font-semibold">$120.00</b>
+                    <b class="font-semibold">Rp 120.000</b>
                 </div>
                 <div class="flex justify-between text-slate-600 dark:text-slate-300">
                     <span>4. Paket Obat Nyeri &amp; Vitamin Tulang (10 hari)</span>
-                    <b class="font-semibold">$15.00</b>
+                    <b class="font-semibold">Rp 15.000</b>
                 </div>
             </div>
 
@@ -1151,17 +1146,17 @@
             <!-- Total Price Summary -->
             <div class="sum">
                 <span>Subtotal</span>
-                <span id="drawer-subtotal-display">$435.00</span>
+                <span id="drawer-subtotal-display">Rp 435.000</span>
             </div>
             <div class="sum">
                 <span style="display:flex;gap:6px;align-items:center">
                     Tax (0%) <svg style="width:14px;height:14px"><use href="#i-info"/></svg>
                 </span>
-                <span>$0.00</span>
+                <span>Rp 0</span>
             </div>
             <div class="sum total">
                 <span>Total</span>
-                <span id="drawer-total-display">$435.00</span>
+                <span id="drawer-total-display">Rp 435.000</span>
             </div>
 
             <!-- Security Assurance -->
@@ -1243,7 +1238,7 @@
             <div class="m-body">
                 <div class="m-total">
                     <span>Total Payment</span>
-                    <span id="modal-total-display">$435.00</span>
+                    <span id="modal-total-display">Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}</span>
                 </div>
                 <div class="box">
                     <div class="bh flex items-center justify-between">
@@ -1254,35 +1249,29 @@
                         <span class="text-[10.5px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-[#012D68] dark:text-blue-300 font-bold">Otomatis</span>
                     </div>
                     <div class="bb space-y-2.5">
-                        <span class="lbl" style="color:var(--color-text, #0E2A2D);font-weight:700;font-size:11.5px;margin-bottom:6px">PILIH LAYANAN PEMERIKSAAN PASIEN:</span>
+                        <span class="lbl" style="color:var(--color-text, #0E2A2D);font-weight:700;font-size:11.5px;margin-bottom:6px">PENETAPAN HASIL PEMERIKSAAN DOKTER:</span>
 
-                        <!-- Opsi 1: Konsultasi + Beli Obat di Klinik -->
-                        <div class="modal-tariff-card p-3 rounded-xl border-2 border-[#012D68] bg-blue-50/70 dark:bg-blue-950/40 cursor-pointer transition-all" data-plan="with_medicine">
+                        <!-- Doctor Decision Card (Readonly) -->
+                        <div class="p-3.5 rounded-xl border-2 border-[#012D68] bg-blue-50/70 dark:bg-blue-950/40" id="modal-doctor-decision-card">
                             <div class="flex items-start gap-2.5">
-                                <input type="radio" name="modal_tariff_choice" value="with_medicine" id="tariff-radio-with-meds" checked class="mt-1 text-[#012D68] focus:ring-0">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between">
-                                        <label for="tariff-radio-with-meds" class="text-[13px] text-slate-900 dark:text-white font-bold cursor-pointer">Konsultasi + Beli Obat di Klinik</label>
-                                        <b class="text-[14px] font-extrabold text-[#012D68] dark:text-blue-400">$435.00</b>
-                                    </div>
-                                    <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 leading-snug">Pemeriksaan spesialis, terapi sendi, perban support &amp; obat farmasi klinik.</p>
-                                    <span class="inline-flex items-center gap-1 mt-1.5 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
-                                        ✓ Rekomendasi Dokter (Lengkap)
-                                    </span>
+                                <div class="w-8 h-8 rounded-lg bg-[#012D68] text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Opsi 2: Hanya Konsultasi Dokter Saja -->
-                        <div class="modal-tariff-card p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer transition-all hover:border-slate-400" data-plan="consultation_only">
-                            <div class="flex items-start gap-2.5">
-                                <input type="radio" name="modal_tariff_choice" value="consultation_only" id="tariff-radio-consult-only" class="mt-1 text-[#012D68] focus:ring-0">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between">
-                                        <label for="tariff-radio-consult-only" class="text-[13px] text-slate-900 dark:text-white font-bold cursor-pointer">Hanya Konsultasi Dokter Saja</label>
-                                        <b class="text-[14px] font-extrabold text-slate-800 dark:text-slate-200">$180.00</b>
+                                        <b id="modal-plan-name" class="text-[13.5px] text-slate-900 dark:text-white font-bold">
+                                            {{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Konsultasi + Resep Obat Klinik' : 'Hanya Konsultasi Dokter' }}
+                                        </b>
+                                        <b id="modal-plan-price" class="text-[15px] font-extrabold text-[#012D68] dark:text-blue-400">
+                                            Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}
+                                        </b>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">Hanya sesi diagnosa spesialis ortopedi. Resep obat ditebus mandiri di luar klinik.</p>
+                                    <p id="modal-plan-desc" class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-snug">
+                                        {{ ($nextAppointment['tariff_plan'] ?? 'with_medicine') === 'with_medicine' ? 'Dokter meresepkan tindakan medis beserta obat farmasi klinik.' : 'Dokter menetapkan sesi konsultasi/edukasi tanpa resep obat farmasi klinik.' }}
+                                    </p>
+                                    <span class="inline-flex items-center gap-1 mt-2 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
+                                        ✓ Ditetapkan oleh Dokter Pemeriksa
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -1290,14 +1279,14 @@
                         <!-- Info Pasien Notice -->
                         <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-2">
                             <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                            <span>Nominal pembayaran ditetapkan sistem secara pas sesuai tarif resmi klinik.</span>
+                            <span>Nominal tagihan dihitung otomatis berdasarkan tarif dokter dan obat yang diresepkan.</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="m-foot">
                 <button type="button" class="btn-primary" id="payBtn">
-                    <span>Pay $435.00</span>
+                    <span id="modal-pay-button-label">Bayar Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}</span>
                 </button>
             </div>
         </div>
@@ -1329,7 +1318,7 @@
 
         <h2 id="success-modal-title">Payment success</h2>
         <div class="amt-l">Total Amount Paid</div>
-        <div class="amt" id="success-amount">$435.00</div>
+        <div class="amt" id="success-amount">Rp 435.000</div>
         <div class="meta" id="success-meta">14 Agu 2026<i>•</i>Bill ID: #BILL00124<i>•</i>Poliklinik Ortopedi</div>
 
         <div class="details">
@@ -1340,12 +1329,12 @@
                     <button type="button" class="acc-head" aria-expanded="true">
                         <svg class="ico"><use href="#i-tooth"/></svg>
                         <span id="success-item-treatment-title">Treatment (2)</span>
-                        <span class="tt" id="success-item-treatment-amount">Total: $300.00</span>
+                        <span class="tt" id="success-item-treatment-amount">Total: Rp 300.000</span>
                         <svg class="chev"><use href="#i-down"/></svg>
                     </button>
                     <div class="acc-body" id="success-body-treatment">
-                        <div id="success-sub-consult"><span>Jasa Konsultasi Dr. Saran Mitchell</span><span id="success-val-consult">$180.00</span></div>
-                        <div id="success-sub-therapy"><span>Terapi Traksi &amp; Fisik Ortopedi</span><span id="success-val-therapy">$120.00</span></div>
+                        <div id="success-sub-consult"><span>Jasa Konsultasi Dr. Saran Mitchell</span><span id="success-val-consult">Rp 180.000</span></div>
+                        <div id="success-sub-therapy"><span>Terapi Traksi &amp; Fisik Ortopedi</span><span id="success-val-therapy">Rp 120.000</span></div>
                     </div>
                 </div>
 
@@ -1354,11 +1343,11 @@
                     <button type="button" class="acc-head" aria-expanded="false">
                         <svg class="ico"><use href="#i-wrench"/></svg>
                         <span id="success-item-component-title">Component used (1)</span>
-                        <span class="tt" id="success-item-component-amount">Total: $120.00</span>
+                        <span class="tt" id="success-item-component-amount">Total: Rp 120.000</span>
                         <svg class="chev"><use href="#i-down"/></svg>
                     </button>
                     <div class="acc-body" id="success-body-component">
-                        <div><span>Elastic Knee Support Bandage</span><span id="success-val-component">$120.00</span></div>
+                        <div><span>Elastic Knee Support Bandage</span><span id="success-val-component">Rp 120.000</span></div>
                     </div>
                 </div>
 
@@ -1367,11 +1356,11 @@
                     <button type="button" class="acc-head" aria-expanded="false">
                         <svg class="ico"><use href="#i-pill"/></svg>
                         <span id="success-item-medicine-title">Medicine (1)</span>
-                        <span class="tt" id="success-item-medicine-amount">Total: $15.00</span>
+                        <span class="tt" id="success-item-medicine-amount">Total: Rp 15.000</span>
                         <svg class="chev"><use href="#i-down"/></svg>
                     </button>
                     <div class="acc-body" id="success-body-medicine">
-                        <div><span>Paket Analgesik &amp; Kalsium Kompleks (10 hari)</span><span id="success-val-medicine">$15.00</span></div>
+                        <div><span>Paket Analgesik &amp; Kalsium Kompleks (10 hari)</span><span id="success-val-medicine">Rp 15.000</span></div>
                     </div>
                 </div>
             </div>
@@ -1385,11 +1374,11 @@
                 </div>
                 <div class="r">
                     <span>Amount paid</span>
-                    <b id="success-amount-paid">$435.00</b>
+                    <b id="success-amount-paid">Rp 435.000</b>
                 </div>
                 <div class="r">
                     <span>Change money</span>
-                    <b>$0.00</b>
+                    <b>Rp 0</b>
                 </div>
                 <div class="r">
                     <span>Payment method</span>

@@ -394,25 +394,56 @@ class DoctorController extends Controller
 
         // Parse medication lines or structured medications_json into structured array
         $meds = [];
+        $totalMedCost = 0;
 
-        if ($request->filled('medications_json')) {
+        $decision = $request->input('service_decision', $request->input('needs_medicine'));
+        $forceConsultOnly = in_array($decision, ['no', '0', 'consultation_only', 'konsul_saja'], true);
+
+        if (! $forceConsultOnly && $request->filled('medications_json')) {
             $parsed = json_decode($request->input('medications_json'), true);
             if (is_array($parsed) && count($parsed) > 0) {
                 foreach ($parsed as $p) {
+                    $kode = $p['kode_obat'] ?? '';
+                    $name = $p['name'] ?? 'Obat';
+                    $qty = (int) ($p['quantity'] ?? $p['qty'] ?? 10);
+                    $dose = $p['dose'] ?? '1 tablet';
+                    $freq = $p['frequency'] ?? '3x1 sehari sesudah makan';
+                    $notes = $p['notes'] ?? '';
+                    $satuan = $p['satuan'] ?? 'Item';
+
+                    $obatDb = null;
+                    if ($kode) {
+                        $obatDb = Obat::where('kode_obat', $kode)->first();
+                    }
+                    if (! $obatDb && $name) {
+                        $cleanName = trim(explode('—', $name)[0]);
+                        $obatDb = Obat::where('nama_obat', 'like', "%{$cleanName}%")->first();
+                    }
+
+                    $itemHarga = isset($p['harga']) && (float) $p['harga'] > 0
+                        ? (float) $p['harga']
+                        : ((float) ($obatDb?->harga ?? 15000));
+
+                    $subtotal = $qty * $itemHarga;
+                    $totalMedCost += $subtotal;
+
                     $meds[] = [
-                        'obat_id' => $p['obat_id'] ?? null,
-                        'kode_obat' => $p['kode_obat'] ?? '',
-                        'name' => $p['name'] ?? 'Obat',
-                        'quantity' => (int) ($p['quantity'] ?? $p['qty'] ?? 10),
-                        'dose' => $p['dose'] ?? '1 tablet',
-                        'frequency' => $p['frequency'] ?? '3x1 sehari sesudah makan',
-                        'notes' => $p['notes'] ?? '',
+                        'obat_id' => $obatDb?->id ?? ($p['obat_id'] ?? null),
+                        'kode_obat' => $obatDb?->kode_obat ?? $kode,
+                        'name' => $obatDb?->nama_obat ?? $name,
+                        'satuan' => $obatDb?->satuan ?? $satuan,
+                        'harga' => $itemHarga,
+                        'quantity' => $qty,
+                        'dose' => $dose,
+                        'frequency' => $freq,
+                        'subtotal' => $subtotal,
+                        'notes' => $notes,
                     ];
                 }
             }
         }
 
-        if (empty($meds) && ! empty($validated['therapy_plan'])) {
+        if (! $forceConsultOnly && empty($meds) && ! empty($validated['therapy_plan'])) {
             $lines = explode("\n", trim($validated['therapy_plan']));
 
             foreach ($lines as $line) {
@@ -425,16 +456,27 @@ class DoctorController extends Controller
                         $freq = trim($fMatches[1]);
                     }
 
+                    $itemHarga = 15000;
+                    $qty = 10;
+                    $subtotal = $qty * $itemHarga;
+                    $totalMedCost += $subtotal;
+
                     $meds[] = [
                         'name' => $cleanLine,
                         'dose' => $dose,
                         'frequency' => $freq,
-                        'quantity' => 10,
+                        'quantity' => $qty,
+                        'harga' => $itemHarga,
+                        'subtotal' => $subtotal,
                         'notes' => '',
                     ];
                 }
             }
         }
+
+        $hasMedicine = ! empty($meds) && ! $forceConsultOnly;
+        $consultationFee = (float) ($doctorModel?->price_num ?? 180000.00);
+        $totalAmount = $hasMedicine ? ($consultationFee + $totalMedCost) : $consultationFee;
 
         $soapData = [
             'subjective' => $validated['subjective'],
@@ -457,25 +499,15 @@ class DoctorController extends Controller
             ],
 
             'plan' => [
-                'medications' => ! empty($meds)
-                    ? $meds
-                    : [
-                        [
-                            'name' => $validated['primary_diagnosis'].
-                                ' Therapy Regimen',
-                            'dose' => '1 unit',
-                            'frequency' => 'Rutin',
-                            'quantity' => 1,
-                            'notes' => '',
-                        ],
-                    ],
-
-                'clinical_action' => 'Pemeriksaan selesai dicatat oleh dokter.',
-
+                'medications' => $meds,
+                'clinical_action' => $validated['therapy_plan'] ?? ($hasMedicine ? 'Pemberian terapi farmasi klinik.' : 'Konsultasi dan edukasi medis pasien tanpa resep obat.'),
                 'return_date' => $validated['return_date'] ?? '14 hari ke depan',
-
-                'prescription_status' => 'perlu_diproses',
+                'prescription_status' => $hasMedicine ? 'perlu_diproses' : 'tidak_ada_resep',
                 'prescribed_at' => now()->toIso8601String(),
+                'tariff_plan' => $hasMedicine ? 'with_medicine' : 'consultation_only',
+                'consultation_fee' => $consultationFee,
+                'medicine_cost' => $totalMedCost,
+                'total_amount' => $totalAmount,
             ],
         ];
 
@@ -505,7 +537,9 @@ class DoctorController extends Controller
 
             $booking->update([
                 'status' => 'completed',
-                'payment_status' => $booking->payment_status ?: 'paid',
+                'tariff_plan' => $hasMedicine ? 'with_medicine' : 'consultation_only',
+                'total_amount' => $totalAmount,
+                'payment_status' => $booking->payment_status ?: 'unpaid',
             ]);
 
             Queue::where('booking_id', $booking->id)

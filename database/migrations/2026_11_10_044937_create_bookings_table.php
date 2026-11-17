@@ -25,8 +25,8 @@ return new class extends Migration
             $table->string('severity')->nullable();
             $table->text('notes')->nullable();
             $table->string('status')->default('pending');
-            $table->string('tariff_plan')->default('with_medicine');
-            $table->decimal('total_amount', 10, 2)->default(435.00);
+            $table->string('tariff_plan')->default('consultation_only');
+            $table->decimal('total_amount', 12, 2)->default(180000.00);
             $table->string('payment_status')->default('unpaid');
             $table->timestamps();
         });

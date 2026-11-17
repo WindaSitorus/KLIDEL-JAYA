@@ -88,8 +88,8 @@ class HomeController extends Controller
                     'specialty' => 'Cardiologist',
                     'category' => 'Cardiologist',
                     'rating' => 4.9,
-                    'price' => '$16.5',
-                    'price_num' => 16.5,
+                    'price' => 'Rp 150.000',
+                    'price_num' => 150000.00,
                     'initials' => 'LW',
                     'image' => 'images/doctors/doctor-1.png',
                     'availability' => '9AM - 8PM',
@@ -102,8 +102,8 @@ class HomeController extends Controller
                     'specialty' => 'Neurologist',
                     'category' => 'Neurologist',
                     'rating' => 4.8,
-                    'price' => '$18.0',
-                    'price_num' => 18.0,
+                    'price' => 'Rp 175.000',
+                    'price_num' => 175000.00,
                     'initials' => 'AK',
                     'image' => 'images/doctors/doctor-2.png',
                     'availability' => '8AM - 6PM',
@@ -116,8 +116,8 @@ class HomeController extends Controller
                     'specialty' => 'Orthopedist',
                     'category' => 'Orthopedist',
                     'rating' => 4.7,
-                    'price' => '$19.0',
-                    'price_num' => 19.0,
+                    'price' => 'Rp 180.000',
+                    'price_num' => 180000.00,
                     'initials' => 'SM',
                     'image' => 'images/doctors/doctor-3.png',
                     'availability' => '10AM - 7PM',
@@ -141,7 +141,8 @@ class HomeController extends Controller
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
             'booking_code' => $latestBooking?->booking_code ?? '#BILL00124',
             'status' => $latestBooking?->status ?? ($isDoctorExamined ? 'completed' : 'confirmed'),
-            'total_amount' => $latestBooking?->total_amount ?? 435.00,
+            'tariff_plan' => $latestBooking?->tariff_plan ?? 'with_medicine',
+            'total_amount' => $latestBooking?->total_amount ?? 435000.00,
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',
         ];
 
@@ -287,7 +288,7 @@ class HomeController extends Controller
             'doctor_name' => $latestBooking?->doctor?->nama_dokter ?? 'Dr. Saran Mitchell',
             'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Orthopedist',
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
-            'total_amount' => (float) ($latestBooking?->total_amount ?? 435.00),
+            'total_amount' => (float) ($latestBooking?->total_amount ?? 435000.00),
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',
             'tariff_plan' => $latestBooking?->tariff_plan ?? 'with_medicine',
         ]);
@@ -336,7 +337,7 @@ class HomeController extends Controller
             $booking = Booking::with(['patient', 'doctor'])->latest('id')->first();
         }
 
-        $amount = (float) ($validated['amount'] ?? ($booking?->total_amount ?? 435.00));
+        $amount = (float) ($validated['amount'] ?? ($booking?->total_amount ?? 435000.00));
         $tariffPlan = $validated['tariff_plan'] ?? ($booking?->tariff_plan ?? 'with_medicine');
         $paymentMethod = $validated['payment_method'] ?? 'cash';
         $invoiceNumber = $validated['invoice_number'] ?? ($booking?->booking_code ?? '#BILL00124');
@@ -443,8 +444,8 @@ class HomeController extends Controller
                 'severity' => $validated['severity'] ?? 'Sedang',
                 'notes' => $validated['notes'] ?? null,
                 'status' => 'confirmed',
-                'tariff_plan' => 'with_medicine',
-                'total_amount' => 435.00,
+                'tariff_plan' => 'consultation_only',
+                'total_amount' => (float) ($doctor?->price_num ?? 180000.00),
                 'payment_status' => 'unpaid',
             ]);
         }

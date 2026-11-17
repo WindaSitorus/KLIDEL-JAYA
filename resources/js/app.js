@@ -645,13 +645,18 @@ document.addEventListener('DOMContentLoaded', () => {
           if (mobileRef && data.booking_code) mobileRef.textContent = data.booking_code;
 
           if (data.total_amount) {
-            const formattedTotal = `$${Number(data.total_amount).toFixed(2)}`;
+            const formattedTotal = 'Rp ' + Number(data.total_amount).toLocaleString('id-ID');
             const dTot = document.getElementById('desktop-total-display');
             if (dTot) dTot.textContent = formattedTotal;
             const mTot = document.getElementById('mobile-total-display');
             if (mTot) mTot.textContent = formattedTotal;
             const dPay = document.getElementById('desktop-pay-btn-label');
             if (dPay) dPay.textContent = `Bayar Sekarang (${formattedTotal})`;
+            const mPay = document.getElementById('mobile-pay-btn-label');
+            if (mPay) mPay.textContent = `Bayar (${formattedTotal})`;
+          }
+          if (data.tariff_plan) {
+            applyTariffPlan(data.tariff_plan, data.total_amount);
           }
         } else if (data.mode === 'before') {
           window.currentBookingCode = data.booking_code;
@@ -765,52 +770,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (currentTariffPlan === 'with_medicine') {
       if (successItemTreatmentTitle) successItemTreatmentTitle.textContent = 'Treatment (2)';
-      if (successItemTreatmentAmount) successItemTreatmentAmount.textContent = 'Total: $300.00';
+      if (successItemTreatmentAmount) successItemTreatmentAmount.textContent = 'Total: Rp 300.000';
       if (successBodyTreatment) {
         successBodyTreatment.innerHTML = `
-          <div><span>Jasa Konsultasi Dr. Saran Mitchell</span><span>$180.00</span></div>
-          <div><span>Terapi Traksi &amp; Fisik Ortopedi</span><span>$120.00</span></div>
+          <div><span>Jasa Konsultasi Dr. Saran Mitchell</span><span>Rp 180.000</span></div>
+          <div><span>Terapi Traksi &amp; Fisik Ortopedi</span><span>Rp 120.000</span></div>
         `;
       }
 
       if (successItemCompTitle) successItemCompTitle.textContent = 'Component used (1)';
-      if (successItemCompAmount) successItemCompAmount.textContent = 'Total: $120.00';
+      if (successItemCompAmount) successItemCompAmount.textContent = 'Total: Rp 120.000';
       if (successBodyComponent) {
         successBodyComponent.innerHTML = `
-          <div><span>Elastic Knee Support Bandage</span><span>$120.00</span></div>
+          <div><span>Elastic Knee Support Bandage</span><span>Rp 120.000</span></div>
         `;
       }
 
       if (successItemMedTitle) successItemMedTitle.textContent = 'Medicine (1)';
-      if (successItemMedAmount) successItemMedAmount.textContent = 'Total: $15.00';
+      if (successItemMedAmount) successItemMedAmount.textContent = 'Total: Rp 15.000';
       if (successBodyMedicine) {
         successBodyMedicine.innerHTML = `
-          <div><span>Paket Analgesik &amp; Kalsium Kompleks (10 hari)</span><span>$15.00</span></div>
+          <div><span>Paket Analgesik &amp; Kalsium Kompleks (10 hari)</span><span>Rp 15.000</span></div>
         `;
       }
     } else {
       // consultation_only
       if (successItemTreatmentTitle) successItemTreatmentTitle.textContent = 'Treatment (1)';
-      if (successItemTreatmentAmount) successItemTreatmentAmount.textContent = 'Total: $180.00';
+      if (successItemTreatmentAmount) successItemTreatmentAmount.textContent = 'Total: Rp 180.000';
       if (successBodyTreatment) {
         successBodyTreatment.innerHTML = `
-          <div><span>Jasa Konsultasi Dr. Saran Mitchell</span><span>$180.00</span></div>
+          <div><span>Jasa Konsultasi Dr. Saran Mitchell</span><span>Rp 180.000</span></div>
         `;
       }
 
       if (successItemCompTitle) successItemCompTitle.textContent = 'Component used (0)';
-      if (successItemCompAmount) successItemCompAmount.textContent = 'Dilewati ($0.00)';
+      if (successItemCompAmount) successItemCompAmount.textContent = 'Dilewati (Rp 0)';
       if (successBodyComponent) {
         successBodyComponent.innerHTML = `
-          <div><span class="italic text-slate-400">Tidak ada komponen medis tambahan</span><span>$0.00</span></div>
+          <div><span class="italic text-slate-400">Tidak ada komponen medis tambahan</span><span>Rp 0</span></div>
         `;
       }
 
       if (successItemMedTitle) successItemMedTitle.textContent = 'Medicine (0)';
-      if (successItemMedAmount) successItemMedAmount.textContent = 'Resep Luar ($0.00)';
+      if (successItemMedAmount) successItemMedAmount.textContent = 'Tanpa Obat (Rp 0)';
       if (successBodyMedicine) {
         successBodyMedicine.innerHTML = `
-          <div><span class="italic text-slate-400">Resep obat ditebus mandiri oleh pasien</span><span>$0.00</span></div>
+          <div><span class="italic text-slate-400">Pemeriksaan konsultasi saja tanpa resep obat</span><span>Rp 0</span></div>
         `;
       }
     }
@@ -916,65 +921,66 @@ document.addEventListener('DOMContentLoaded', () => {
   // CLINIC SYSTEM TARIFF PLAN MANAGEMENT (Determined strictly by clinic rates)
   // ==========================================================================
 
-  let currentTariffPlan = 'with_medicine'; // 'with_medicine' ($435.00) | 'consultation_only' ($180.00)
+  let currentTariffPlan = 'with_medicine'; // 'with_medicine' (Rp 435.000) | 'consultation_only' (Rp 180.000)
   const TARIFF_RATES = {
     with_medicine: {
-      amount: 435.00,
-      formatted: '$435.00',
-      serviceDesc: 'Layanan Ortopedi & 1 Resep Obat Klinik',
-      packageName: 'Konsultasi + Beli Obat di Klinik',
+      amount: 435000.00,
+      formatted: 'Rp 435.000',
+      serviceDesc: 'Layanan Poliklinik & Resep Obat Farmasi',
+      packageName: 'Konsultasi + Resep Obat Farmasi',
       treatmentTitle: 'Treatment (2)',
       treatmentDesc: 'Konsultasi Dokter Ortopedi & Terapi Sendi',
-      treatmentAmount: 'Total: $300.00',
-      componentAmount: 'Total: $120.00',
-      medicineAmount: 'Total: $15.00'
+      treatmentAmount: 'Total: Rp 300.000',
+      componentAmount: 'Total: Rp 120.000',
+      medicineAmount: 'Total: Rp 15.000'
     },
     consultation_only: {
-      amount: 180.00,
-      formatted: '$180.00',
-      serviceDesc: 'Hanya Konsultasi Dokter Spesialis (Resep Mandiri)',
+      amount: 180000.00,
+      formatted: 'Rp 180.000',
+      serviceDesc: 'Hanya Konsultasi Dokter Spesialis (Tanpa Resep Obat)',
       packageName: 'Hanya Konsultasi Dokter Saja',
       treatmentTitle: 'Treatment (1)',
       treatmentDesc: 'Konsultasi Dokter Spesialis Ortopedi',
-      treatmentAmount: 'Total: $180.00',
-      componentAmount: 'Dilewati ($0.00)',
-      medicineAmount: 'Resep Luar ($0.00)'
+      treatmentAmount: 'Total: Rp 180.000',
+      componentAmount: 'Dilewati (Rp 0)',
+      medicineAmount: 'Tanpa Obat (Rp 0)'
     }
   };
 
-  function applyTariffPlan(plan) {
+  function applyTariffPlan(plan, customTotal = null) {
     currentTariffPlan = plan;
-    const rate = TARIFF_RATES[plan];
+    const rate = TARIFF_RATES[plan] || TARIFF_RATES.with_medicine;
+    const formattedAmount = customTotal ? ('Rp ' + Number(customTotal).toLocaleString('id-ID')) : rate.formatted;
 
     // 1. Update Card displays (Desktop & Mobile)
     const desktopTotalDisplay = document.getElementById('desktop-total-display');
-    if (desktopTotalDisplay) desktopTotalDisplay.textContent = rate.formatted;
+    if (desktopTotalDisplay) desktopTotalDisplay.textContent = formattedAmount;
 
     const mobileTotalDisplay = document.getElementById('mobile-total-display');
-    if (mobileTotalDisplay) mobileTotalDisplay.textContent = rate.formatted;
+    if (mobileTotalDisplay) mobileTotalDisplay.textContent = formattedAmount;
 
     const desktopServiceDesc = document.getElementById('desktop-service-desc');
     if (desktopServiceDesc) desktopServiceDesc.textContent = rate.serviceDesc;
 
     const desktopPayBtnLabel = document.getElementById('desktop-pay-btn-label');
-    if (desktopPayBtnLabel) desktopPayBtnLabel.textContent = `Bayar Sekarang (${rate.formatted})`;
+    if (desktopPayBtnLabel) desktopPayBtnLabel.textContent = `Bayar Sekarang (${formattedAmount})`;
 
     const mobilePayBtnLabel = document.getElementById('mobile-pay-btn-label');
-    if (mobilePayBtnLabel) mobilePayBtnLabel.textContent = `Bayar (${rate.formatted})`;
+    if (mobilePayBtnLabel) mobilePayBtnLabel.textContent = `Bayar (${formattedAmount})`;
 
-    // Update Plan Buttons on Card & Drawer
-    document.querySelectorAll('.btn-select-tariff-plan').forEach(btn => {
-      const isSelected = btn.dataset.plan === plan;
-      if (isSelected) {
-        btn.classList.add('border-2', 'border-[#012D68]', 'dark:border-blue-400', 'bg-white', 'dark:bg-[#101E35]', 'text-[#012D68]', 'dark:text-blue-300', 'font-bold', 'shadow-xs');
-        btn.classList.remove('border-slate-200', 'dark:border-slate-700', 'border-transparent', 'bg-transparent', 'text-slate-500', 'dark:text-slate-400', 'font-semibold', 'font-medium');
-      } else {
-        btn.classList.remove('border-2', 'border-[#012D68]', 'dark:border-blue-400', 'bg-white', 'dark:bg-[#101E35]', 'text-[#012D68]', 'dark:text-blue-300', 'font-bold', 'shadow-xs');
-        btn.classList.add('border', 'border-transparent', 'bg-transparent', 'text-slate-500', 'dark:text-slate-400', 'font-medium');
-      }
-    });
+    const dtLabel = document.getElementById('desktop-tariff-label');
+    if (dtLabel) dtLabel.textContent = plan === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter';
+
+    const mtLabel = document.getElementById('mobile-tariff-label');
+    if (mtLabel) mtLabel.textContent = plan === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter';
 
     // 2. Update Drawer Displays
+    const drawerTariffName = document.getElementById('drawer-tariff-name');
+    if (drawerTariffName) drawerTariffName.textContent = plan === 'with_medicine' ? 'Konsultasi + Resep Obat' : 'Hanya Konsultasi Dokter';
+
+    const drawerTariffBadgePrice = document.getElementById('drawer-tariff-badge-price');
+    if (drawerTariffBadgePrice) drawerTariffBadgePrice.textContent = formattedAmount;
+
     const dItemTreatmentTitle = document.getElementById('drawer-item-treatment-title');
     if (dItemTreatmentTitle) dItemTreatmentTitle.textContent = rate.treatmentTitle;
 
@@ -991,79 +997,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dItemMedAmt) dItemMedAmt.textContent = rate.medicineAmount;
 
     const dSubtotal = document.getElementById('drawer-subtotal-display');
-    if (dSubtotal) dSubtotal.textContent = rate.formatted;
+    if (dSubtotal) dSubtotal.textContent = formattedAmount;
 
     const dTotal = document.getElementById('drawer-total-display');
-    if (dTotal) dTotal.textContent = rate.formatted;
+    if (dTotal) dTotal.textContent = formattedAmount;
 
     // 3. Update Modal Displays
     const modalTotalDisplay = document.getElementById('modal-total-display');
-    if (modalTotalDisplay) modalTotalDisplay.textContent = rate.formatted;
+    if (modalTotalDisplay) modalTotalDisplay.textContent = formattedAmount;
+
+    const modalPlanName = document.getElementById('modal-plan-name');
+    if (modalPlanName) modalPlanName.textContent = plan === 'with_medicine' ? 'Konsultasi + Resep Obat Klinik' : 'Hanya Konsultasi Dokter';
+
+    const modalPlanPrice = document.getElementById('modal-plan-price');
+    if (modalPlanPrice) modalPlanPrice.textContent = formattedAmount;
+
+    const modalPlanDesc = document.getElementById('modal-plan-desc');
+    if (modalPlanDesc) {
+      modalPlanDesc.textContent = plan === 'with_medicine'
+        ? 'Dokter meresepkan tindakan medis beserta obat farmasi klinik.'
+        : 'Dokter menetapkan sesi konsultasi/edukasi tanpa resep obat farmasi klinik.';
+    }
 
     if (payBtn) {
       const spanEl = payBtn.querySelector('span');
-      if (spanEl) spanEl.textContent = `Pay ${rate.formatted}`;
+      if (spanEl) spanEl.textContent = `Bayar ${formattedAmount}`;
     }
-
-    // Modal Radio cards highlight
-    document.querySelectorAll('.modal-tariff-card').forEach(card => {
-      const radio = card.querySelector('input[type="radio"]');
-      const isCardPlan = card.dataset.plan === plan;
-      if (radio) radio.checked = isCardPlan;
-
-      if (isCardPlan) {
-        card.classList.add('border-2', 'border-[#012D68]', 'bg-blue-50/70', 'dark:bg-blue-950/40');
-        card.classList.remove('border-slate-200', 'dark:border-slate-700', 'bg-white', 'dark:bg-slate-900');
-      } else {
-        card.classList.remove('border-2', 'border-[#012D68]', 'bg-blue-50/70', 'dark:bg-blue-950/40');
-        card.classList.add('border', 'border-slate-200', 'dark:border-slate-700', 'bg-white', 'dark:bg-slate-900');
-      }
-    });
   }
-
-  // Bind click handlers for tariff plan selection across Card & Drawer
-  document.querySelectorAll('.btn-select-tariff-plan').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const plan = btn.dataset.plan;
-      if (plan) {
-        applyTariffPlan(plan);
-        showToast(`Tarif sistem diatur: ${TARIFF_RATES[plan].packageName} (${TARIFF_RATES[plan].formatted})`);
-      }
-    });
-  });
-
-  // Bind click handlers for Modal tariff cards
-  document.querySelectorAll('.modal-tariff-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const plan = card.dataset.plan;
-      if (plan) {
-        applyTariffPlan(plan);
-        showToast(`Tarif sistem diatur: ${TARIFF_RATES[plan].packageName} (${TARIFF_RATES[plan].formatted})`);
-      }
-    });
-  });
-
-  // Item breakdown toggle
-  btnToggleBreakdown?.addEventListener('click', () => {
-    const isHidden = itemsBreakdownPanel?.classList.toggle('hidden');
-    if (viewDetailsText) {
-      viewDetailsText.textContent = isHidden ? 'View Details' : 'Hide Details';
-    }
-  });
-
-  // Show more payment methods toggle
-  btnShowMoreMethods?.addEventListener('click', () => {
-    const isHidden = morePaymentMethods?.classList.toggle('hidden');
-    if (showMoreText) {
-      showMoreText.textContent = isHidden ? 'Show More' : 'Hide More';
-    }
-    if (showMoreIcon) {
-      const useEl = showMoreIcon.querySelector('use');
-      if (useEl) {
-        useEl.setAttribute('href', isHidden ? '#i-down' : '#i-up2');
-      }
-    }
-  });
 
   // Pay Confirmation Process (Saves to database and transforms card to Welcome state)
   payBtn?.addEventListener('click', () => {
@@ -1075,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
       </svg>
-      <span>Menyimpan Pembayaran ${rate.formatted}...</span>
+      <span>Menyimpan Pembayaran...</span>
     `;
 
     fetch('/payment', {
@@ -1089,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', () => {
         booking_id: window.currentBookingId || null,
         invoice_number: window.currentBookingCode || '#BILL00124',
         tariff_plan: currentTariffPlan,
-        amount: rate.amount || 435.00,
+        amount: rate.amount || 435000.00,
         payment_method: 'cash',
         notes: noteInput ? noteInput.value : 'Pembayaran tagihan via portal pasien'
       })
@@ -1102,12 +1062,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         closeAllBillPopups();
 
-        // Transforms card to 'welcome' (removes Tagihan card Gambar 2)
+        // Transforms card to 'welcome' (removes Tagihan card)
         setAppointmentMode('welcome', false);
 
         showToast(`Pembayaran ${rate.formatted} (${rate.packageName}) berhasil dicatat di database!`);
 
-        // Automatically display the Payment Success Receipt Modal (Zendenta Adapted)
+        // Automatically display the Payment Success Receipt Modal
         setTimeout(() => {
           openPaymentSuccessModal();
         }, 300);

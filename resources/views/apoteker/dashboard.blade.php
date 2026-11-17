@@ -11,7 +11,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+  @else
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <script src="{{ asset('js/app.js') }}" defer></script>
+  @endif
   
   <style>
     :root {
@@ -1069,6 +1075,7 @@
                 <tr>
                   <th>JENIS OBAT</th>
                   <th>RAK</th>
+                  <th class="r">HARGA</th>
                   <th class="r">STOK</th>
                 </tr>
               </thead>
@@ -1201,9 +1208,11 @@
                             <div style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px;">
                               Aturan Pakai: {{ $med['frequency'] ?? '3x1 sehari sesudah makan' }}
                             </div>
-                            <div style="text-align:right; min-width:60px;">
-                              <span class="mono" style="font-weight:800; font-size:13px; color:var(--text);">{{ $med['quantity'] ?? 10 }}</span>
-                              <small style="color:var(--muted); display:block; font-size:10.5px;">{{ $med['satuan'] ?? 'Item' }}</small>
+                            <div style="text-align:right; min-width:80px;">
+                              <span class="mono" style="font-weight:800; font-size:13px; color:var(--text);">{{ $med['quantity'] ?? 10 }} {{ $med['satuan'] ?? 'Item' }}</span>
+                              @if(!empty($med['harga']))
+                                <small style="color:var(--navy); display:block; font-size:11px; font-weight:700;">Rp {{ number_format($med['harga'], 0, ',', '.') }}/pcs</small>
+                              @endif
                             </div>
                           </div>
                         </div>
@@ -1356,6 +1365,10 @@
           <div class="fld">
             <label>LOKASI RAK</label>
             <input name="rak" required placeholder="mis. A-05" style="text-transform:uppercase">
+          </div>
+          <div class="fld">
+            <label>HARGA SATUAN (RP)</label>
+            <input name="harga" type="number" min="0" step="500" required placeholder="mis. 15000">
           </div>
           <div class="fld">
             <label>JUMLAH STOK</label>
@@ -1514,11 +1527,12 @@
       if (!rowsEl) return;
 
       if (!l.length) {
-        rowsEl.innerHTML = '<tr><td colspan="3" class="empty">Tidak ada obat pada kategori ini.</td></tr>';
+        rowsEl.innerHTML = '<tr><td colspan="4" class="empty">Tidak ada obat pada kategori ini.</td></tr>';
         return;
       }
 
       rowsEl.innerHTML = l.map(d => {
+        const formattedPrice = 'Rp ' + Number(d.price || 0).toLocaleString('id-ID');
         return `
           <tr data-id="${d.id}" class="${d.id === sel ? 'sel' : ''}">
             <td class="sku">
@@ -1526,6 +1540,7 @@
               <small><span class="mono">${d.id}</span> · ${d.desc}</small>
             </td>
             <td><span class="rak">${d.rak}</span></td>
+            <td class="r" style="font-weight:700; color:var(--navy);">${formattedPrice}</td>
             <td class="r sys">${d.sys}</td>
           </tr>
         `;
@@ -1551,7 +1566,7 @@
       }
 
       if ($('#pTag')) $('#pTag').textContent = d.id;
-      if ($('#pSub')) $('#pSub').textContent = `${d.name} · Rak ${d.rak}`;
+      if ($('#pSub')) $('#pSub').textContent = `${d.name} · Rak ${d.rak} · Rp ${Number(d.price || 0).toLocaleString('id-ID')}`;
 
       const h = (d.h || []).filter(x => filt === 'all' || x.t === filt);
       if ($('#pCnt')) $('#pCnt').textContent = `${h.length} riwayat`;
@@ -1631,6 +1646,7 @@
 
       const sys = parseInt(g('sys')) || 0;
       const act = sys;
+      const harga = parseFloat(g('harga')) || 0;
       const name = g('name');
       const catVal = g('cat');
       const rak = g('rak').toUpperCase();
@@ -1644,6 +1660,7 @@
         rak,
         sys,
         act,
+        price: harga,
         h: sys > 0 ? [{
           t: 'in',
           time: new Date().toTimeString().slice(0, 5),
@@ -1668,6 +1685,7 @@
           kategori: catVal,
           satuan: desc,
           rak: rak,
+          harga: harga,
           stok: sys
         })
       }).then(r => r.json()).then(res => {

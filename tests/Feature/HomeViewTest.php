@@ -29,12 +29,10 @@ class HomeViewTest extends TestCase
         $response->assertSee('Sesudah Periksa');
         $response->assertSee('Tagihan Pemeriksaan');
         $response->assertSee('#BILL00124');
-        $response->assertSee('$435.00');
-        $response->assertSee('Pembayaran Cash');
+        $response->assertSee('Rp 435.000');
         $response->assertSee('Bayar Sekarang');
-        $response->assertSee('Konsultasi + Beli Obat');
-        $response->assertSee('Hanya Konsultasi Dokter Saja');
-        $response->assertSee('$180.00');
+        $response->assertSee('Konsultasi + Resep Obat');
+        $response->assertSee('Rp 180.000');
         $response->assertSee('Payment success');
         $response->assertSee('Payment Details');
         $response->assertSee('Print Receipt');

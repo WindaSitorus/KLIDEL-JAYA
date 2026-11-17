@@ -22,10 +22,10 @@ return new class extends Migration
             $table->string('service_type')->default('General Examination');
             $table->string('payment_method')->default('cash'); // cash, credit_card, bank_transfer, qris
             $table->string('tariff_plan')->default('with_medicine'); // with_medicine, consultation_only
-            $table->decimal('amount', 10, 2);
-            $table->decimal('tax_amount', 10, 2)->default(0);
-            $table->decimal('discount_amount', 10, 2)->default(0);
-            $table->decimal('net_amount', 10, 2);
+            $table->decimal('amount', 12, 2);
+            $table->decimal('tax_amount', 12, 2)->default(0);
+            $table->decimal('discount_amount', 12, 2)->default(0);
+            $table->decimal('net_amount', 12, 2);
             $table->string('status')->default('paid'); // paid, confirmed, changed, canceled, pending
             $table->text('notes')->nullable();
             $table->timestamp('paid_at')->nullable();
