@@ -308,7 +308,7 @@
             </div>
 
             <!-- Doctor Grid with Dynamic Specialty Pastel Colors -->
-            <div id="doctors-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-10 pb-8">
+            <div id="doctors-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-10 pb-8">
                 @foreach ($doctors as $index => $doc)
                     @php
                         $cardBg = match($doc['category']) {
@@ -369,6 +369,7 @@
                             <div class="relative w-full h-full flex items-end justify-center overflow-visible">
                                 <img src="{{ asset($doc['image']) }}" 
                                      alt="{{ $doc['name'] }}" 
+                                     onerror="this.src='{{ asset('images/doctors/doctor-1.png') }}'"
                                      class="relative z-20 h-[126%] w-auto max-w-none object-contain object-bottom -top-6 sm:-top-7 pointer-events-none transition-transform duration-300 ease-out group-hover:scale-108 group-hover:-translate-y-2 drop-shadow-[0_14px_18px_rgba(1,45,104,0.20)]">
                             </div>
                         </div>
@@ -732,7 +733,7 @@
                                 <span class="text-[10px] font-bold text-slate-900 leading-none">{{ $doc['rating'] }}</span>
                             </div>
                             <div class="relative w-full h-full flex items-end justify-center overflow-visible">
-                                <img src="{{ asset($doc['image']) }}" alt="{{ $doc['name'] }}" class="relative z-20 h-[122%] w-auto max-w-none object-contain object-bottom -top-4 pointer-events-none drop-shadow-[0_8px_12px_rgba(1,45,104,0.18)]">
+                                <img src="{{ asset($doc['image']) }}" alt="{{ $doc['name'] }}" onerror="this.src='{{ asset('images/doctors/doctor-1.png') }}'" class="relative z-20 h-[122%] w-auto max-w-none object-contain object-bottom -top-4 pointer-events-none drop-shadow-[0_8px_12px_rgba(1,45,104,0.18)]">
                             </div>
                         </div>
 

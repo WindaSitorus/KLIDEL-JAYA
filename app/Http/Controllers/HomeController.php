@@ -65,16 +65,16 @@ class HomeController extends Controller
                     return [
                         'id' => $doc->id,
                         'name' => $doc->nama_dokter,
-                        'specialty' => $doc->spesialisasi,
+                        'specialty' => $doc->spesialisasi ?: ($doc->poli?->nama_poli ?? 'Dokter Spesialis'),
                         'category' => $doc->poli?->slug ?? $doc->spesialisasi,
-                        'rating' => (float) $doc->rating,
-                        'price' => $doc->price,
+                        'rating' => (float) ($doc->rating ?: 4.8),
+                        'price' => $doc->price ?: ('Rp '.number_format((float) $doc->price_num, 0, ',', '.')),
                         'price_num' => (float) $doc->price_num,
-                        'initials' => $doc->initials ?? 'DR',
-                        'image' => $doc->image ?? 'images/doctors/doctor-1.png',
-                        'availability' => $doc->availability,
-                        'experience' => $doc->experience,
-                        'patients' => $doc->patients,
+                        'initials' => $doc->initials ?: 'DR',
+                        'image' => $doc->image ?: 'images/doctors/doctor-1.png',
+                        'availability' => $doc->availability ?: '09:00 - 17:00 WIB',
+                        'experience' => $doc->experience ?: '5 tahun',
+                        'patients' => $doc->patients ?: '1.0k Up',
                     ];
                 })->toArray();
             }

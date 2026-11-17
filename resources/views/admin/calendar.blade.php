@@ -1121,6 +1121,10 @@
           <svg><use href="#i-bill"/></svg>
           <span>Riwayat Pembayaran</span>
         </a>
+        <a href="{{ route('admin.doctors.index') }}" class="" title="Manajemen Dokter">
+          <svg><use href="#i-user"/></svg>
+          <span>Manajemen Dokter</span>
+        </a>
       </nav>
 
       <hr class="divider">

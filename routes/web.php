@@ -2,6 +2,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminDoctorController;
 use App\Http\Controllers\ApotekerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DoctorController;
@@ -88,6 +89,13 @@ Route::middleware(['admin'])
         Route::get('/calendar', [AdminController::class, 'calendar'])->name('calendar');
         Route::get('/export-csv', [AdminController::class, 'exportCsv'])->name('exportCsv');
         Route::post('/transaction', [AdminController::class, 'storeTransaction'])->name('storeTransaction');
+
+        // CRUD Dokter & Akun Login Dokter
+        Route::get('/doctors', [AdminDoctorController::class, 'index'])->name('doctors.index');
+        Route::post('/doctors', [AdminDoctorController::class, 'store'])->name('doctors.store');
+        Route::get('/doctors/{doctor}', [AdminDoctorController::class, 'show'])->name('doctors.show');
+        Route::put('/doctors/{doctor}', [AdminDoctorController::class, 'update'])->name('doctors.update');
+        Route::delete('/doctors/{doctor}', [AdminDoctorController::class, 'destroy'])->name('doctors.destroy');
     });
 
 // =====================================================

@@ -305,6 +305,7 @@
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
       <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+      <symbol id="i-doctor" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></symbol>
     </defs>
   </svg>
 
@@ -337,6 +338,12 @@
           <span class="active-indicator"></span>
           <svg><use href="#i-bill"/></svg>
           <span>Riwayat Pembayaran</span>
+        </a>
+
+        <!-- Menu 3: Manajemen Dokter -->
+        <a href="{{ route('admin.doctors.index') }}" class="nav-item" title="Manajemen Dokter">
+          <svg><use href="#i-doctor"/></svg>
+          <span>Manajemen Dokter</span>
         </a>
 
       </nav>
