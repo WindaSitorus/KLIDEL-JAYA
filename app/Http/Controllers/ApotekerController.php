@@ -33,56 +33,54 @@ class ApotekerController extends Controller
             'shift' => 'Shift Sore',
         ];
 
-        // Default mock history for drugs
-        $defaultHistories = [
-            'PCT-500' => [
-                ['t' => 'in', 'time' => '08:42', 'd' => 'Hari ini', 'q' => 96, 'p' => 'PT Kimia Farma', 'r' => 'SJ-77120'],
-                ['t' => 'out', 'time' => '11:15', 'd' => 'Hari ini', 'q' => -8, 'p' => 'Pasien · Budi S.', 'r' => 'RSP-4412'],
-                ['t' => 'out', 'time' => '16:03', 'd' => 'Kemarin', 'q' => -12, 'p' => 'Pasien · Rina A.', 'r' => 'RSP-4398'],
-            ],
-            'AMX-500' => [
-                ['t' => 'out', 'time' => '14:20', 'd' => 'Hari ini', 'q' => -10, 'p' => 'Pasien · Dewi L.', 'r' => 'RSP-4420'],
-                ['t' => 'in', 'time' => '09:30', 'd' => 'Kemarin', 'q' => 50, 'p' => 'PT Kimia Farma', 'r' => 'SJ-77088'],
-            ],
-            'CTZ-010' => [
-                ['t' => 'in', 'time' => '10:05', 'd' => 'Hari ini', 'q' => 48, 'p' => 'PT Enseval', 'r' => 'SJ-90311'],
-                ['t' => 'out', 'time' => '13:40', 'd' => 'Hari ini', 'q' => -6, 'p' => 'Pasien · Agus P.', 'r' => 'RSP-4417'],
-            ],
-            'OMP-020' => [
-                ['t' => 'out', 'time' => '15:12', 'd' => 'Hari ini', 'q' => -4, 'p' => 'Pasien · Sari M.', 'r' => 'RSP-4425'],
-                ['t' => 'in', 'time' => '13:00', 'd' => 'Kemarin', 'q' => 24, 'p' => 'PT Mensa Binasukses', 'r' => 'SJ-55207'],
-            ],
-            'VTC-500' => [
-                ['t' => 'out', 'time' => '12:30', 'd' => 'Hari ini', 'q' => -3, 'p' => 'Pasien · Toni W.', 'r' => 'RSP-4419'],
-            ],
-            'MTF-500' => [
-                ['t' => 'in', 'time' => '09:15', 'd' => 'Hari ini', 'q' => 30, 'p' => 'PT Kimia Farma', 'r' => 'SJ-77121'],
-                ['t' => 'out', 'time' => '17:45', 'd' => 'Hari ini', 'q' => -6, 'p' => 'Pasien · Hendra K.', 'r' => 'RSP-4428'],
-            ],
-            'INS-GLA' => [
-                ['t' => 'in', 'time' => '08:10', 'd' => 'Hari ini', 'q' => 10, 'p' => 'PT Anugerah Pharmindo', 'r' => 'SJ-31044'],
-                ['t' => 'out', 'time' => '10:50', 'd' => 'Hari ini', 'q' => -2, 'p' => 'Pasien · Lisa N.', 'r' => 'RSP-4414'],
-            ],
-            'AMB-SRP' => [
-                ['t' => 'out', 'time' => '16:40', 'd' => 'Hari ini', 'q' => -5, 'p' => 'Pasien · Maya T.', 'r' => 'RSP-4427'],
-                ['t' => 'in', 'time' => '11:20', 'd' => 'Kemarin', 'q' => 36, 'p' => 'PT Enseval', 'r' => 'SJ-90290'],
-            ],
-        ];
-
         // Ambil obat dari database
         $obats = Obat::where('is_active', true)->orderBy('nama_obat')->get();
 
-        $drugs = $obats->map(function ($obat) use ($defaultHistories) {
+        // Cari riwayat mutasi keluar nyata dari resep yang telah diselesaikan
+        $completedPrescriptions = Booking::with(['patient', 'medicalRecord'])
+            ->whereHas('medicalRecord', function ($q) {
+                $q->where('plan->prescription_status', 'selesai');
+            })
+            ->latest('id')
+            ->get();
+
+        $drugs = $obats->map(function ($obat) use ($completedPrescriptions) {
             $rak = 'A-01';
             if (preg_match('/Rak:\s*([A-Za-z0-9\-]+)/i', $obat->deskripsi ?? '', $matches)) {
                 $rak = strtoupper($matches[1]);
             }
-            $history = $defaultHistories[$obat->kode_obat] ?? [
+
+            $history = [
                 ['t' => 'in', 'time' => '08:00', 'd' => 'Hari ini', 'q' => (int) $obat->stok, 'p' => 'Stok Awal Gudang', 'r' => 'INIT-01'],
             ];
 
-            // For PCT-500 we simulate actual 116 vs system 128 as in design
-            $act = $obat->kode_obat === 'PCT-500' ? 116 : (int) $obat->stok;
+            // Tambahkan transaksi keluar hanya jika ada resep nyata yang selesai
+            foreach ($completedPrescriptions as $booking) {
+                $plan = $booking->medicalRecord?->plan ?? [];
+                $meds = $plan['medications'] ?? [];
+                foreach ($meds as $med) {
+                    $match = false;
+                    if (! empty($med['kode_obat']) && $med['kode_obat'] === $obat->kode_obat) {
+                        $match = true;
+                    } elseif (! empty($med['name']) && stripos($obat->nama_obat, trim(explode('—', $med['name'])[0])) !== false) {
+                        $match = true;
+                    }
+
+                    if ($match) {
+                        $qty = (int) ($med['quantity'] ?? $med['qty'] ?? 10);
+                        $completedAt = $plan['completed_at'] ?? now()->format('Y-m-d H:i');
+                        $timeStr = date('H:i', strtotime($completedAt));
+                        $history[] = [
+                            't' => 'out',
+                            'time' => $timeStr,
+                            'd' => 'Hari ini',
+                            'q' => -$qty,
+                            'p' => 'Pasien · '.($booking->patient?->full_name ?? 'Pasien'),
+                            'r' => $booking->booking_code,
+                        ];
+                    }
+                }
+            }
 
             return [
                 'id' => $obat->kode_obat,
@@ -91,7 +89,7 @@ class ApotekerController extends Controller
                 'cat' => $obat->kategori,
                 'rak' => $rak,
                 'sys' => (int) $obat->stok,
-                'act' => $act,
+                'act' => (int) $obat->stok,
                 'price' => (float) $obat->harga,
                 'h' => $history,
             ];
@@ -99,6 +97,10 @@ class ApotekerController extends Controller
 
         // Fallback default list if database is empty
         if (empty($drugs)) {
+            $defaultHistoryInit = fn (int $qty) => [
+                ['t' => 'in', 'time' => '08:00', 'd' => 'Hari ini', 'q' => $qty, 'p' => 'Stok Awal Gudang', 'r' => 'INIT-01'],
+            ];
+
             $drugs = [
                 [
                     'id' => 'PCT-500',
@@ -107,9 +109,9 @@ class ApotekerController extends Controller
                     'cat' => 'Analgesik',
                     'rak' => 'A-03',
                     'sys' => 128,
-                    'act' => 116,
+                    'act' => 128,
                     'price' => 12000,
-                    'h' => $defaultHistories['PCT-500'],
+                    'h' => $defaultHistoryInit(128),
                 ],
                 [
                     'id' => 'AMX-500',
@@ -120,7 +122,7 @@ class ApotekerController extends Controller
                     'sys' => 64,
                     'act' => 64,
                     'price' => 18000,
-                    'h' => $defaultHistories['AMX-500'],
+                    'h' => $defaultHistoryInit(64),
                 ],
                 [
                     'id' => 'CTZ-010',
@@ -131,7 +133,7 @@ class ApotekerController extends Controller
                     'sys' => 96,
                     'act' => 96,
                     'price' => 15000,
-                    'h' => $defaultHistories['CTZ-010'],
+                    'h' => $defaultHistoryInit(96),
                 ],
                 [
                     'id' => 'OMP-020',
@@ -142,7 +144,7 @@ class ApotekerController extends Controller
                     'sys' => 36,
                     'act' => 36,
                     'price' => 25000,
-                    'h' => $defaultHistories['OMP-020'],
+                    'h' => $defaultHistoryInit(36),
                 ],
                 [
                     'id' => 'VTC-500',
@@ -153,7 +155,7 @@ class ApotekerController extends Controller
                     'sys' => 21,
                     'act' => 21,
                     'price' => 45000,
-                    'h' => $defaultHistories['VTC-500'],
+                    'h' => $defaultHistoryInit(21),
                 ],
                 [
                     'id' => 'MTF-500',
@@ -164,7 +166,7 @@ class ApotekerController extends Controller
                     'sys' => 18,
                     'act' => 18,
                     'price' => 22000,
-                    'h' => $defaultHistories['MTF-500'],
+                    'h' => $defaultHistoryInit(18),
                 ],
                 [
                     'id' => 'INS-GLA',
@@ -175,7 +177,7 @@ class ApotekerController extends Controller
                     'sys' => 12,
                     'act' => 12,
                     'price' => 185000,
-                    'h' => $defaultHistories['INS-GLA'],
+                    'h' => $defaultHistoryInit(12),
                 ],
                 [
                     'id' => 'AMB-SRP',
@@ -186,7 +188,7 @@ class ApotekerController extends Controller
                     'sys' => 40,
                     'act' => 40,
                     'price' => 16500,
-                    'h' => $defaultHistories['AMB-SRP'],
+                    'h' => $defaultHistoryInit(40),
                 ],
             ];
         }

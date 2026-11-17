@@ -146,41 +146,17 @@ class DoctorController extends Controller
                 $rec = $booking?->medicalRecord;
                 $soap = null;
 
-                if ($rec || $dbQueue->status === 'completed') {
+                if ($rec) {
                     $soap = [
-                        'subjective' => $rec?->subjective
+                        'subjective' => $rec->subjective
                             ?? $booking?->symptoms
-                            ?? 'Pemeriksaan selesai.',
+                            ?? '',
 
-                        'objective' => $rec?->objective ?? [
-                            'bp' => '120/80',
-                            'hr' => '80',
-                            'rr' => '18',
-                            'temp' => '36.5',
-                            'spo2' => '99',
-                            'weight' => '56',
-                            'height' => '162',
-                            'physical_exam' => 'Pemeriksaan fisik tanda vital dalam batas normal.',
-                        ],
+                        'objective' => $rec->objective ?? [],
 
-                        'assessment' => $rec?->assessmen ?? [
-                            'primary_diagnosis' => 'R51 - Konsultasi Medis Spesialis',
-                            'secondary_diagnosis' => '',
-                            'clinical_notes' => 'Pemeriksaan klinis telah dicatat.',
-                        ],
+                        'assessment' => $rec->assessmen ?? [],
 
-                        'plan' => $rec?->plan ?? [
-                            'medications' => [
-                                [
-                                    'name' => 'Terapi Medis Standar',
-                                    'dose' => '1 unit',
-                                    'frequency' => 'Rutin',
-                                    'notes' => '',
-                                ],
-                            ],
-                            'clinical_action' => 'Pemeriksaan selesai dicatat oleh dokter.',
-                            'return_date' => now()->addDays(14)->format('d M Y'),
-                        ],
+                        'plan' => $rec->plan ?? [],
                     ];
                 }
 

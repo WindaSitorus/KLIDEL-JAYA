@@ -452,37 +452,37 @@
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">TD (mmHg)</label>
-                  <input type="text" name="bp" value="{{ old('bp', $activeQueue['soap']['objective']['bp'] ?? '120/80') }}" placeholder="120/80" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="bp" value="{{ old('bp', $activeQueue['soap']['objective']['bp'] ?? '') }}" placeholder="120/80" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">Nadi (x/m)</label>
-                  <input type="text" name="hr" value="{{ old('hr', $activeQueue['soap']['objective']['hr'] ?? '80') }}" placeholder="80" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="hr" value="{{ old('hr', $activeQueue['soap']['objective']['hr'] ?? '') }}" placeholder="80" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">RR (x/m)</label>
-                  <input type="text" name="rr" value="{{ old('rr', $activeQueue['soap']['objective']['rr'] ?? '18') }}" placeholder="18" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="rr" value="{{ old('rr', $activeQueue['soap']['objective']['rr'] ?? '') }}" placeholder="18" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">Suhu (°C)</label>
-                  <input type="text" name="temp" value="{{ old('temp', $activeQueue['soap']['objective']['temp'] ?? '36.6') }}" placeholder="36.5" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="temp" value="{{ old('temp', $activeQueue['soap']['objective']['temp'] ?? '') }}" placeholder="36.5" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">SpO2 (%)</label>
-                  <input type="text" name="spo2" value="{{ old('spo2', $activeQueue['soap']['objective']['spo2'] ?? '99') }}" placeholder="99" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="spo2" value="{{ old('spo2', $activeQueue['soap']['objective']['spo2'] ?? '') }}" placeholder="99" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">BB (kg)</label>
-                  <input type="text" name="weight" value="{{ old('weight', $activeQueue['soap']['objective']['weight'] ?? '56') }}" placeholder="56" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="weight" value="{{ old('weight', $activeQueue['soap']['objective']['weight'] ?? '') }}" placeholder="56" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                   <label class="block text-[10px] text-slate-500 font-semibold uppercase">TB (cm)</label>
-                  <input type="text" name="height" value="{{ old('height', $activeQueue['soap']['objective']['height'] ?? '162') }}" placeholder="162" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
+                  <input type="text" name="height" value="{{ old('height', $activeQueue['soap']['objective']['height'] ?? '') }}" placeholder="162" class="w-full text-xs font-bold text-slate-900 bg-transparent border-0 outline-none p-0 mt-0.5">
                 </div>
 
               </div>
@@ -499,7 +499,7 @@
                   rows="2"
                   placeholder="Kesadaran, kepala/leher, thoraks, abdomen, ekstremitas, pemeriksaan neurologis..."
                   class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                >{{ old('physical_exam', $activeQueue['soap']['objective']['physical_exam'] ?? 'GCS E4M6V5, compos mentis. Refleks fisiologis normal, refleks patologis (-). Saraf kranialis dalam batas normal.') }}</textarea>
+                >{{ old('physical_exam', $activeQueue['soap']['objective']['physical_exam'] ?? '') }}</textarea>
               </div>
 
             </div>
@@ -526,7 +526,7 @@
                     id="primary_diagnosis"
                     name="primary_diagnosis"
                     required
-                    value="{{ old('primary_diagnosis', $activeQueue['soap']['assessment']['primary_diagnosis'] ?? 'G43.1 - Migraine with aura') }}"
+                    value="{{ old('primary_diagnosis', $activeQueue['soap']['assessment']['primary_diagnosis'] ?? '') }}"
                     placeholder="Contoh: G43.1 - Migraine with aura"
                     class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                   >
@@ -541,7 +541,7 @@
                     type="text"
                     id="secondary_diagnosis"
                     name="secondary_diagnosis"
-                    value="{{ old('secondary_diagnosis', $activeQueue['soap']['assessment']['secondary_diagnosis'] ?? 'R51 - Headache, unspecified') }}"
+                    value="{{ old('secondary_diagnosis', $activeQueue['soap']['assessment']['secondary_diagnosis'] ?? '') }}"
                     placeholder="Diagnosis pembanding (opsional)"
                     class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                   >
@@ -558,7 +558,7 @@
                   type="text"
                   id="clinical_notes"
                   name="clinical_notes"
-                  value="{{ old('clinical_notes', $activeQueue['soap']['assessment']['clinical_notes'] ?? 'Prognosis ad bonam dengan modifikasi gaya hidup dan terapi simtomatik.') }}"
+                  value="{{ old('clinical_notes', $activeQueue['soap']['assessment']['clinical_notes'] ?? '') }}"
                   placeholder="Catatan perkembangan atau observasi tambahan"
                   class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                 >
@@ -662,7 +662,7 @@
                   rows="3"
                   placeholder="Obat yang dipilih akan muncul di sini beserta aturan pakainya."
                   class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all font-mono"
-                >{{ old('therapy_plan', $medText ?: "Sumatriptan 50mg — 10 tablet · (1 tablet saat serangan)\nDomperidone 10mg — 10 tablet · (3x1 tablet sebelum makan)") }}</textarea>
+                >{{ old('therapy_plan', $medText ?? '') }}</textarea>
 
                 <p class="text-[11px] text-slate-400 mt-1">
                   Resep akan langsung diteruskan ke Apoteker dengan status <b>Perlu Diproses</b> setelah disimpan.
@@ -681,7 +681,7 @@
                     type="text"
                     id="return_date"
                     name="return_date"
-                    value="{{ old('return_date', $activeQueue['soap']['plan']['return_date'] ?? '18 Nov 2026') }}"
+                    value="{{ old('return_date', $activeQueue['soap']['plan']['return_date'] ?? '') }}"
                     placeholder="Contoh: 18 Nov 2026 atau 14 hari ke depan"
                     class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                   >
