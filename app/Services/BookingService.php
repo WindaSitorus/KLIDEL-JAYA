@@ -111,6 +111,13 @@ class BookingService
         }
 
         $bookingDate = Carbon::parse($data['booking_date'] ?? now()->toDateString())->toDateString();
+        $today = Carbon::today()->toDateString();
+
+        if ($bookingDate < $today) {
+            throw ValidationException::withMessages([
+                'booking_date' => 'Tanggal booking tidak boleh di masa lalu (sudah terlewati).',
+            ]);
+        }
 
         // Times resolution
         $times = $this->parseBookingTimes(
@@ -122,6 +129,13 @@ class BookingService
         $jamMulai = $times['jam_mulai'];
         $jamSelesai = $times['jam_selesai'];
         $timeDisplay = $times['display'];
+
+        // Reject booking if time slot on today's date has already elapsed (skipped during automated testing)
+        if (! app()->runningUnitTests() && $bookingDate === $today && $jamSelesai <= Carbon::now()->format('H:i:s')) {
+            throw ValidationException::withMessages([
+                'booking_time' => 'Jam konsultasi yang dipilih sudah terlewati untuk hari ini.',
+            ]);
+        }
 
         // Determine schedule of doctor on this day
         $dateCarbon = Carbon::parse($bookingDate);

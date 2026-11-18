@@ -492,21 +492,32 @@
             </div>
 
             <!-- Date Picker -->
-            <div class="font-bold text-[14.5px] mt-5 mb-2.5 text-slate-900">Select a date &amp; time</div>
-            <div class="days-container grid grid-cols-7 gap-1.5">
-                @php
-                    $days = [
-                        ['name' => 'Su', 'date' => '10'],
-                        ['name' => 'Mo', 'date' => '11'],
-                        ['name' => 'Tu', 'date' => '12'],
-                        ['name' => 'We', 'date' => '13'],
-                        ['name' => 'Th', 'date' => '14'],
-                        ['name' => 'Fr', 'date' => '15'],
-                        ['name' => 'Sa', 'date' => '16'],
-                    ];
-                @endphp
-                @foreach ($days as $day)
-                    <button class="day-pill {{ $day['date'] === '12' ? 'active' : '' }}" data-day="{{ $day['name'] }}" data-date="{{ $day['date'] }}">
+            <div class="flex items-center justify-between mt-5 mb-2.5">
+                <div class="font-bold text-[14.5px] text-slate-900 dark:text-white">Select a date &amp; time</div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span class="week-month-label text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">{{ $currentMonthYear ?? date('M Y') }}</span>
+                    <div class="flex items-center gap-0.5">
+                        <button type="button" class="btn-prev-week w-6 h-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Sebelumnya">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" class="btn-next-week w-6 h-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Berikutnya">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="days-container grid grid-cols-7 gap-1.5" id="desktop-days-container">
+                @foreach ($bookingDays ?? [] as $index => $day)
+                    <button type="button"
+                        class="day-pill {{ $day['is_past'] ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($index === ($activeDayIndex ?? 0) ? 'active' : '') }}"
+                        data-day="{{ $day['name'] }}"
+                        data-date="{{ $day['date'] }}"
+                        data-full-date="{{ $day['full_date'] }}"
+                        data-is-past="{{ $day['is_past'] ? '1' : '0' }}"
+                        data-is-today="{{ $day['is_today'] ? '1' : '0' }}"
+                        {{ $day['is_past'] ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $day['is_past'] ? 'Tanggal sudah terlewati' : ($day['is_today'] ? 'Hari ini' : $day['full_date']) }}">
                         <small>{{ $day['name'] }}</small>
                         <b>{{ $day['date'] }}</b>
                     </button>
@@ -514,13 +525,30 @@
             </div>
 
             <!-- Time Slots -->
-            <div class="slots-container grid grid-cols-3 gap-2 mt-3">
+            <div class="slots-container grid grid-cols-3 gap-2 mt-3" id="desktop-slots-container">
                 @php
-                    $slots = ['09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM'];
+                    $isFirstDayToday = ($bookingDays[$activeDayIndex ?? 0]['is_today'] ?? false);
+                    $firstActiveSlotFound = false;
                 @endphp
-                @foreach ($slots as $slot)
-                    <button class="slot-pill {{ $slot === '01 PM' ? 'active' : '' }}" data-time="{{ $slot }}">
-                        {{ $slot }}
+                @foreach ($timeSlots ?? [] as $slot)
+                    @php
+                        $slotIsPast = $isFirstDayToday && (($currentHour ?? 0) >= $slot['hour']);
+                        $isSlotActive = false;
+                        if (! $slotIsPast && ! $firstActiveSlotFound) {
+                            $isSlotActive = true;
+                            $firstActiveSlotFound = true;
+                        }
+                    @endphp
+                    <button type="button"
+                        class="slot-pill {{ $slotIsPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($isSlotActive ? 'active' : '') }}"
+                        data-time="{{ $slot['time'] }}"
+                        data-hour="{{ $slot['hour'] }}"
+                        data-start="{{ $slot['start'] }}"
+                        data-end="{{ $slot['end'] }}"
+                        data-is-past="{{ $slotIsPast ? '1' : '0' }}"
+                        {{ $slotIsPast ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $slotIsPast ? 'Jam ini sudah terlewati' : $slot['time'] }}">
+                        {{ $slot['time'] }}
                     </button>
                 @endforeach
             </div>
@@ -875,10 +903,32 @@
             </div>
 
             <!-- Date Selection -->
-            <div class="font-semibold text-[13.5px] mt-4 mb-2 text-[var(--color-text)]">Select a date &amp; time</div>
-            <div class="days-container grid grid-cols-7 gap-1">
-                @foreach ($days as $day)
-                    <button class="day-pill text-[10px] py-1 {{ $day['date'] === '12' ? 'active' : '' }}" data-day="{{ $day['name'] }}" data-date="{{ $day['date'] }}">
+            <div class="flex items-center justify-between mt-4 mb-2">
+                <div class="font-semibold text-[13.5px] text-[var(--color-text)]">Select a date &amp; time</div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span class="week-month-label text-[11px] font-semibold text-slate-700 dark:text-slate-300">{{ $currentMonthYear ?? date('M Y') }}</span>
+                    <div class="flex items-center gap-0.5">
+                        <button type="button" class="btn-prev-week w-5 h-5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Sebelumnya">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" class="btn-next-week w-5 h-5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Berikutnya">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="days-container grid grid-cols-7 gap-1" id="mobile-days-container">
+                @foreach ($bookingDays ?? [] as $index => $day)
+                    <button type="button"
+                        class="day-pill text-[10px] py-1 {{ $day['is_past'] ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($index === ($activeDayIndex ?? 0) ? 'active' : '') }}"
+                        data-day="{{ $day['name'] }}"
+                        data-date="{{ $day['date'] }}"
+                        data-full-date="{{ $day['full_date'] }}"
+                        data-is-past="{{ $day['is_past'] ? '1' : '0' }}"
+                        data-is-today="{{ $day['is_today'] ? '1' : '0' }}"
+                        {{ $day['is_past'] ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $day['is_past'] ? 'Tanggal sudah terlewati' : ($day['is_today'] ? 'Hari ini' : $day['full_date']) }}">
                         <small class="text-[8.5px]">{{ $day['name'] }}</small>
                         <b class="text-[13px]">{{ $day['date'] }}</b>
                     </button>
@@ -886,10 +936,30 @@
             </div>
 
             <!-- Time Slots Selection -->
-            <div class="slots-container grid grid-cols-3 gap-1.5 mt-2.5">
-                @foreach ($slots as $slot)
-                    <button class="slot-pill h-8 text-[11px] {{ $slot === '01 PM' ? 'active' : '' }}" data-time="{{ $slot }}">
-                        {{ $slot }}
+            <div class="slots-container grid grid-cols-3 gap-1.5 mt-2.5" id="mobile-slots-container">
+                @php
+                    $isFirstDayToday = ($bookingDays[$activeDayIndex ?? 0]['is_today'] ?? false);
+                    $firstActiveSlotFoundMobile = false;
+                @endphp
+                @foreach ($timeSlots ?? [] as $slot)
+                    @php
+                        $slotIsPast = $isFirstDayToday && (($currentHour ?? 0) >= $slot['hour']);
+                        $isSlotActive = false;
+                        if (! $slotIsPast && ! $firstActiveSlotFoundMobile) {
+                            $isSlotActive = true;
+                            $firstActiveSlotFoundMobile = true;
+                        }
+                    @endphp
+                    <button type="button"
+                        class="slot-pill h-8 text-[11px] {{ $slotIsPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($isSlotActive ? 'active' : '') }}"
+                        data-time="{{ $slot['time'] }}"
+                        data-hour="{{ $slot['hour'] }}"
+                        data-start="{{ $slot['start'] }}"
+                        data-end="{{ $slot['end'] }}"
+                        data-is-past="{{ $slotIsPast ? '1' : '0' }}"
+                        {{ $slotIsPast ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $slotIsPast ? 'Jam ini sudah terlewati' : $slot['time'] }}">
+                        {{ $slot['time'] }}
                     </button>
                 @endforeach
             </div>
@@ -944,7 +1014,7 @@
                             <div class="flex items-center gap-2 mt-1 text-[11.5px] font-medium text-[#012D68] dark:text-blue-300">
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                    <span id="modal-doc-schedule">Tu 12 · 01 PM</span>
+                                    <span id="modal-doc-schedule">{{ ($bookingDays[$activeDayIndex ?? 0]['name'] ?? 'Hari Ini').' '.($bookingDays[$activeDayIndex ?? 0]['date'] ?? '') }} · 01 PM</span>
                                 </span>
                             </div>
                         </div>

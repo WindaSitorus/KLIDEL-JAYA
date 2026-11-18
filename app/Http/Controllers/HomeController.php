@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Poli;
 use App\Services\BookingService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -158,6 +159,43 @@ class HomeController extends Controller
 
         $notifications = $this->resolveNotifications($latestBooking, $appointmentMode, $bill);
 
+        // 4. Real-time booking dates for current week
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
+        $bookingDays = [];
+        $activeDayIndex = 0;
+
+        for ($i = 0; $i < 7; $i++) {
+            $dayCarbon = $startOfWeek->copy()->addDays($i);
+            $isPast = $dayCarbon->lt($today);
+            $isToday = $dayCarbon->isToday();
+
+            if ($isToday) {
+                $activeDayIndex = $i;
+            }
+
+            $bookingDays[] = [
+                'name' => substr($dayCarbon->format('D'), 0, 2), // Su, Mo, Tu, We, Th, Fr, Sa
+                'day_name' => $dayCarbon->format('D'),
+                'date' => $dayCarbon->format('d'),
+                'full_date' => $dayCarbon->format('Y-m-d'),
+                'is_past' => $isPast,
+                'is_today' => $isToday,
+            ];
+        }
+
+        $currentHour = (int) Carbon::now()->format('H');
+        $timeSlots = [
+            ['time' => '09 AM', 'hour' => 9, 'start' => '09:00:00', 'end' => '10:00:00'],
+            ['time' => '10 AM', 'hour' => 10, 'start' => '10:00:00', 'end' => '11:00:00'],
+            ['time' => '11 AM', 'hour' => 11, 'start' => '11:00:00', 'end' => '12:00:00'],
+            ['time' => '12 PM', 'hour' => 12, 'start' => '12:00:00', 'end' => '13:00:00'],
+            ['time' => '01 PM', 'hour' => 13, 'start' => '13:00:00', 'end' => '14:00:00'],
+            ['time' => '02 PM', 'hour' => 14, 'start' => '14:00:00', 'end' => '15:00:00'],
+        ];
+
+        $currentMonthYear = Carbon::now()->translatedFormat('M Y');
+
         return view('home', [
             'user' => $user,
             'nextAppointment' => $nextAppointment,
@@ -169,6 +207,11 @@ class HomeController extends Controller
             'doctors' => $doctors,
             'notifications' => $notifications,
             'unreadCount' => count($notifications),
+            'bookingDays' => $bookingDays,
+            'activeDayIndex' => $activeDayIndex,
+            'timeSlots' => $timeSlots,
+            'currentHour' => $currentHour,
+            'currentMonthYear' => $currentMonthYear,
         ]);
     }
 
@@ -535,10 +578,13 @@ class HomeController extends Controller
             'severity' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'doctor_id' => ['nullable', 'integer'],
-            'booking_date' => ['nullable', 'string'],
+            'booking_date' => ['nullable', 'date', 'after_or_equal:today'],
             'booking_time' => ['nullable', 'string'],
             'jam_mulai' => ['nullable', 'string'],
             'jam_selesai' => ['nullable', 'string'],
+        ], [
+            'booking_date.after_or_equal' => 'Tanggal booking tidak boleh di masa lalu (sudah terlewati).',
+            'booking_date.date' => 'Format tanggal booking tidak valid.',
         ]);
 
         $booking = $bookingService->createBooking($validated, auth()->user());

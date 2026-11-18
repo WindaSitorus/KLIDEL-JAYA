@@ -352,6 +352,42 @@
   box-shadow: 0 3px 8px rgba(1, 45, 104, 0.25);
 }
 
+.day-pill:disabled,
+.day-pill.disabled {
+  opacity: 0.38 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+}
+
+.day-pill:disabled small,
+.day-pill.disabled small {
+  color: #94a3b8 !important;
+}
+
+.slot-pill:disabled,
+.slot-pill.disabled {
+  opacity: 0.38 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+}
+
+[data-theme="dark"] .day-pill:disabled,
+[data-theme="dark"] .day-pill.disabled,
+[data-theme="dark"] .slot-pill:disabled,
+[data-theme="dark"] .slot-pill.disabled {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #64748b !important;
+}
+
 /* Floating Bottom Navigation */
 .floating-bottom-nav {
   position: fixed;

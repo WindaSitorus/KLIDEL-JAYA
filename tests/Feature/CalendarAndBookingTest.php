@@ -359,4 +359,60 @@ class CalendarAndBookingTest extends TestCase
         $response->assertSee('Mingguan');
         $response->assertSee('Bulanan');
     }
+
+    /**
+     * 10. Test booking pada tanggal masa lalu harus ditolak (past date blocking).
+     */
+    public function test_booking_on_past_date_is_rejected(): void
+    {
+        $doctor = Doctor::first();
+        $pastDate = Carbon::yesterday()->toDateString();
+
+        $response = $this->postJson(route('booking.store'), [
+            'doctor_id' => $doctor->id,
+            'booking_date' => $pastDate,
+            'jam_mulai' => '09:00:00',
+            'jam_selesai' => '10:00:00',
+            'patient_name' => 'Pasien Kemarin',
+            'phone' => '081234567899',
+            'symptoms' => 'Batuk dan pilek',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['booking_date']);
+
+        $this->assertStringContainsString('terlewati', $response->json('errors.booking_date.0'));
+    }
+
+    /**
+     * 11. Test booking pada tanggal hari ini atau mendatang berhasil diterima.
+     */
+    public function test_booking_on_today_or_future_date_is_accepted(): void
+    {
+        $doctor = Doctor::first();
+        $futureDate = Carbon::now()->addDays(2)->toDateString();
+
+        $response = $this->postJson(route('booking.store'), [
+            'doctor_id' => $doctor->id,
+            'booking_date' => $futureDate,
+            'jam_mulai' => '10:00:00',
+            'jam_selesai' => '11:00:00',
+            'patient_name' => 'Pasien Masa Depan',
+            'phone' => '081234567888',
+            'symptoms' => 'Konsultasi kesehatan umum',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('bookings', [
+            'doctor_id' => $doctor->id,
+            'jam_mulai' => '10:00:00',
+        ]);
+
+        $bookingId = $response->json('booking.id');
+        $created = Booking::find($bookingId);
+        $this->assertNotNull($created);
+        $this->assertEquals($futureDate, Carbon::parse($created->booking_date)->toDateString());
+    }
 }
