@@ -988,11 +988,11 @@
   <aside class="sidebar">
     <div class="brand">
       <img src="{{ asset('images/maristella-icon.png') }}" alt="Logo Klinik Maristella">
-      <span class="role-indicator-badge" id="sidebarRoleBadge">{{ ($role ?? 'admin') === 'admin' ? 'ADMIN' : 'PASIEN' }}</span>
+      <span class="role-indicator-badge" id="sidebarRoleBadge">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'ADMIN' : 'PASIEN' }}</span>
     </div>
 
     <!-- Patient Navigation -->
-    <nav class="sidebar-nav" id="patientSidebarNav" style="{{ ($role ?? 'admin') === 'admin' ? 'display: none;' : 'display: flex;' }}">
+    <nav class="sidebar-nav" id="patientSidebarNav" style="{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'display: none;' : 'display: flex;' }}">
       <a href="{{ route('home') }}" class="nav-item">
         <svg><use href="#i-home"/></svg>
         <span>Beranda</span>
@@ -1025,7 +1025,8 @@
       @endauth
     </nav>
 
-    <!-- Admin Navigation -->
+    @if(!empty($user['is_admin']))
+    <!-- Admin Navigation (Khusus Administrator) -->
     <div id="adminSidebarNav" style="{{ ($role ?? 'admin') === 'admin' ? 'display: block;' : 'display: none;' }}">
       <nav class="nav" aria-label="Navigasi admin">
         <a href="{{ route('admin.calendar') }}" class="active" title="Jadwal Dokter">
@@ -1047,6 +1048,7 @@
       </nav>
       <hr class="divider">
     </div>
+    @endif
 
     <!-- Active User Card Profile Link -->
     <a href="{{ route('profile.edit') }}" class="user-card-link" id="sidebarUserCard" title="Kelola Profil Saya">
@@ -1074,7 +1076,7 @@
         <svg style="width:12px"><use href="#i-cr"/></svg>
         <span>Klinik Maristella</span>
         <svg style="width:12px"><use href="#i-cr"/></svg>
-        <strong id="crumbModeTitle">{{ ($role ?? 'admin') === 'admin' ? 'Kalender Dokter (Admin)' : 'Jadwal Konsultasi Dokter' }}</strong>
+        <strong id="crumbModeTitle">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'Kalender Dokter (Admin)' : 'Jadwal Konsultasi Dokter' }}</strong>
       </div>
 
       <div class="top-actions">
@@ -1084,11 +1086,13 @@
           <input id="q" placeholder="Cari nama pasien/dokter..." style="border:0; outline:0; width:100%; font-size:12px;">
         </label>
 
-        <!-- Role Toggle (Demo Switcher) -->
+        @if(!empty($user['is_admin']))
+        <!-- Role Toggle (Switcher hanya untuk Administrator) -->
         <div style="display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
           <button type="button" class="view-btn {{ ($role ?? 'admin') === 'patient' ? 'active' : '' }}" onclick="switchRole('patient')">Pasien</button>
           <button type="button" class="view-btn {{ ($role ?? 'admin') === 'admin' ? 'active' : '' }}" onclick="switchRole('admin')">Admin</button>
         </div>
+        @endif
       </div>
     </div>
 
@@ -1145,7 +1149,7 @@
         <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
           <button id="btnOpenBookingModal" class="btn primary" onclick="openBookingModal()">
             <svg><use href="#i-plus"/></svg>
-            <span id="btnActionText">{{ ($role ?? 'admin') === 'admin' ? 'Tambah Jadwal Pasien' : 'Booking Jadwal Dokter' }}</span>
+            <span id="btnActionText">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'Tambah Jadwal Pasien' : 'Booking Jadwal Dokter' }}</span>
           </button>
         </div>
       </div>
@@ -1341,7 +1345,8 @@ RAW_DOCTORS.forEach(d => {
 let BOOKINGS = @json($initialBookings);
 
 /* State Management */
-let currentRole = "{{ $role ?? 'patient' }}";
+const IS_ADMIN = {{ !empty($user['is_admin']) ? 'true' : 'false' }};
+let currentRole = IS_ADMIN ? "{{ $role ?? 'admin' }}" : "patient";
 let activeDoctorFilter = 'all';
 let selectedDateStr = "{{ $initialDate ?? now()->toDateString() }}";
 let activeBookingId = null;
@@ -1662,12 +1667,21 @@ async function cancelBooking(id) {
 
 /* Switch Calendar Role */
 function switchRole(role) {
+  if (!IS_ADMIN && role === 'admin') {
+    showToast("Akses ditolak: Hanya administrator yang dapat beralih ke mode Admin.");
+    return;
+  }
   currentRole = role;
-  document.getElementById("sidebarRoleBadge").textContent = role.toUpperCase();
-  document.getElementById("patientSidebarNav").style.display = role === 'admin' ? 'none' : 'flex';
-  document.getElementById("adminSidebarNav").style.display = role === 'admin' ? 'block' : 'none';
-  document.getElementById("crumbModeTitle").textContent = role === 'admin' ? 'Kalender Dokter (Admin)' : 'Jadwal Konsultasi Dokter';
-  document.getElementById("btnActionText").textContent = role === 'admin' ? 'Tambah Jadwal Pasien' : 'Booking Jadwal Dokter';
+  const badge = document.getElementById("sidebarRoleBadge");
+  if (badge) badge.textContent = role.toUpperCase();
+  const patNav = document.getElementById("patientSidebarNav");
+  if (patNav) patNav.style.display = role === 'admin' ? 'none' : 'flex';
+  const admNav = document.getElementById("adminSidebarNav");
+  if (admNav) admNav.style.display = role === 'admin' ? 'block' : 'none';
+  const crumb = document.getElementById("crumbModeTitle");
+  if (crumb) crumb.textContent = role === 'admin' ? 'Kalender Dokter (Admin)' : 'Jadwal Konsultasi Dokter';
+  const btnTxt = document.getElementById("btnActionText");
+  if (btnTxt) btnTxt.textContent = role === 'admin' ? 'Tambah Jadwal Pasien' : 'Booking Jadwal Dokter';
 
   renderEvents();
   showToast(`Beralih ke mode tampilan ${role === 'admin' ? 'Administrator' : 'Pasien'}.`);
@@ -1836,6 +1850,16 @@ function openBookingModal(hourDefault = null) {
   }
   if (activeDoctorFilter !== 'all') {
     document.getElementById("bmDoctor").value = activeDoctorFilter;
+  }
+
+  // Pre-fill patient name & phone if logged-in as patient
+  const patientInput = document.getElementById("bmPatientName");
+  const phoneInput = document.getElementById("bmPhone");
+  if (!IS_ADMIN && patientInput && !patientInput.value) {
+    patientInput.value = "{{ $user['name'] ?? '' }}";
+  }
+  if (!IS_ADMIN && phoneInput && !phoneInput.value) {
+    phoneInput.value = "{{ $user['phone'] ?? '' }}";
   }
 
   checkSlotAvailability();

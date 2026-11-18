@@ -554,8 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // KLINIK MARISTELLA: AUTOMATIC APPOINTMENT STATUS & BILLING DRAWER / MODAL
   // ==========================================================================
 
-  const desktopStateWelcome = document.getElementById('desktop-state-welcome');
-  const mobileStateWelcome = document.getElementById('mobile-state-welcome');
   const desktopStateBefore = document.getElementById('desktop-state-before');
   const desktopStateAfter = document.getElementById('desktop-state-after');
   const mobileStateBefore = document.getElementById('mobile-state-before');
@@ -569,23 +567,19 @@ document.addEventListener('DOMContentLoaded', () => {
     currentAppointmentMode = mode;
 
     if (mode === 'welcome') {
-      desktopStateWelcome?.classList.remove('hidden');
+      document.querySelectorAll('.next-appt-card, .stacked-card, #mobile-next-appt-label').forEach(el => el.classList.add('hidden'));
       desktopStateBefore?.classList.add('hidden');
       desktopStateAfter?.classList.add('hidden');
-
-      mobileStateWelcome?.classList.remove('hidden');
       mobileStateBefore?.classList.add('hidden');
       mobileStateAfter?.classList.add('hidden');
 
       if (showNotification) {
-        showToast('Tagihan telah lunas. Selamat datang di Klinik Maristella!');
+        showToast('Tagihan telah lunas. Terima kasih atas kunjungan Anda di Klinik Maristella!');
       }
     } else if (mode === 'before') {
-      desktopStateWelcome?.classList.add('hidden');
+      document.querySelectorAll('.next-appt-card, .stacked-card, #mobile-next-appt-label').forEach(el => el.classList.remove('hidden'));
       desktopStateBefore?.classList.remove('hidden');
       desktopStateAfter?.classList.add('hidden');
-
-      mobileStateWelcome?.classList.add('hidden');
       mobileStateBefore?.classList.remove('hidden');
       mobileStateAfter?.classList.add('hidden');
 
@@ -593,11 +587,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Janji Temu Aktif: Menunggu jadwal konsultasi dokter.');
       }
     } else { // 'after'
-      desktopStateWelcome?.classList.add('hidden');
+      document.querySelectorAll('.next-appt-card, .stacked-card, #mobile-next-appt-label').forEach(el => el.classList.remove('hidden'));
       desktopStateBefore?.classList.add('hidden');
       desktopStateAfter?.classList.remove('hidden');
-
-      mobileStateWelcome?.classList.add('hidden');
       mobileStateBefore?.classList.add('hidden');
       mobileStateAfter?.classList.remove('hidden');
 
@@ -606,6 +598,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  // Interactive Notification Dropdown Toggle & Read Status
+  const desktopNotifBtn = document.getElementById('desktop-notif-btn');
+  const desktopNotifDropdown = document.getElementById('desktop-notif-dropdown');
+  const mobileNotifBtn = document.getElementById('mobile-notif-btn');
+  const mobileNotifDropdown = document.getElementById('mobile-notif-dropdown');
+
+  desktopNotifBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    desktopNotifDropdown?.classList.toggle('hidden');
+  });
+
+  mobileNotifBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    mobileNotifDropdown?.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!desktopNotifDropdown?.contains(e.target) && !desktopNotifBtn?.contains(e.target)) {
+      desktopNotifDropdown?.classList.add('hidden');
+    }
+    if (!mobileNotifDropdown?.contains(e.target) && !mobileNotifBtn?.contains(e.target)) {
+      mobileNotifDropdown?.classList.add('hidden');
+    }
+  });
+
+  window.markAllNotificationsRead = function() {
+    const desktopBadge = document.getElementById('desktop-notif-badge');
+    const mobileBadge = document.getElementById('mobile-notif-badge');
+    const desktopCounter = document.getElementById('desktop-notif-counter');
+    desktopBadge?.classList.add('hidden');
+    mobileBadge?.classList.add('hidden');
+    if (desktopCounter) desktopCounter.textContent = '0 Baru';
+    showToast('Semua notifikasi ditandai telah dibaca.');
+  };
 
   // Expose for external or programmatic triggering
   window.setAppointmentMode = setAppointmentMode;

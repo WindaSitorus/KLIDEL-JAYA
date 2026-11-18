@@ -548,43 +548,46 @@
   <div id="addDoctorModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden opacity-0 transition-opacity duration-200 flex items-center justify-center p-4">
     <div id="addDoctorModal" class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden transform scale-95 transition-all duration-200" role="dialog" aria-modal="true">
       
+      <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 sticky top-0 z-10">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-blue-100 text-[#012D68] flex items-center justify-center">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-100 text-[#012D68] flex items-center justify-center shadow-xs flex-shrink-0">
             <svg class="w-5 h-5"><use href="#i-doctor"/></svg>
           </div>
           <div>
             <h3 class="text-base font-bold text-slate-900">Pendaftaran Dokter & Akun Baru</h3>
-            <p class="text-xs text-slate-500">Profil dokter akan langsung tampil di beranda pasien dan dokter bisa langsung login.</p>
+            <p class="text-xs text-slate-500">Profil dokter akan langsung tampil di beranda pasien dan dokter bisa langsung login ke portal.</p>
           </div>
         </div>
         <button type="button" onclick="closeAddDoctorModal()" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center transition-colors">✕</button>
       </div>
 
-      <form action="{{ route('admin.doctors.store') }}" method="POST" enctype="multipart/form-data" class="overflow-y-auto p-6 space-y-5">
+      <form action="{{ route('admin.doctors.store') }}" method="POST" enctype="multipart/form-data" class="overflow-y-auto p-6 sm:p-7 space-y-6">
         @csrf
 
-        <!-- SECTION 1: PROFIL DOKTER -->
-        <div>
-          <div class="flex items-center gap-2 pb-2 mb-3 border-b border-slate-100">
+        <!-- SECTION 1: PROFIL & PRAKTIK DOKTER -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
             <span class="w-5 h-5 rounded-full bg-[#012D68] text-white text-xs font-bold flex items-center justify-center">1</span>
-            <h4 class="font-bold text-slate-900 text-sm">Informasi Profil Dokter</h4>
+            <h4 class="font-bold text-slate-900 text-sm">Informasi Profil & Praktik Dokter</h4>
           </div>
 
-          <div class="space-y-3.5">
+          <div class="space-y-4">
+            <!-- Nama Dokter -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                 Nama Lengkap Dokter & Gelar <span class="text-rose-500">*</span>
               </label>
-              <input type="text" name="nama_dokter" required placeholder="Contoh: Dr. Budi Santoso, Sp.A" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+              <input type="text" name="nama_dokter" required placeholder="Contoh: Dr. Budi Santoso, Sp.A" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all placeholder:text-slate-400 font-medium bg-white">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Poli & Spesialisasi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Poliklinik / Departemen <span class="text-rose-500">*</span>
                 </label>
-                <select name="poli_id" id="add-poli-id" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <select name="poli_id" id="add-poli-id" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium">
                   <option value="">Pilih Poliklinik...</option>
                   @foreach ($polis as $poli)
                     <option value="{{ $poli->id }}" data-name="{{ $poli->name_en ?? $poli->nama_poli }}">
@@ -595,161 +598,156 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Spesialisasi Klinis
                 </label>
-                <input type="text" name="spesialisasi" placeholder="Contoh: Dokter Spesialis Anak" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="text" name="spesialisasi" placeholder="Contoh: Dokter Spesialis Anak" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all placeholder:text-slate-400 font-medium bg-white">
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Tarif, Jam Praktik, Pengalaman -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Tarif Sesi (Rp) <span class="text-rose-500">*</span>
                 </label>
-                <input type="number" name="price_num" value="180000" min="0" step="5000" required placeholder="180000" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="number" name="price_num" value="180000" min="0" step="5000" required placeholder="180000" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
-                  Jam Praktik / Ketersediaan
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                  Jam Praktik
                 </label>
-                <input type="text" name="availability" value="09:00 - 17:00 WIB" placeholder="09:00 - 17:00 WIB" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="text" name="availability" value="09:00 - 17:00 WIB" placeholder="09:00 - 17:00 WIB" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
-                  Pengalaman Praktik
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                  Pengalaman
                 </label>
-                <input type="text" name="experience" value="5 tahun" placeholder="5 tahun" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="text" name="experience" value="5 tahun" placeholder="5 tahun" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
             </div>
 
-            <!-- Avatar & Preset Selection -->
+            <!-- Foto Profil Dokter (Upload Berkas Nyata dengan Pratinjau Langsung) -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Pilihan Foto Profil Dokter</label>
-              <div class="grid grid-cols-3 gap-3 mb-2">
-                <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                  <input type="radio" name="image_preset" value="images/doctors/doctor-1.png" checked class="text-[#012D68] focus:ring-0">
-                  <img src="{{ asset('images/doctors/doctor-1.png') }}" class="w-8 h-8 rounded-lg object-contain bg-blue-50">
-                  <span class="text-xs font-medium">Avatar 1</span>
-                </label>
-                <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                  <input type="radio" name="image_preset" value="images/doctors/doctor-2.png" class="text-[#012D68] focus:ring-0">
-                  <img src="{{ asset('images/doctors/doctor-2.png') }}" class="w-8 h-8 rounded-lg object-contain bg-blue-50">
-                  <span class="text-xs font-medium">Avatar 2</span>
-                </label>
-                <label class="flex items-center gap-2 p-2 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                  <input type="radio" name="image_preset" value="images/doctors/doctor-3.png" class="text-[#012D68] focus:ring-0">
-                  <img src="{{ asset('images/doctors/doctor-3.png') }}" class="w-8 h-8 rounded-lg object-contain bg-blue-50">
-                  <span class="text-xs font-medium">Avatar 3</span>
-                </label>
-              </div>
-              <div class="flex items-center gap-2 text-xs text-slate-500">
-                <span>Atau upload foto sendiri:</span>
-                <input type="file" name="image_file" accept="image/*" class="text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-[#012D68] hover:file:bg-blue-100">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                Foto Profil Dokter
+              </label>
+              <div class="flex items-center gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                <!-- Circular Image Preview -->
+                <div class="relative w-16 h-16 rounded-2xl overflow-hidden bg-blue-50 border-2 border-slate-200 flex-shrink-0 shadow-xs flex items-center justify-center">
+                  <img id="add-doctor-img-preview" src="{{ asset('images/doctors/doctor-1.png') }}" alt="Preview Foto Dokter" class="w-full h-full object-contain">
+                </div>
+                
+                <!-- Upload Controls & Guide -->
+                <div class="flex-1 min-w-0">
+                  <label for="add-doctor-file-input" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:border-[#012D68] hover:bg-blue-50/40 text-[#012D68] text-xs font-bold cursor-pointer transition-all shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Upload Foto Dokter</span>
+                  </label>
+                  <input type="file" id="add-doctor-file-input" name="image_file" accept="image/*" class="hidden" onchange="previewAddDoctorImage(this)">
+                  <span id="add-doctor-filename" class="text-[11px] text-slate-500 block mt-1.5 truncate">Format yang didukung: JPG, PNG, WEBP (Maksimal 2 MB). Default foto klinik digunakan jika kosong.</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- SECTION 2: AKUN LOGIN DOKTER -->
-        <div>
-          <div class="flex items-center gap-2 pb-2 mb-3 border-b border-slate-100">
+        <!-- SECTION 2: AKUN LOGIN PORTAL DOKTER -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
             <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">2</span>
             <h4 class="font-bold text-slate-900 text-sm">Pendaftaran Akun Login Portal Dokter</h4>
           </div>
 
-          <div class="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-[#012D68] mb-3 flex items-start gap-2">
+          <div class="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-[#012D68] flex items-start gap-2.5">
             <svg class="w-4 h-4 text-[#012D68] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span>Akun ini otomatis diberi role <b>Dokter</b>. Dokter dapat langsung login ke portal <code>/login/dokter</code> menggunakan email dan password di bawah ini.</span>
+            <span>Akun ini otomatis dibuatkan hak akses role <b>Dokter</b>. Dokter dapat langsung login ke portal <code>/login/dokter</code> menggunakan email dan password di bawah ini.</span>
           </div>
 
-          <div class="space-y-3.5">
+          <div class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                 Email Login Dokter <span class="text-rose-500">*</span>
               </label>
-              <input type="email" name="email" required placeholder="Contoh: budi@aihealth.com" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+              <input type="email" name="email" required placeholder="Contoh: budi@aihealth.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all placeholder:text-slate-400 font-medium bg-white">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Kata Sandi (Password) <span class="text-rose-500">*</span>
                 </label>
-                <input type="password" name="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="password" name="password" required minlength="6" placeholder="Minimal 6 karakter" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Ulangi Kata Sandi <span class="text-rose-500">*</span>
                 </label>
-                <input type="password" name="password_confirmation" required minlength="6" placeholder="Ketik ulang kata sandi" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="password" name="password_confirmation" required minlength="6" placeholder="Ketik ulang kata sandi" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
             </div>
           </div>
         </div>
 
         <!-- Action Footer -->
-        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
-          <button type="button" onclick="closeAddDoctorModal()" class="h-9 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors">
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeAddDoctorModal()" class="h-10 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors">
             Batal
           </button>
-          <button type="submit" class="h-9 px-5 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-sm">
-            <svg class="w-3.5 h-3.5"><use href="#i-check"/></svg>
+          <button type="submit" class="h-10 px-6 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-xs inline-flex items-center gap-2 transition-all shadow-md">
+            <svg class="w-4 h-4"><use href="#i-check"/></svg>
             <span>Simpan & Daftarkan Dokter</span>
           </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
+        </div>  <!-- ========================================================================= -->
   <!-- MODAL: EDIT DOKTER & AKUN                                                 -->
   <!-- ========================================================================= -->
   <div id="editDoctorModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden opacity-0 transition-opacity duration-200 flex items-center justify-center p-4">
     <div id="editDoctorModal" class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden transform scale-95 transition-all duration-200" role="dialog" aria-modal="true">
       
+      <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 sticky top-0 z-10">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-blue-100 text-[#012D68] flex items-center justify-center">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-100 text-[#012D68] flex items-center justify-center shadow-xs flex-shrink-0">
             <svg class="w-5 h-5"><use href="#i-edit"/></svg>
           </div>
           <div>
             <h3 class="text-base font-bold text-slate-900">Perbarui Data Dokter & Akun</h3>
-            <p class="text-xs text-slate-500">Ubah profil dokter, tarif, dan kredensial login portal.</p>
+            <p class="text-xs text-slate-500">Ubah profil dokter, tarif, dan kredensial login portal medis.</p>
           </div>
         </div>
         <button type="button" onclick="closeEditDoctorModal()" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center transition-colors">✕</button>
       </div>
 
-      <form id="editDoctorForm" method="POST" enctype="multipart/form-data" class="overflow-y-auto p-6 space-y-5">
+      <form id="editDoctorForm" method="POST" enctype="multipart/form-data" class="overflow-y-auto p-6 sm:p-7 space-y-6">
         @csrf
         @method('PUT')
 
-        <!-- SECTION 1: PROFIL DOKTER -->
-        <div>
-          <div class="flex items-center gap-2 pb-2 mb-3 border-b border-slate-100">
+        <!-- SECTION 1: PROFIL & PRAKTIK DOKTER -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
             <span class="w-5 h-5 rounded-full bg-[#012D68] text-white text-xs font-bold flex items-center justify-center">1</span>
-            <h4 class="font-bold text-slate-900 text-sm">Informasi Profil Dokter</h4>
+            <h4 class="font-bold text-slate-900 text-sm">Informasi Profil & Praktik Dokter</h4>
           </div>
 
-          <div class="space-y-3.5">
+          <div class="space-y-4">
+            <!-- Nama Dokter -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                 Nama Lengkap Dokter & Gelar <span class="text-rose-500">*</span>
               </label>
-              <input type="text" id="edit-nama-dokter" name="nama_dokter" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+              <input type="text" id="edit-nama-dokter" name="nama_dokter" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Poli & Spesialisasi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Poliklinik / Departemen <span class="text-rose-500">*</span>
                 </label>
-                <select name="poli_id" id="edit-poli-id" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <select name="poli_id" id="edit-poli-id" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium">
                   @foreach ($polis as $poli)
                     <option value="{{ $poli->id }}">{{ $poli->nama_poli }} ({{ $poli->name_en ?? $poli->slug }})</option>
                   @endforeach
@@ -757,61 +755,83 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Spesialisasi Klinis
                 </label>
-                <input type="text" id="edit-spesialisasi" name="spesialisasi" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="text" id="edit-spesialisasi" name="spesialisasi" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Tarif, Jam Praktik, Pengalaman -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Tarif Sesi (Rp) <span class="text-rose-500">*</span>
                 </label>
-                <input type="number" id="edit-price-num" name="price_num" min="0" step="5000" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="number" id="edit-price-num" name="price_num" min="0" step="5000" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
-                  Jam Praktik / Ketersediaan
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                  Jam Praktik
                 </label>
-                <input type="text" id="edit-availability" name="availability" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="text" id="edit-availability" name="availability" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
-                  Pengalaman Praktik
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                  Pengalaman
                 </label>
-                <input type="text" id="edit-experience" name="experience" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                <input type="text" id="edit-experience" name="experience" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
+              </div>
+            </div>
+
+            <!-- Foto Profil Dokter (Preview & Ganti Foto) -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
+                Foto Profil Dokter
+              </label>
+              <div class="flex items-center gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                <div class="relative w-16 h-16 rounded-2xl overflow-hidden bg-blue-50 border-2 border-slate-200 flex-shrink-0 shadow-xs flex items-center justify-center">
+                  <img id="edit-doctor-img-preview" src="{{ asset('images/doctors/doctor-1.png') }}" alt="Foto Dokter" class="w-full h-full object-contain">
+                </div>
+                
+                <div class="flex-1 min-w-0">
+                  <label for="edit-doctor-file-input" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:border-[#012D68] hover:bg-blue-50/40 text-[#012D68] text-xs font-bold cursor-pointer transition-all shadow-2xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Ganti Foto Dokter</span>
+                  </label>
+                  <input type="file" id="edit-doctor-file-input" name="image_file" accept="image/*" class="hidden" onchange="previewEditDoctorImage(this)">
+                  <span id="edit-doctor-filename" class="text-[11px] text-slate-500 block mt-1.5 truncate">Biarkan kosong jika tidak ingin mengganti foto saat ini.</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- SECTION 2: AKUN LOGIN DOKTER -->
-        <div>
-          <div class="flex items-center gap-2 pb-2 mb-3 border-b border-slate-100">
+        <!-- SECTION 2: AKUN LOGIN PORTAL DOKTER -->
+        <div class="space-y-4">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
             <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">2</span>
             <h4 class="font-bold text-slate-900 text-sm">Akun Login Portal Dokter</h4>
           </div>
 
-          <div class="space-y-3.5">
+          <div class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">
+              <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                 Email Login Dokter <span class="text-rose-500">*</span>
               </label>
-              <input type="email" id="edit-email" name="email" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+              <input type="email" id="edit-email" name="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
             </div>
 
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
               <span class="text-xs font-bold text-slate-700 block">Ganti Kata Sandi (Kosongkan jika tidak ingin mengubah password)</span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <input type="password" name="password" minlength="6" placeholder="Password baru..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                  <input type="password" name="password" minlength="6" placeholder="Password baru..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
                 </div>
                 <div>
-                  <input type="password" name="password_confirmation" minlength="6" placeholder="Konfirmasi password baru..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-blue-100 outline-none transition-all">
+                  <input type="password" name="password_confirmation" minlength="6" placeholder="Konfirmasi password baru..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:border-[#012D68] focus:ring-2 focus:ring-[#012D68]/15 outline-none transition-all font-medium bg-white">
                 </div>
               </div>
             </div>
@@ -819,12 +839,12 @@
         </div>
 
         <!-- Action Footer -->
-        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
-          <button type="button" onclick="closeEditDoctorModal()" class="h-9 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors">
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeEditDoctorModal()" class="h-10 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs transition-colors">
             Batal
           </button>
-          <button type="submit" class="h-9 px-5 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-sm">
-            <svg class="w-3.5 h-3.5"><use href="#i-check"/></svg>
+          <button type="submit" class="h-10 px-6 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-xs inline-flex items-center gap-2 transition-all shadow-md">
+            <svg class="w-4 h-4"><use href="#i-check"/></svg>
             <span>Simpan Perubahan</span>
           </button>
         </div>
@@ -861,6 +881,34 @@
 
   <!-- Inline Script for Modals -->
   <script>
+    function previewAddDoctorImage(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('add-doctor-img-preview');
+          if (preview) preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        const nameEl = document.getElementById('add-doctor-filename');
+        if (nameEl) nameEl.textContent = 'Foto terpilih: ' + file.name;
+      }
+    }
+
+    function previewEditDoctorImage(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const preview = document.getElementById('edit-doctor-img-preview');
+          if (preview) preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        const nameEl = document.getElementById('edit-doctor-filename');
+        if (nameEl) nameEl.textContent = 'Foto baru terpilih: ' + file.name;
+      }
+    }
+
     function openAddDoctorModal() {
       const b = document.getElementById('addDoctorModalBackdrop');
       const m = document.getElementById('addDoctorModal');
@@ -889,6 +937,19 @@
       document.getElementById('edit-availability').value = doctor.availability || '';
       document.getElementById('edit-experience').value = doctor.experience || '';
       document.getElementById('edit-email').value = (doctor.user && doctor.user.email) ? doctor.user.email : '';
+
+      const editImg = document.getElementById('edit-doctor-img-preview');
+      if (editImg) {
+        if (doctor.image) {
+          editImg.src = doctor.image.startsWith('http') ? doctor.image : ('/' + doctor.image.replace(/^\//, ''));
+        } else {
+          editImg.src = '/images/doctors/doctor-1.png';
+        }
+      }
+      const editFilename = document.getElementById('edit-doctor-filename');
+      if (editFilename) {
+        editFilename.textContent = 'Biarkan kosong jika tidak ingin mengubah foto saat ini.';
+      }
 
       const b = document.getElementById('editDoctorModalBackdrop');
       const m = document.getElementById('editDoctorModal');

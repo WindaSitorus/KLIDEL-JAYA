@@ -156,6 +156,8 @@ class HomeController extends Controller
             $nextAppointment['total_amount'] = $bill['total_amount'];
         }
 
+        $notifications = $this->resolveNotifications($latestBooking, $appointmentMode, $bill);
+
         return view('home', [
             'user' => $user,
             'nextAppointment' => $nextAppointment,
@@ -165,6 +167,8 @@ class HomeController extends Controller
             'isDoctorExamined' => $isDoctorExamined,
             'categories' => $categories,
             'doctors' => $doctors,
+            'notifications' => $notifications,
+            'unreadCount' => count($notifications),
         ]);
     }
 
@@ -310,6 +314,93 @@ class HomeController extends Controller
     }
 
     /**
+     * Resolve active real-time notifications for the patient.
+     *
+     * @return array<int, array{id: string, title: string, message: string, time: string, type: string, action_label: ?string, action_url: ?string, onclick: ?string}>
+     */
+    public function resolveNotifications(?Booking $latestBooking, string $appointmentMode, array $bill): array
+    {
+        $notifications = [];
+
+        // 1. Tagihan siap dibayar (Doctor has examined)
+        if ($appointmentMode === 'after' && $latestBooking && $latestBooking->payment_status === 'unpaid') {
+            $formattedTotal = 'Rp '.number_format((float) $bill['total_amount'], 0, ',', '.');
+            $doctorName = $latestBooking->doctor?->nama_dokter ?? 'Dokter Pemeriksa';
+            $notifications[] = [
+                'id' => 'notif-bill-'.$latestBooking->id,
+                'title' => 'Tagihan Konsultasi Tersedia',
+                'message' => "Pemeriksaan medis oleh {$doctorName} telah selesai. Tagihan sebesar {$formattedTotal} siap dibayar.",
+                'time' => 'Baru saja',
+                'type' => 'bill',
+                'action_label' => 'Bayar Sekarang',
+                'action_url' => null,
+                'onclick' => 'window.openPaymentDrawer?.()',
+            ];
+        }
+
+        // 2. Janji temu aktif menunggu konsultasi
+        if ($appointmentMode === 'before' && $latestBooking && $latestBooking->payment_status === 'unpaid') {
+            $doctorName = $latestBooking->doctor?->nama_dokter ?? 'Dokter Pemeriksa';
+            $dateTime = $latestBooking->booking_time ?: ($latestBooking->booking_date ? date('d M Y', strtotime($latestBooking->booking_date)) : 'Hari Ini');
+            $notifications[] = [
+                'id' => 'notif-appt-'.$latestBooking->id,
+                'title' => 'Janji Temu Menunggu',
+                'message' => "Jadwal konsultasi Anda bersama {$doctorName} ({$latestBooking->doctor?->spesialisasi}) terdaftar untuk {$dateTime}.",
+                'time' => 'Mendatang',
+                'type' => 'appointment',
+                'action_label' => 'Lihat Jadwal',
+                'action_url' => route('calendar'),
+                'onclick' => null,
+            ];
+        }
+
+        // 3. Resep obat farmasi status
+        if ($latestBooking && Schema::hasTable('medical_records') && $latestBooking->medicalRecord) {
+            $plan = $latestBooking->medicalRecord->plan ?? [];
+            $prescriptionStatus = is_array($plan) ? ($plan['prescription_status'] ?? null) : null;
+            if ($prescriptionStatus === 'sedang_diracik') {
+                $notifications[] = [
+                    'id' => 'notif-rx-prep-'.$latestBooking->id,
+                    'title' => 'Resep Sedang Diracik',
+                    'message' => 'Apoteker sedang menyiapkan dan meracik resep obat Anda.',
+                    'time' => 'Sedang berlangsung',
+                    'type' => 'pharmacy',
+                    'action_label' => null,
+                    'action_url' => null,
+                    'onclick' => null,
+                ];
+            } elseif ($prescriptionStatus === 'selesai') {
+                $notifications[] = [
+                    'id' => 'notif-rx-done-'.$latestBooking->id,
+                    'title' => 'Obat Siap Diserahkan',
+                    'message' => 'Obat resep Anda telah diserahkan oleh apoteker sesuai instruksi dosis.',
+                    'time' => 'Selesai',
+                    'type' => 'pharmacy',
+                    'action_label' => null,
+                    'action_url' => null,
+                    'onclick' => null,
+                ];
+            }
+        }
+
+        // 4. Pembayaran berhasil / lunas
+        if (session('just_paid_booking_id') || ($latestBooking && $latestBooking->payment_status === 'paid')) {
+            $notifications[] = [
+                'id' => 'notif-paid-'.($latestBooking?->id ?? 'last'),
+                'title' => 'Pembayaran Berhasil',
+                'message' => 'Transaksi pembayaran konsultasi Anda telah diverifikasi dan lunas.',
+                'time' => 'Lunas',
+                'type' => 'success',
+                'action_label' => null,
+                'action_url' => null,
+                'onclick' => null,
+            ];
+        }
+
+        return $notifications;
+    }
+
+    /**
      * Get real-time appointment and examination status (for automatic client trigger).
      */
     public function getAppointmentStatus(): JsonResponse
@@ -317,6 +408,7 @@ class HomeController extends Controller
         $appointmentData = $this->resolveAppointmentState();
         $latestBooking = $appointmentData['booking'];
         $bill = $this->resolveBillDetails($latestBooking);
+        $notifications = $this->resolveNotifications($latestBooking, $appointmentData['mode'], $bill);
 
         return response()->json([
             'success' => true,
@@ -332,6 +424,8 @@ class HomeController extends Controller
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',
             'tariff_plan' => $latestBooking ? $bill['tariff_plan'] : 'with_medicine',
             'bill' => $bill,
+            'notifications' => $notifications,
+            'unread_count' => count($notifications),
         ]);
     }
 

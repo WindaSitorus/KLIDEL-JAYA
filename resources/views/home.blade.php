@@ -111,11 +111,79 @@
                     <svg class="app-svg-icon w-4 h-4"><use href="#icon-sun"/></svg>
                 </button>
 
-                <!-- Notification Bell -->
-                <button class="glass-btn !bg-[var(--color-surface)] !text-[var(--color-text)] !border-[var(--color-border)] relative hover:!border-[var(--color-primary)]" aria-label="Notifikasi" onclick="window.showToast('Tidak ada notifikasi baru.')">
-                    <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
-                    <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
-                </button>
+                <!-- Notification Bell with Interactive Dropdown -->
+                <div class="relative" id="desktop-notif-container">
+                    <button id="desktop-notif-btn" type="button" class="glass-btn !bg-[var(--color-surface)] !text-[var(--color-text)] !border-[var(--color-border)] relative hover:!border-[var(--color-primary)] transition-all" aria-label="Notifikasi" aria-expanded="false">
+                        <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
+                        <span id="desktop-notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 {{ ($unreadCount ?? 0) > 0 ? '' : 'hidden' }}"></span>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div id="desktop-notif-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#101E35] rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden transition-all duration-200">
+                        <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">Notifikasi</span>
+                                <span id="desktop-notif-counter" class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ ($unreadCount ?? 0) > 0 ? 'bg-[#012D68] text-white' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300' }}">
+                                    {{ $unreadCount ?? 0 }} Baru
+                                </span>
+                            </div>
+                            @if(($unreadCount ?? 0) > 0)
+                                <button type="button" onclick="window.markAllNotificationsRead?.()" class="text-[11px] text-[#012D68] dark:text-blue-400 font-semibold hover:underline">Tandai Dibaca</button>
+                            @endif
+                        </div>
+                        <div id="desktop-notif-list" class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                            @forelse(($notifications ?? []) as $notif)
+                                <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 
+                                        @if($notif['type'] === 'bill') bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400
+                                        @elseif($notif['type'] === 'appointment') bg-blue-50 text-[#012D68] dark:bg-blue-950/50 dark:text-blue-400
+                                        @elseif($notif['type'] === 'pharmacy') bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400
+                                        @else bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 @endif">
+                                        @if($notif['type'] === 'bill')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        @elseif($notif['type'] === 'appointment')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        @elseif($notif['type'] === 'pharmacy')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <b class="text-xs font-bold text-slate-900 dark:text-white truncate block">{{ $notif['title'] }}</b>
+                                            <small class="text-[10px] text-slate-400 whitespace-nowrap">{{ $notif['time'] }}</small>
+                                        </div>
+                                        <p class="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ $notif['message'] }}</p>
+                                        @if(!empty($notif['action_label']))
+                                            <div class="mt-2">
+                                                @if(!empty($notif['onclick']))
+                                                    <button type="button" onclick="{{ $notif['onclick'] }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#012D68] text-white text-[11px] font-bold hover:bg-[#023E8A] transition-colors shadow-2xs">
+                                                        <span>{{ $notif['action_label'] }}</span>
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                    </button>
+                                                @elseif(!empty($notif['action_url']))
+                                                    <a href="{{ $notif['action_url'] }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#012D68] text-white text-[11px] font-bold hover:bg-[#023E8A] transition-colors shadow-2xs">
+                                                        <span>{{ $notif['action_label'] }}</span>
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div id="desktop-notif-empty" class="py-8 text-center">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    </div>
+                                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Belum ada notifikasi baru</p>
+                                    <small class="text-[11px] text-slate-400 mt-0.5 block">Notifikasi jadwal, resep, dan tagihan akan tampil di sini.</small>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
 
                 <!-- User Profile / Auth Action -->
                 @auth
@@ -151,38 +219,8 @@
                     <h1 class="text-[30px] font-bold leading-[1.2] mt-1 text-white">What’s on your health today?</h1>
                 </div>
 
-                <!-- Next Appointment Card (Solid Pure White Surface with Dynamic Examination / Payment States) -->
-                <div class="next-appt-card bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 w-[385px] max-w-full shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300" data-appointment-mode="{{ $appointmentMode }}">
-                    
-                    <!-- State 0: SELAMAT DATANG (Aktif saat tidak ada tagihan aktif / sesudah bayar lunas) -->
-                    <div id="desktop-state-welcome" class="appointment-state-panel flex flex-col justify-between min-h-[148px] {{ $appointmentMode === 'welcome' ? '' : 'hidden' }}" data-status="Selamat Datang" aria-label="Status Janji Temu: Selamat Datang">
-                        <span class="sr-only">Selamat Datang</span>
-                        <div class="flex items-center justify-between mb-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <small class="text-slate-400 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">Layanan Pasien</small>
-                            </div>
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                Siap Melayani
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-3 py-1">
-                            <div class="w-[50px] h-[50px] rounded-[14px] bg-emerald-50 dark:bg-emerald-950/50 overflow-hidden flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-xs">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <b class="block text-[14.5px] text-slate-900 dark:text-white truncate font-bold">Selamat datang, ada yang bisa dibantu?</b>
-                                <small class="block text-slate-500 dark:text-slate-400 text-[11.5px] mt-0.5 leading-tight">Konsultasikan keluhan kesehatan Anda dengan dokter spesialis kami.</small>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button type="button" class="btn-open-booking-trigger h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-semibold text-[12px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">Cari Dokter</button>
-                            <button type="button" class="btn-open-booking-trigger h-9 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-[12px] flex items-center justify-center gap-1.5 transition-all shadow-xs" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Buat Janji Temu</span>
-                            </button>
-                        </div>
-                    </div>
+                <!-- Next Appointment Card (Hanya muncul jika ada janji temu aktif: sebelum periksa atau siap bayar) -->
+                <div class="next-appt-card bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 w-[385px] max-w-full shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300 {{ $appointmentMode === 'welcome' ? 'hidden' : '' }}" data-appointment-mode="{{ $appointmentMode }}">
 
                     <!-- State 1: SEBELUM PERIKSA (Default / Upcoming) -->
                     <div id="desktop-state-before" class="appointment-state-panel flex flex-col justify-between min-h-[148px] {{ $appointmentMode === 'before' ? '' : 'hidden' }}" data-status="Sebelum Periksa" aria-label="Status Janji Temu: Sebelum Periksa">
@@ -520,9 +558,50 @@
                     <button id="mobile-search-trigger" class="glass-btn" aria-label="Cari Dokter">
                         <svg class="app-svg-icon w-4 h-4"><use href="#icon-search"/></svg>
                     </button>
-                    <button class="glass-btn" aria-label="Notifikasi" onclick="window.showToast('Tidak ada notifikasi baru.')">
-                        <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
-                    </button>
+                    <!-- Mobile Notification Bell -->
+                    <div class="relative" id="mobile-notif-container">
+                        <button id="mobile-notif-btn" type="button" class="glass-btn relative" aria-label="Notifikasi">
+                            <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
+                            <span id="mobile-notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-[#012D68] {{ ($unreadCount ?? 0) > 0 ? '' : 'hidden' }}"></span>
+                        </button>
+
+                        <!-- Mobile Notification Dropdown Panel -->
+                        <div id="mobile-notif-dropdown" class="hidden absolute right-0 mt-2 w-72 max-w-[90vw] bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden">
+                            <div class="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                                <span class="font-bold text-[11px] uppercase tracking-wider text-slate-800 dark:text-white">Notifikasi</span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-[#012D68] text-white">
+                                    {{ $unreadCount ?? 0 }} Baru
+                                </span>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                                @forelse(($notifications ?? []) as $notif)
+                                    <div class="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors flex items-start gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 
+                                            @if($notif['type'] === 'bill') bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400
+                                            @elseif($notif['type'] === 'appointment') bg-blue-50 text-[#012D68] dark:bg-blue-950/50 dark:text-blue-400
+                                            @elseif($notif['type'] === 'pharmacy') bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400
+                                            @else bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 @endif">
+                                            @if($notif['type'] === 'bill')
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            @elseif($notif['type'] === 'appointment')
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            @else
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <b class="text-[11px] font-bold text-slate-900 dark:text-white truncate block">{{ $notif['title'] }}</b>
+                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{{ $notif['message'] }}</p>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="py-5 text-center text-xs text-slate-400">
+                                        Tidak ada notifikasi baru
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -540,43 +619,13 @@
                 <b class="block text-[21px] font-bold text-white mt-0.5">What’s on your health today?</b>
             </div>
 
-            <!-- Next Appointment Label -->
-            <div class="text-center text-blue-100 text-[11px] font-bold tracking-wider mt-4 mb-2 uppercase">
+            <!-- Next Appointment Label (Hanya tampil jika ada appointment aktif) -->
+            <div id="mobile-next-appt-label" class="text-center text-blue-100 text-[11px] font-bold tracking-wider mt-4 mb-2 uppercase {{ $appointmentMode === 'welcome' ? 'hidden' : '' }}">
                 Next Appointment
             </div>
 
-            <!-- Stacked Appointment Card (Solid Pure White Surface with Dynamic Examination / Payment States) -->
-            <div class="stacked-card mx-1 bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300" data-appointment-mode="{{ $appointmentMode }}">
-                
-                <!-- State 0: SELAMAT DATANG (Aktif saat tidak ada tagihan tertunda / sesudah bayar lunas) -->
-                <div id="mobile-state-welcome" class="appointment-state-panel flex flex-col justify-between min-h-[144px] {{ $appointmentMode === 'welcome' ? '' : 'hidden' }}" data-status="Selamat Datang" aria-label="Status Janji Temu: Selamat Datang">
-                    <span class="sr-only">Selamat Datang</span>
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <small class="text-slate-400 dark:text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">Layanan Pasien</small>
-                        </div>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                            Siap Melayani
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-3 py-1">
-                        <div class="w-11 h-11 rounded-[14px] bg-emerald-50 dark:bg-emerald-950/50 overflow-hidden flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <b class="text-[13.5px] text-slate-900 dark:text-white truncate block font-bold">Selamat datang, ada yang bisa dibantu?</b>
-                            <small class="text-slate-500 dark:text-slate-400 text-[11px] block mt-0.5 leading-tight">Konsultasikan kesehatan Anda dengan dokter terbaik kami.</small>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                        <button type="button" class="h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-[11px] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">Cari Dokter</button>
-                        <button type="button" class="h-8 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-xs" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Buat Janji</span>
-                        </button>
-                    </div>
-                </div>
+            <!-- Stacked Appointment Card (Hanya muncul jika ada appointment aktif) -->
+            <div class="stacked-card mx-1 bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300 {{ $appointmentMode === 'welcome' ? 'hidden' : '' }}" data-appointment-mode="{{ $appointmentMode }}">
 
                 <!-- State 1: SEBELUM PERIKSA (Default / Upcoming) -->
                 <div id="mobile-state-before" class="appointment-state-panel flex flex-col justify-between min-h-[144px] {{ $appointmentMode === 'before' ? '' : 'hidden' }}" data-status="Sebelum Periksa" aria-label="Status Janji Temu: Sebelum Periksa">
