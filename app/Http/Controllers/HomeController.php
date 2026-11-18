@@ -186,12 +186,19 @@ class HomeController extends Controller
 
         $currentHour = (int) Carbon::now()->format('H');
         $timeSlots = [
-            ['time' => '09 AM', 'hour' => 9, 'start' => '09:00:00', 'end' => '10:00:00'],
-            ['time' => '10 AM', 'hour' => 10, 'start' => '10:00:00', 'end' => '11:00:00'],
-            ['time' => '11 AM', 'hour' => 11, 'start' => '11:00:00', 'end' => '12:00:00'],
-            ['time' => '12 PM', 'hour' => 12, 'start' => '12:00:00', 'end' => '13:00:00'],
-            ['time' => '01 PM', 'hour' => 13, 'start' => '13:00:00', 'end' => '14:00:00'],
-            ['time' => '02 PM', 'hour' => 14, 'start' => '14:00:00', 'end' => '15:00:00'],
+            ['time' => '08 AM', 'hour' => 8, 'start' => '08:00:00', 'end' => '09:00:00', 'period' => 'morning'],
+            ['time' => '09 AM', 'hour' => 9, 'start' => '09:00:00', 'end' => '10:00:00', 'period' => 'morning'],
+            ['time' => '10 AM', 'hour' => 10, 'start' => '10:00:00', 'end' => '11:00:00', 'period' => 'morning'],
+            ['time' => '11 AM', 'hour' => 11, 'start' => '11:00:00', 'end' => '12:00:00', 'period' => 'morning'],
+            ['time' => '12 PM', 'hour' => 12, 'start' => '12:00:00', 'end' => '13:00:00', 'period' => 'afternoon'],
+            ['time' => '01 PM', 'hour' => 13, 'start' => '13:00:00', 'end' => '14:00:00', 'period' => 'afternoon'],
+            ['time' => '02 PM', 'hour' => 14, 'start' => '14:00:00', 'end' => '15:00:00', 'period' => 'afternoon'],
+            ['time' => '03 PM', 'hour' => 15, 'start' => '15:00:00', 'end' => '16:00:00', 'period' => 'afternoon'],
+            ['time' => '04 PM', 'hour' => 16, 'start' => '16:00:00', 'end' => '17:00:00', 'period' => 'evening'],
+            ['time' => '05 PM', 'hour' => 17, 'start' => '17:00:00', 'end' => '18:00:00', 'period' => 'evening'],
+            ['time' => '06 PM', 'hour' => 18, 'start' => '18:00:00', 'end' => '19:00:00', 'period' => 'evening'],
+            ['time' => '07 PM', 'hour' => 19, 'start' => '19:00:00', 'end' => '20:00:00', 'period' => 'evening'],
+            ['time' => '08 PM', 'hour' => 20, 'start' => '20:00:00', 'end' => '21:00:00', 'period' => 'evening'],
         ];
 
         $currentMonthYear = Carbon::now()->translatedFormat('M Y');

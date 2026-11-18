@@ -415,4 +415,34 @@ class CalendarAndBookingTest extends TestCase
         $this->assertNotNull($created);
         $this->assertEquals($futureDate, Carbon::parse($created->booking_date)->toDateString());
     }
+
+    /**
+     * 12. Test booking pada jam sore dan malam (misal 05 PM / 17:00 dan 07 PM / 19:00) berhasil diterima.
+     */
+    public function test_booking_afternoon_and_evening_hours_is_accepted(): void
+    {
+        $doctor = Doctor::first();
+        $targetDate = Carbon::now()->next(Carbon::WEDNESDAY)->toDateString();
+
+        // Booking jam 17:00 (05 PM)
+        $response = $this->postJson(route('booking.store'), [
+            'doctor_id' => $doctor->id,
+            'booking_date' => $targetDate,
+            'booking_time' => '05 PM',
+            'jam_mulai' => '17:00:00',
+            'jam_selesai' => '18:00:00',
+            'patient_name' => 'Pasien Sore Hari',
+            'phone' => '081234567777',
+            'symptoms' => 'Pemeriksaan lanjutan sore hari',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        $bookingId = $response->json('booking.id');
+        $created = Booking::find($bookingId);
+        $this->assertNotNull($created);
+        $this->assertEquals('17:00:00', $created->jam_mulai);
+        $this->assertEquals('18:00:00', $created->jam_selesai);
+    }
 }

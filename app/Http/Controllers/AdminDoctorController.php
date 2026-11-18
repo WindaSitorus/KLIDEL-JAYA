@@ -161,8 +161,8 @@ class AdminDoctorController extends Controller
             Schedule::create([
                 'doctor_id' => $doc->id,
                 'hari' => 'Senin - Jumat',
-                'jam_mulai' => '09:00',
-                'jam_selesai' => '17:00',
+                'jam_mulai' => '08:00',
+                'jam_selesai' => '21:00',
                 'kuota' => 20,
             ]);
 

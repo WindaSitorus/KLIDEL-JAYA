@@ -524,8 +524,20 @@
                 @endforeach
             </div>
 
+            <!-- Time Slots Filter & Header -->
+            <div class="mt-4 mb-2 flex items-center justify-between">
+                <span class="text-[12px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi</span>
+                <span class="text-[11px] text-slate-400 font-medium">08:00 - 21:00</span>
+            </div>
+            <div class="slot-filter-chips flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 no-scrollbar" id="desktop-slot-filters">
+                <button type="button" class="slot-filter-chip active text-[11px] px-2.5 py-1 rounded-lg border border-[#012D68] bg-[#012D68] text-white font-semibold transition-all whitespace-nowrap" data-period="all">Semua</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi (08-11)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang (12-15)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam (16-20)</button>
+            </div>
+
             <!-- Time Slots -->
-            <div class="slots-container grid grid-cols-3 gap-2 mt-3" id="desktop-slots-container">
+            <div class="slots-container grid grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-0.5" id="desktop-slots-container">
                 @php
                     $isFirstDayToday = ($bookingDays[$activeDayIndex ?? 0]['is_today'] ?? false);
                     $firstActiveSlotFound = false;
@@ -543,6 +555,7 @@
                         class="slot-pill {{ $slotIsPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($isSlotActive ? 'active' : '') }}"
                         data-time="{{ $slot['time'] }}"
                         data-hour="{{ $slot['hour'] }}"
+                        data-period="{{ $slot['period'] }}"
                         data-start="{{ $slot['start'] }}"
                         data-end="{{ $slot['end'] }}"
                         data-is-past="{{ $slotIsPast ? '1' : '0' }}"
@@ -936,7 +949,18 @@
             </div>
 
             <!-- Time Slots Selection -->
-            <div class="slots-container grid grid-cols-3 gap-1.5 mt-2.5" id="mobile-slots-container">
+            <div class="mt-3.5 mb-1.5 flex items-center justify-between">
+                <span class="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi</span>
+                <span class="text-[10.5px] text-slate-400 font-medium">08:00 - 21:00</span>
+            </div>
+            <div class="slot-filter-chips flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 no-scrollbar" id="mobile-slot-filters">
+                <button type="button" class="slot-filter-chip active text-[10px] px-2 py-0.5 rounded-lg border border-[#012D68] bg-[#012D68] text-white font-semibold transition-all whitespace-nowrap" data-period="all">Semua</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam</button>
+            </div>
+
+            <div class="slots-container grid grid-cols-3 gap-1.5 max-h-[190px] overflow-y-auto pr-0.5" id="mobile-slots-container">
                 @php
                     $isFirstDayToday = ($bookingDays[$activeDayIndex ?? 0]['is_today'] ?? false);
                     $firstActiveSlotFoundMobile = false;
@@ -954,6 +978,7 @@
                         class="slot-pill h-8 text-[11px] {{ $slotIsPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($isSlotActive ? 'active' : '') }}"
                         data-time="{{ $slot['time'] }}"
                         data-hour="{{ $slot['hour'] }}"
+                        data-period="{{ $slot['period'] }}"
                         data-start="{{ $slot['start'] }}"
                         data-end="{{ $slot['end'] }}"
                         data-is-past="{{ $slotIsPast ? '1' : '0' }}"

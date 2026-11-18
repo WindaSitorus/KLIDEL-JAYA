@@ -388,6 +388,19 @@
   color: #64748b !important;
 }
 
+/* Slot Filter Chips & Scrollbar */
+.slot-filter-chip {
+  cursor: pointer;
+  user-select: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Floating Bottom Navigation */
 .floating-bottom-nav {
   position: fixed;

@@ -416,6 +416,55 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => handleSlotPillClick(btn));
   });
 
+  // Period Filter Chips (Semua, Pagi, Siang, Sore & Malam)
+  let currentSlotPeriod = 'all';
+
+  function filterTimeSlots(period) {
+    currentSlotPeriod = period;
+
+    document.querySelectorAll('.slot-filter-chip').forEach(chip => {
+      const isMatch = (chip.dataset.period === period);
+      chip.classList.toggle('active', isMatch);
+      chip.classList.toggle('bg-[#012D68]', isMatch);
+      chip.classList.toggle('text-white', isMatch);
+      chip.classList.toggle('border-[#012D68]', isMatch);
+    });
+
+    let firstVisibleValidSlot = null;
+    let selectedStillVisible = false;
+
+    document.querySelectorAll('.slot-pill').forEach(pill => {
+      const matchPeriod = (period === 'all' || pill.dataset.period === period);
+      if (matchPeriod) {
+        pill.style.display = '';
+        if (pill.dataset.isPast !== '1' && !firstVisibleValidSlot) {
+          firstVisibleValidSlot = pill.dataset.time;
+        }
+        if (pill.dataset.time === selectedTime && pill.dataset.isPast !== '1') {
+          selectedStillVisible = true;
+        }
+      } else {
+        pill.style.display = 'none';
+      }
+    });
+
+    if (!selectedStillVisible && firstVisibleValidSlot) {
+      selectedTime = firstVisibleValidSlot;
+      document.querySelectorAll('.slot-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.time === selectedTime && pill.dataset.isPast !== '1');
+      });
+      if (modalDocSchedule) {
+        modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+      }
+    }
+  }
+
+  document.querySelectorAll('.slot-filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterTimeSlots(chip.dataset.period || 'all');
+    });
+  });
+
   // Week navigation button listeners
   document.querySelectorAll('.btn-prev-week').forEach(btn => {
     btn.addEventListener('click', () => {

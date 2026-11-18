@@ -183,7 +183,7 @@ class DatabaseSeeder extends Seeder
                     ],
                     [
                         'jam_mulai' => '08:00',
-                        'jam_selesai' => '16:00',
+                        'jam_selesai' => '21:00',
                         'kuota' => 20,
                     ]
                 );
