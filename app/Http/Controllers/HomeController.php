@@ -96,7 +96,7 @@ class HomeController extends Controller
                     'price_num' => 150000.00,
                     'initials' => 'LW',
                     'image' => 'images/doctors/doctor-1.png',
-                    'availability' => '9AM - 8PM',
+                    'availability' => '09:00 - 20:00 WIB',
                     'experience' => '10 years',
                     'patients' => '3.8k Up',
                 ],
@@ -110,7 +110,7 @@ class HomeController extends Controller
                     'price_num' => 175000.00,
                     'initials' => 'AK',
                     'image' => 'images/doctors/doctor-2.png',
-                    'availability' => '8AM - 6PM',
+                    'availability' => '08:00 - 18:00 WIB',
                     'experience' => '12 years',
                     'patients' => '4.6k Up',
                 ],
@@ -124,7 +124,7 @@ class HomeController extends Controller
                     'price_num' => 180000.00,
                     'initials' => 'SM',
                     'image' => 'images/doctors/doctor-3.png',
-                    'availability' => '10AM - 7PM',
+                    'availability' => '10:00 - 19:00 WIB',
                     'experience' => '15 years',
                     'patients' => '5.2k Up',
                 ],
@@ -137,10 +137,20 @@ class HomeController extends Controller
         $appointmentMode = $appointmentData['mode'];
         $isDoctorExamined = $appointmentData['doctor_examined'];
 
+        $bookingTimeDisplay = '14 Agu 2026 · 14:30 WIB';
+        if ($latestBooking) {
+            $formattedDate = $latestBooking->booking_date ? Carbon::parse($latestBooking->booking_date)->translatedFormat('d M Y') : 'Hari Ini';
+            $jamStr = $latestBooking->jam_mulai ? Carbon::parse($latestBooking->jam_mulai)->format('H:i') : ($latestBooking->booking_time ?: '14:30');
+            if (! str_contains($jamStr, 'WIB')) {
+                $jamStr .= ' WIB';
+            }
+            $bookingTimeDisplay = $formattedDate.' · '.$jamStr;
+        }
+
         $nextAppointment = [
             'doctor_name' => $latestBooking?->doctor?->nama_dokter ?? 'Dr. Saran Mitchell',
             'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Orthopedist',
-            'date_time' => $latestBooking?->booking_time ?? 'Aug 14, 2026 · 2:30 PM',
+            'date_time' => $bookingTimeDisplay,
             'initials' => $latestBooking?->doctor?->initials ?? 'SM',
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
             'booking_code' => $latestBooking?->booking_code ?? '#BILL00124',
@@ -174,9 +184,21 @@ class HomeController extends Controller
                 $activeDayIndex = $i;
             }
 
+            $indonesianDayMap = [
+                'Sun' => 'Min',
+                'Mon' => 'Sen',
+                'Tue' => 'Sel',
+                'Wed' => 'Rab',
+                'Thu' => 'Kam',
+                'Fri' => 'Jum',
+                'Sat' => 'Sab',
+            ];
+            $engShort = $dayCarbon->format('D');
+            $indoShort = $indonesianDayMap[$engShort] ?? substr($dayCarbon->format('D'), 0, 2);
+
             $bookingDays[] = [
-                'name' => substr($dayCarbon->format('D'), 0, 2), // Su, Mo, Tu, We, Th, Fr, Sa
-                'day_name' => $dayCarbon->format('D'),
+                'name' => $indoShort, // Min, Sen, Sel, Rab, Kam, Jum, Sab
+                'day_name' => $dayCarbon->translatedFormat('l'),
                 'date' => $dayCarbon->format('d'),
                 'full_date' => $dayCarbon->format('Y-m-d'),
                 'is_past' => $isPast,
@@ -186,19 +208,19 @@ class HomeController extends Controller
 
         $currentHour = (int) Carbon::now()->format('H');
         $timeSlots = [
-            ['time' => '08 AM', 'hour' => 8, 'start' => '08:00:00', 'end' => '09:00:00', 'period' => 'morning'],
-            ['time' => '09 AM', 'hour' => 9, 'start' => '09:00:00', 'end' => '10:00:00', 'period' => 'morning'],
-            ['time' => '10 AM', 'hour' => 10, 'start' => '10:00:00', 'end' => '11:00:00', 'period' => 'morning'],
-            ['time' => '11 AM', 'hour' => 11, 'start' => '11:00:00', 'end' => '12:00:00', 'period' => 'morning'],
-            ['time' => '12 PM', 'hour' => 12, 'start' => '12:00:00', 'end' => '13:00:00', 'period' => 'afternoon'],
-            ['time' => '01 PM', 'hour' => 13, 'start' => '13:00:00', 'end' => '14:00:00', 'period' => 'afternoon'],
-            ['time' => '02 PM', 'hour' => 14, 'start' => '14:00:00', 'end' => '15:00:00', 'period' => 'afternoon'],
-            ['time' => '03 PM', 'hour' => 15, 'start' => '15:00:00', 'end' => '16:00:00', 'period' => 'afternoon'],
-            ['time' => '04 PM', 'hour' => 16, 'start' => '16:00:00', 'end' => '17:00:00', 'period' => 'evening'],
-            ['time' => '05 PM', 'hour' => 17, 'start' => '17:00:00', 'end' => '18:00:00', 'period' => 'evening'],
-            ['time' => '06 PM', 'hour' => 18, 'start' => '18:00:00', 'end' => '19:00:00', 'period' => 'evening'],
-            ['time' => '07 PM', 'hour' => 19, 'start' => '19:00:00', 'end' => '20:00:00', 'period' => 'evening'],
-            ['time' => '08 PM', 'hour' => 20, 'start' => '20:00:00', 'end' => '21:00:00', 'period' => 'evening'],
+            ['time' => '08:00', 'hour' => 8, 'start' => '08:00:00', 'end' => '09:00:00', 'period' => 'morning'],
+            ['time' => '09:00', 'hour' => 9, 'start' => '09:00:00', 'end' => '10:00:00', 'period' => 'morning'],
+            ['time' => '10:00', 'hour' => 10, 'start' => '10:00:00', 'end' => '11:00:00', 'period' => 'morning'],
+            ['time' => '11:00', 'hour' => 11, 'start' => '11:00:00', 'end' => '12:00:00', 'period' => 'morning'],
+            ['time' => '12:00', 'hour' => 12, 'start' => '12:00:00', 'end' => '13:00:00', 'period' => 'afternoon'],
+            ['time' => '13:00', 'hour' => 13, 'start' => '13:00:00', 'end' => '14:00:00', 'period' => 'afternoon'],
+            ['time' => '14:00', 'hour' => 14, 'start' => '14:00:00', 'end' => '15:00:00', 'period' => 'afternoon'],
+            ['time' => '15:00', 'hour' => 15, 'start' => '15:00:00', 'end' => '16:00:00', 'period' => 'afternoon'],
+            ['time' => '16:00', 'hour' => 16, 'start' => '16:00:00', 'end' => '17:00:00', 'period' => 'evening'],
+            ['time' => '17:00', 'hour' => 17, 'start' => '17:00:00', 'end' => '18:00:00', 'period' => 'evening'],
+            ['time' => '18:00', 'hour' => 18, 'start' => '18:00:00', 'end' => '19:00:00', 'period' => 'evening'],
+            ['time' => '19:00', 'hour' => 19, 'start' => '19:00:00', 'end' => '20:00:00', 'period' => 'evening'],
+            ['time' => '20:00', 'hour' => 20, 'start' => '20:00:00', 'end' => '21:00:00', 'period' => 'evening'],
         ];
 
         $currentMonthYear = Carbon::now()->translatedFormat('M Y');
@@ -391,7 +413,12 @@ class HomeController extends Controller
         // 2. Janji temu aktif menunggu konsultasi
         if ($appointmentMode === 'before' && $latestBooking && $latestBooking->payment_status === 'unpaid') {
             $doctorName = $latestBooking->doctor?->nama_dokter ?? 'Dokter Pemeriksa';
-            $dateTime = $latestBooking->booking_time ?: ($latestBooking->booking_date ? date('d M Y', strtotime($latestBooking->booking_date)) : 'Hari Ini');
+            $formattedDate = $latestBooking->booking_date ? Carbon::parse($latestBooking->booking_date)->translatedFormat('d M Y') : 'Hari Ini';
+            $jamStr = $latestBooking->jam_mulai ? Carbon::parse($latestBooking->jam_mulai)->format('H:i') : ($latestBooking->booking_time ?: '');
+            if ($jamStr && ! str_contains($jamStr, 'WIB')) {
+                $jamStr .= ' WIB';
+            }
+            $dateTime = trim($formattedDate.' · '.$jamStr, ' ·');
             $notifications[] = [
                 'id' => 'notif-appt-'.$latestBooking->id,
                 'title' => 'Janji Temu Menunggu',

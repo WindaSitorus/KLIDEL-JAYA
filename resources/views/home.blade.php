@@ -11,7 +11,7 @@
         'price' => 'Rp 0',
         'initials' => 'DR',
         'image' => 'images/doctors/doctor-1.png',
-        'availability' => '9AM - 5PM',
+        'availability' => '09:00 - 17:00 WIB',
         'experience' => '10 years',
         'patients' => '1k Up',
     ];
@@ -493,7 +493,7 @@
 
             <!-- Date Picker -->
             <div class="flex items-center justify-between mt-5 mb-2.5">
-                <div class="font-bold text-[14.5px] text-slate-900 dark:text-white">Select a date &amp; time</div>
+                <div class="font-bold text-[14.5px] text-slate-900 dark:text-white">Pilih Tanggal &amp; Waktu</div>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                     <span class="week-month-label text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">{{ $currentMonthYear ?? date('M Y') }}</span>
                     <div class="flex items-center gap-0.5">
@@ -526,14 +526,14 @@
 
             <!-- Time Slots Filter & Header -->
             <div class="mt-4 mb-2 flex items-center justify-between">
-                <span class="text-[12px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi</span>
-                <span class="text-[11px] text-slate-400 font-medium">08:00 - 21:00</span>
+                <span class="text-[12px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi (WIB)</span>
+                <span class="text-[11px] text-slate-400 font-medium">08:00 - 21:00 WIB</span>
             </div>
             <div class="slot-filter-chips flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 no-scrollbar" id="desktop-slot-filters">
                 <button type="button" class="slot-filter-chip active text-[11px] px-2.5 py-1 rounded-lg border border-[#012D68] bg-[#012D68] text-white font-semibold transition-all whitespace-nowrap" data-period="all">Semua</button>
-                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi (08-11)</button>
-                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang (12-15)</button>
-                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam (16-20)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi (08:00 - 11:00)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang (12:00 - 15:00)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam (16:00 - 20:00)</button>
             </div>
 
             <!-- Time Slots -->
@@ -917,7 +917,7 @@
 
             <!-- Date Selection -->
             <div class="flex items-center justify-between mt-4 mb-2">
-                <div class="font-semibold text-[13.5px] text-[var(--color-text)]">Select a date &amp; time</div>
+                <div class="font-semibold text-[13.5px] text-[var(--color-text)]">Pilih Tanggal &amp; Waktu</div>
                 <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                     <span class="week-month-label text-[11px] font-semibold text-slate-700 dark:text-slate-300">{{ $currentMonthYear ?? date('M Y') }}</span>
                     <div class="flex items-center gap-0.5">
@@ -950,14 +950,14 @@
 
             <!-- Time Slots Selection -->
             <div class="mt-3.5 mb-1.5 flex items-center justify-between">
-                <span class="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi</span>
-                <span class="text-[10.5px] text-slate-400 font-medium">08:00 - 21:00</span>
+                <span class="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi (WIB)</span>
+                <span class="text-[10.5px] text-slate-400 font-medium">08:00 - 21:00 WIB</span>
             </div>
             <div class="slot-filter-chips flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 no-scrollbar" id="mobile-slot-filters">
                 <button type="button" class="slot-filter-chip active text-[10px] px-2 py-0.5 rounded-lg border border-[#012D68] bg-[#012D68] text-white font-semibold transition-all whitespace-nowrap" data-period="all">Semua</button>
-                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi</button>
-                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang</button>
-                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi (08:00 - 11:00)</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang (12:00 - 15:00)</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam (16:00 - 20:00)</button>
             </div>
 
             <div class="slots-container grid grid-cols-3 gap-1.5 max-h-[190px] overflow-y-auto pr-0.5" id="mobile-slots-container">
@@ -1039,7 +1039,7 @@
                             <div class="flex items-center gap-2 mt-1 text-[11.5px] font-medium text-[#012D68] dark:text-blue-300">
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                    <span id="modal-doc-schedule">{{ ($bookingDays[$activeDayIndex ?? 0]['name'] ?? 'Hari Ini').' '.($bookingDays[$activeDayIndex ?? 0]['date'] ?? '') }} · 01 PM</span>
+                                    <span id="modal-doc-schedule">{{ ($bookingDays[$activeDayIndex ?? 0]['name'] ?? 'Hari Ini').' '.($bookingDays[$activeDayIndex ?? 0]['date'] ?? '') }} · 13:00 WIB</span>
                                 </span>
                             </div>
                         </div>

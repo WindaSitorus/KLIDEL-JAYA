@@ -44,9 +44,9 @@ class BookingService
             ];
         }
 
-        // 2. Parse from booking_time string (e.g. '09:00 AM', '09:00 - 10:00', '13:30')
+        // 2. Parse from booking_time string (e.g. '09:00', '13:00', '13:00 WIB', '09:00 AM', '09:00 - 10:00')
         if (! empty($bookingTime)) {
-            $clean = trim($bookingTime);
+            $clean = trim(preg_replace('/\s*(WIB|WITA|WIT)\s*/i', '', trim($bookingTime)));
 
             if (preg_match('/(\d{1,2}:\d{2})\s*(AM|PM)?\s*[-–]\s*(\d{1,2}:\d{2})\s*(AM|PM)?/i', $clean, $m)) {
                 $t1 = $m[1].' '.($m[2] ?? '');

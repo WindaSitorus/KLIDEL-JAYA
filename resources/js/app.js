@@ -38,12 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const initialActiveDay = document.querySelector('.day-pill.active:not(.disabled)') || document.querySelector('.day-pill:not(.disabled)');
   let selectedDate = initialActiveDay ? initialActiveDay.dataset.date : String(new Date().getDate()).padStart(2, '0');
-  let selectedDayName = initialActiveDay ? initialActiveDay.dataset.day : 'We';
+  let selectedDayName = initialActiveDay ? initialActiveDay.dataset.day : 'Rab';
   let selectedFullDate = initialActiveDay ? initialActiveDay.dataset.fullDate : (new Date().toISOString().split('T')[0]);
   let selectedIsToday = initialActiveDay ? (initialActiveDay.dataset.isToday === '1') : true;
 
   const initialActiveSlot = document.querySelector('.slot-pill.active:not(.disabled)') || document.querySelector('.slot-pill:not(.disabled)');
-  let selectedTime = initialActiveSlot ? initialActiveSlot.dataset.time : '01 PM';
+  let selectedTime = initialActiveSlot ? initialActiveSlot.dataset.time : '13:00';
   let weekOffset = 0;
   let currentDoctor = null;
 
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
       price: card.dataset.price,
       initials: card.dataset.initials,
       image: card.dataset.image,
-      availability: card.dataset.availability || '9AM - 8PM',
+      availability: card.dataset.availability || '09:00 - 20:00 WIB',
       experience: card.dataset.experience || '10 years',
       patients: card.dataset.patients || '3.5k Up',
     };
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // Real-Time Date & Time Picker Logic
   // ==========================================
-  const dayNamesShort = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const dayNamesShort = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
   function updateTimeSlotsAvailability(isToday) {
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTimeSlotsAvailability(selectedIsToday);
 
     if (modalDocSchedule) {
-      modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+      modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
     }
   }
 
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (modalDocSchedule) {
-      modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+      modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
     }
   }
 
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pill.classList.toggle('active', pill.dataset.time === selectedTime && pill.dataset.isPast !== '1');
       });
       if (modalDocSchedule) {
-        modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+        modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
       }
     }
   }
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalDocName) modalDocName.textContent = currentDoctor.name;
     if (modalDocRating) modalDocRating.textContent = currentDoctor.rating;
     if (modalDocSpecialty) modalDocSpecialty.textContent = currentDoctor.specialty;
-    if (modalDocSchedule) modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+    if (modalDocSchedule) modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
     if (modalDocPrice) modalDocPrice.textContent = currentDoctor.price;
 
     // Clear error
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (docImg && currentDoctor.image) docImg.src = currentDoctor.image;
           if (docName) docName.textContent = currentDoctor.name;
           if (docSpecialty) docSpecialty.textContent = currentDoctor.specialty;
-          if (docDateTime) docDateTime.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+          if (docDateTime) docDateTime.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
         }
 
         const nextApptMobile = document.querySelector('.stacked-card');
@@ -715,14 +715,14 @@ document.addEventListener('DOMContentLoaded', () => {
           if (mDocImg && currentDoctor.image) mDocImg.src = currentDoctor.image;
           if (mDocName) mDocName.textContent = currentDoctor.name;
           if (mDocSpecialty) mDocSpecialty.textContent = currentDoctor.specialty;
-          if (mDocDateTime) mDocDateTime.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+          if (mDocDateTime) mDocDateTime.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
         }
 
         // Automatically switch card to 'before' (NEXT APPOINTMENT Upcoming)
         setAppointmentMode('before', false);
 
         // Show Rich Success Toast
-        showToast(`Pendaftaran Berhasil! Sesi dengan ${currentDoctor.name} dijadwalkan pada ${selectedDayName} ${selectedDate} · ${selectedTime} (${durationVal})`);
+        showToast(`Pendaftaran Berhasil! Sesi dengan ${currentDoctor.name} dijadwalkan pada ${selectedDayName} ${selectedDate} · ${selectedTime} WIB (${durationVal})`);
 
         // Reset button
         btnConfirmBooking.disabled = false;
