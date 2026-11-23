@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_KlinikMaristella"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="Bizagi Modeler / BPMN 2.0"
+                  exporterVersion="1.0">
+  <bpmn:collaboration id="Collaboration_Klinik">
+    <bpmn:participant id="Participant_Klinik" name="Sistem Informasi Pelayanan Klinik Maristella" processRef="Process_KlinikMaristella" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_KlinikMaristella" name="Alur Pelayanan Pasien Klinik Maristella" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Klinik">
+      <!-- Lane 1: Pasien -->
+      <bpmn:lane id="Lane_Pasien" name="Pasien">
+        <bpmn:flowNodeRef>StartEvent_Pasien</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PilihDokter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_IsiFormBooking</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_KonfirmasiBooking</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MenungguAntrean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MelakukanPembayaran</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_MenerimaObat</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_Pasien</bpmn:flowNodeRef>
+      </bpmn:lane>
+
+      <!-- Lane 2: Sistem Web Terintegrasi -->
+      <bpmn:lane id="Lane_Sistem" name="Sistem Informasi Web (Laravel)">
+        <bpmn:flowNodeRef>Task_CekSlotJadwal</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_SlotTersedia</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GenerateKodeDanAntrean</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_NotifikasiAntreanAktif</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_UpdateStatusBookingSelesai</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_GenerateInvoiceDigital</bpmn:flowNodeRef>
+      </bpmn:lane>
+
+      <!-- Lane 3: Dokter Spesialis -->
+      <bpmn:lane id="Lane_Dokter" name="Dokter Spesialis">
+        <bpmn:flowNodeRef>Task_AksesAntreanPoli</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_LihatRiwayatMedis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PemeriksaanFisikSOAP</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InputDiagnosaICD10</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InputResepObat</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SimpanSOAPDanSelesaikan</bpmn:flowNodeRef>
+      </bpmn:lane>
+
+      <!-- Lane 4: Kasir dan Farmasi -->
+      <bpmn:lane id="Lane_KasirFarmasi" name="Kasir dan Apoteker">
+        <bpmn:flowNodeRef>Task_VerifikasiTagihan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ProsesTransaksiBayar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_CetakKwitansiResmi</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_SiapkanObatFarmasi</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <!-- Nodes: Pasien -->
+    <bpmn:startEvent id="StartEvent_Pasien" name="Kebutuhan Konsultasi Medis">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_PilihDokter" name="Akses Web &amp; Pilih Dokter / Poli">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_SlotPenuh</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CekSlotJadwal" name="Validasi Ketersediaan Slot &amp; Kuota">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_SlotTersedia" name="Slot Tersedia?">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_SlotAda</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SlotPenuh</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_IsiFormBooking" name="Isi Data Pasien &amp; Keluhan Gejala">
+      <bpmn:incoming>Flow_SlotAda</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_KonfirmasiBooking" name="Konfirmasi Booking Online">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_GenerateKodeDanAntrean" name="Generate Kode Booking &amp; Nomor Antrean">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_NotifikasiAntreanAktif" name="Tampilkan Antrean Aktif di Dashboard">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Task_MenungguAntrean" name="Menunggu Giliran Sesi Konsultasi">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:intermediateCatchEvent>
+
+    <!-- Nodes: Dokter -->
+    <bpmn:userTask id="Task_AksesAntreanPoli" name="Buka Workspace Antrean Poliklinik">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_LihatRiwayatMedis" name="Tinjau Data Demografis &amp; Riwayat Alergi">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_PemeriksaanFisikSOAP" name="Pemeriksaan Fisik &amp; Input Tanda Vital (O)">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_InputDiagnosaICD10" name="Penegakan Asesmen &amp; Diagnosa ICD-10 (A)">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_InputResepObat" name="Penyusunan Rencana Terapi &amp; Resep Obat (P)">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_SimpanSOAPDanSelesaikan" name="Simpan Berkas SOAP &amp; Selesaikan Pemeriksaan">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <!-- Nodes: Sistem Pasca Pemeriksaan -->
+    <bpmn:serviceTask id="Task_UpdateStatusBookingSelesai" name="Update Status Booking 'Completed'">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_15</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_GenerateInvoiceDigital" name="Kalkulasi Tarif &amp; Terbitkan Invoice Tagihan">
+      <bpmn:incoming>Flow_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_16</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <!-- Nodes: Kasir & Farmasi -->
+    <bpmn:userTask id="Task_VerifikasiTagihan" name="Verifikasi Invoice di Dashboard Kasir">
+      <bpmn:incoming>Flow_16</bpmn:incoming>
+      <bpmn:outgoing>Flow_17</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_MelakukanPembayaran" name="Pilih Metode Bayar (Tunai/QRIS/Transfer)">
+      <bpmn:incoming>Flow_17</bpmn:incoming>
+      <bpmn:outgoing>Flow_18</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ProsesTransaksiBayar" name="Catat Pembayaran Lunas di Modul Kasir">
+      <bpmn:incoming>Flow_18</bpmn:incoming>
+      <bpmn:outgoing>Flow_19</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_CetakKwitansiResmi" name="Terbitkan Kwitansi Resmi Pelunasan">
+      <bpmn:incoming>Flow_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_20</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_SiapkanObatFarmasi" name="Apoteker Siapkan Obat Berdasarkan Resep">
+      <bpmn:incoming>Flow_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_MenerimaObat" name="Pasien Terima Obat &amp; Kwitansi Digital">
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_Pasien" name="Pelayanan Klinik Selesai">
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <!-- Sequence Flows -->
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Pasien" targetRef="Task_PilihDokter" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_PilihDokter" targetRef="Task_CekSlotJadwal" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_CekSlotJadwal" targetRef="Gateway_SlotTersedia" />
+    <bpmn:sequenceFlow id="Flow_SlotAda" name="Ya" sourceRef="Gateway_SlotTersedia" targetRef="Task_IsiFormBooking" />
+    <bpmn:sequenceFlow id="Flow_SlotPenuh" name="Penuh" sourceRef="Gateway_SlotTersedia" targetRef="Task_PilihDokter" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_IsiFormBooking" targetRef="Task_KonfirmasiBooking" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_KonfirmasiBooking" targetRef="Task_GenerateKodeDanAntrean" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_GenerateKodeDanAntrean" targetRef="Task_NotifikasiAntreanAktif" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_NotifikasiAntreanAktif" targetRef="Task_MenungguAntrean" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_MenungguAntrean" targetRef="Task_AksesAntreanPoli" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_AksesAntreanPoli" targetRef="Task_LihatRiwayatMedis" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_LihatRiwayatMedis" targetRef="Task_PemeriksaanFisikSOAP" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_PemeriksaanFisikSOAP" targetRef="Task_InputDiagnosaICD10" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="Task_InputDiagnosaICD10" targetRef="Task_InputResepObat" />
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="Task_InputResepObat" targetRef="Task_SimpanSOAPDanSelesaikan" />
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="Task_SimpanSOAPDanSelesaikan" targetRef="Task_UpdateStatusBookingSelesai" />
+    <bpmn:sequenceFlow id="Flow_15" sourceRef="Task_UpdateStatusBookingSelesai" targetRef="Task_GenerateInvoiceDigital" />
+    <bpmn:sequenceFlow id="Flow_16" sourceRef="Task_GenerateInvoiceDigital" targetRef="Task_VerifikasiTagihan" />
+    <bpmn:sequenceFlow id="Flow_17" sourceRef="Task_VerifikasiTagihan" targetRef="Task_MelakukanPembayaran" />
+    <bpmn:sequenceFlow id="Flow_18" sourceRef="Task_MelakukanPembayaran" targetRef="Task_ProsesTransaksiBayar" />
+    <bpmn:sequenceFlow id="Flow_19" sourceRef="Task_ProsesTransaksiBayar" targetRef="Task_CetakKwitansiResmi" />
+    <bpmn:sequenceFlow id="Flow_20" sourceRef="Task_CetakKwitansiResmi" targetRef="Task_SiapkanObatFarmasi" />
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="Task_SiapkanObatFarmasi" targetRef="Task_MenerimaObat" />
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="Task_MenerimaObat" targetRef="EndEvent_Pasien" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Klinik">
+    <bpmndi:BPMNPlane id="BPMNPlane_Klinik" bpmnElement="Collaboration_Klinik">
+      <bpmndi:BPMNShape id="Participant_Klinik_di" bpmnElement="Participant_Klinik" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2200" height="920" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pasien_di" bpmnElement="Lane_Pasien" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2170" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Sistem_di" bpmnElement="Lane_Sistem" isHorizontal="true">
+        <dc:Bounds x="190" y="300" width="2170" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Dokter_di" bpmnElement="Lane_Dokter" isHorizontal="true">
+        <dc:Bounds x="190" y="520" width="2170" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_KasirFarmasi_di" bpmnElement="Lane_KasirFarmasi" isHorizontal="true">
+        <dc:Bounds x="190" y="760" width="2170" height="240" />
+      </bpmndi:BPMNShape>
+
+      <!-- Patient elements -->
+      <bpmndi:BPMNShape id="StartEvent_Pasien_di" bpmnElement="StartEvent_Pasien">
+        <dc:Bounds x="240" y="170" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PilihDokter_di" bpmnElement="Task_PilihDokter">
+        <dc:Bounds x="320" y="150" width="120" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_IsiFormBooking_di" bpmnElement="Task_IsiFormBooking">
+        <dc:Bounds x="560" y="150" width="120" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_KonfirmasiBooking_di" bpmnElement="Task_KonfirmasiBooking">
+        <dc:Bounds x="710" y="150" width="120" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MenungguAntrean_di" bpmnElement="Task_MenungguAntrean">
+        <dc:Bounds x="1100" y="170" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MelakukanPembayaran_di" bpmnElement="Task_MelakukanPembayaran">
+        <dc:Bounds x="1830" y="150" width="120" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_MenerimaObat_di" bpmnElement="Task_MenerimaObat">
+        <dc:Bounds x="2100" y="150" width="120" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Pasien_di" bpmnElement="EndEvent_Pasien">
+        <dc:Bounds x="2260" y="170" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <!-- System elements -->
+      <bpmndi:BPMNShape id="Task_CekSlotJadwal_di" bpmnElement="Task_CekSlotJadwal">
+        <dc:Bounds x="320" y="370" width="120" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_SlotTersedia_di" bpmnElement="Gateway_SlotTersedia" isMarkerVisible="true">
+        <dc:Bounds x="480" y="385" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GenerateKodeDanAntrean_di" bpmnElement="Task_GenerateKodeDanAntrean">
+        <dc:Bounds x="710" y="370" width="140" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotifikasiAntreanAktif_di" bpmnElement="Task_NotifikasiAntreanAktif">
+        <dc:Bounds x="890" y="370" width="140" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_UpdateStatusBookingSelesai_di" bpmnElement="Task_UpdateStatusBookingSelesai">
+        <dc:Bounds x="1600" y="370" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GenerateInvoiceDigital_di" bpmnElement="Task_GenerateInvoiceDigital">
+        <dc:Bounds x="1760" y="370" width="130" height="75" />
+      </bpmndi:BPMNShape>
+
+      <!-- Doctor elements -->
+      <bpmndi:BPMNShape id="Task_AksesAntreanPoli_di" bpmnElement="Task_AksesAntreanPoli">
+        <dc:Bounds x="1050" y="600" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_LihatRiwayatMedis_di" bpmnElement="Task_LihatRiwayatMedis">
+        <dc:Bounds x="1210" y="600" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PemeriksaanFisikSOAP_di" bpmnElement="Task_PemeriksaanFisikSOAP">
+        <dc:Bounds x="1360" y="600" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_InputDiagnosaICD10_di" bpmnElement="Task_InputDiagnosaICD10">
+        <dc:Bounds x="1510" y="600" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_InputResepObat_di" bpmnElement="Task_InputResepObat">
+        <dc:Bounds x="1660" y="600" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SimpanSOAPDanSelesaikan_di" bpmnElement="Task_SimpanSOAPDanSelesaikan">
+        <dc:Bounds x="1810" y="600" width="130" height="75" />
+      </bpmndi:BPMNShape>
+
+      <!-- Kasir & Farmasi elements -->
+      <bpmndi:BPMNShape id="Task_VerifikasiTagihan_di" bpmnElement="Task_VerifikasiTagihan">
+        <dc:Bounds x="1760" y="840" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ProsesTransaksiBayar_di" bpmnElement="Task_ProsesTransaksiBayar">
+        <dc:Bounds x="1930" y="840" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_CetakKwitansiResmi_di" bpmnElement="Task_CetakKwitansiResmi">
+        <dc:Bounds x="2090" y="840" width="130" height="75" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SiapkanObatFarmasi_di" bpmnElement="Task_SiapkanObatFarmasi">
+        <dc:Bounds x="2090" y="730" width="130" height="75" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

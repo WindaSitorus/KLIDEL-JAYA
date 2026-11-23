@@ -41,7 +41,7 @@ class HomeController extends Controller
                 foreach ($polis as $poli) {
                     $categories[] = [
                         'id' => $poli->slug,
-                        'name' => $poli->name_en ?? $poli->nama_poli,
+                        'name' => $poli->nama_poli ?: ($poli->name_en ?? 'Poliklinik'),
                     ];
                 }
             }
@@ -50,9 +50,9 @@ class HomeController extends Controller
         if (count($categories) === 1) {
             $categories = [
                 ['id' => 'all', 'name' => 'Semua'],
-                ['id' => 'Cardiologist', 'name' => 'Heart'],
-                ['id' => 'Neurologist', 'name' => 'Brain expert'],
-                ['id' => 'Orthopedist', 'name' => 'Bone'],
+                ['id' => 'Cardiologist', 'name' => 'Jantung (Kardiologi)'],
+                ['id' => 'Neurologist', 'name' => 'Saraf (Neurologi)'],
+                ['id' => 'Orthopedist', 'name' => 'Tulang (Ortopedi)'],
             ];
         }
 
@@ -74,7 +74,7 @@ class HomeController extends Controller
                         'image' => $doc->image ?: 'images/doctors/doctor-1.png',
                         'availability' => $doc->availability ?: '09:00 - 17:00 WIB',
                         'experience' => $doc->experience ?: '5 tahun',
-                        'patients' => $doc->patients ?: '1.0k Up',
+                        'patients' => $doc->patients ?: '1.0k+ Pasien',
                     ];
                 })->toArray();
             }
@@ -85,44 +85,44 @@ class HomeController extends Controller
                 [
                     'id' => 1,
                     'name' => 'Dr. Lina Wijaya',
-                    'specialty' => 'Cardiologist',
+                    'specialty' => 'Spesialis Jantung & Pembuluh Darah',
                     'category' => 'Cardiologist',
                     'rating' => 4.9,
                     'price' => 'Rp 150.000',
                     'price_num' => 150000.00,
                     'initials' => 'LW',
                     'image' => 'images/doctors/doctor-1.png',
-                    'availability' => '9AM - 8PM',
-                    'experience' => '10 years',
-                    'patients' => '3.8k Up',
+                    'availability' => '09:00 - 20:00 WIB',
+                    'experience' => '10 tahun',
+                    'patients' => '3.8k+ Pasien',
                 ],
                 [
                     'id' => 2,
                     'name' => 'Dr. Anaya Kapoor',
-                    'specialty' => 'Neurologist',
+                    'specialty' => 'Spesialis Saraf (Neurologi)',
                     'category' => 'Neurologist',
                     'rating' => 4.8,
                     'price' => 'Rp 175.000',
                     'price_num' => 175000.00,
                     'initials' => 'AK',
                     'image' => 'images/doctors/doctor-2.png',
-                    'availability' => '8AM - 6PM',
-                    'experience' => '12 years',
-                    'patients' => '4.6k Up',
+                    'availability' => '08:00 - 18:00 WIB',
+                    'experience' => '12 tahun',
+                    'patients' => '4.6k+ Pasien',
                 ],
                 [
                     'id' => 3,
                     'name' => 'Dr. Saran Mitchell',
-                    'specialty' => 'Orthopedist',
+                    'specialty' => 'Spesialis Ortopedi & Traumatologi',
                     'category' => 'Orthopedist',
                     'rating' => 4.7,
                     'price' => 'Rp 180.000',
                     'price_num' => 180000.00,
                     'initials' => 'SM',
                     'image' => 'images/doctors/doctor-3.png',
-                    'availability' => '10AM - 7PM',
-                    'experience' => '15 years',
-                    'patients' => '5.2k Up',
+                    'availability' => '10:00 - 19:00 WIB',
+                    'experience' => '15 tahun',
+                    'patients' => '5.2k+ Pasien',
                 ],
             ];
         }
@@ -135,8 +135,8 @@ class HomeController extends Controller
 
         $nextAppointment = [
             'doctor_name' => $latestBooking?->doctor?->nama_dokter ?? 'Dr. Saran Mitchell',
-            'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Orthopedist',
-            'date_time' => $latestBooking?->booking_time ?? 'Aug 14, 2026 · 2:30 PM',
+            'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Spesialis Ortopedi',
+            'date_time' => $latestBooking?->booking_time ?? '14 Agu 2026 · 14:30 WIB',
             'initials' => $latestBooking?->doctor?->initials ?? 'SM',
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
             'booking_code' => $latestBooking?->booking_code ?? '#BILL00124',
@@ -323,7 +323,7 @@ class HomeController extends Controller
             'booking_id' => $latestBooking?->id,
             'booking_code' => $latestBooking?->booking_code ?? '#BILL00124',
             'doctor_name' => $latestBooking?->doctor?->nama_dokter ?? 'Dr. Saran Mitchell',
-            'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Orthopedist',
+            'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Spesialis Ortopedi',
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
             'total_amount' => $latestBooking ? $bill['total_amount'] : 435000.00,
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',

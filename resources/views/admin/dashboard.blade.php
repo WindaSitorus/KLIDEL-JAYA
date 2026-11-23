@@ -644,7 +644,7 @@
             <input 
               type="text" 
               id="payment-search-input"
-              placeholder="Search nama pasien, ID, dokter..." 
+              placeholder="Cari nama pasien, ID, dokter..." 
               class="w-full h-9.5 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#012D68]/20 focus:border-[#012D68] transition-all"
             >
           </div>
@@ -669,16 +669,16 @@
               class="h-9.5 px-3.5 rounded-xl bg-[#012D68] hover:bg-[#083E88] text-white font-bold flex items-center gap-1.5 shadow-xs active:scale-[0.98] transition-all"
             >
               <svg class="w-4 h-4"><use href="#i-plus"/></svg>
-              <span>New Appointment</span>
+              <span>Janji Temu Baru</span>
             </button>
 
             <!-- Sort Dropdown -->
             <div class="relative">
               <select id="sort-select" onchange="sortPaymentTable(this.value)" class="appearance-none h-9.5 pl-3 pr-8 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#012D68]/20 cursor-pointer shadow-xs">
-                <option value="newest" selected>Newest to oldest</option>
-                <option value="oldest">Oldest to newest</option>
-                <option value="amount_high">Amount: High to Low</option>
-                <option value="amount_low">Amount: Low to High</option>
+                <option value="newest" selected>Terbaru ke terlama</option>
+                <option value="oldest">Terlama ke terbaru</option>
+                <option value="amount_high">Nominal: Tertinggi ke Terendah</option>
+                <option value="amount_low">Nominal: Terendah ke Tertinggi</option>
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>

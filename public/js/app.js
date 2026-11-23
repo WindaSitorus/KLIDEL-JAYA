@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pnEl) pnEl.textContent = doc.name;
     if (psEl) psEl.textContent = doc.specialty;
     if (prEl) prEl.textContent = doc.rating;
-    if (ppEl) ppEl.innerHTML = `${doc.price} <span style="font-size:11px;font-weight:400;color:var(--color-text-muted)">/per session</span>`;
+    if (ppEl) ppEl.innerHTML = `${doc.price} <span style="font-size:11px;font-weight:400;color:var(--color-text-muted)">/sesi</span>`;
     if (pavAvailEl) pavAvailEl.textContent = doc.availability;
     if (pavExpEl) pavExpEl.textContent = doc.experience;
     if (pavPatientsEl) pavPatientsEl.textContent = doc.patients;
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mpnEl) mpnEl.textContent = doc.name;
     if (mpsEl) mpsEl.textContent = doc.specialty;
     if (mprEl) mprEl.textContent = doc.rating;
-    if (mppEl) mppEl.innerHTML = `${doc.price} <span style="font-size:11px;font-weight:400;color:var(--color-text-muted)">/per session</span>`;
+    if (mppEl) mppEl.innerHTML = `${doc.price} <span style="font-size:11px;font-weight:400;color:var(--color-text-muted)">/sesi</span>`;
     if (mpavAvailEl) mpavAvailEl.textContent = doc.availability;
     if (mpavExpEl) mpavExpEl.textContent = doc.experience;
     if (mpavPatientsEl) mpavPatientsEl.textContent = doc.patients;
@@ -1014,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show more payment methods
   btnShowMoreMethods?.addEventListener('click', () => {
     const isHidden = morePaymentMethods?.classList.toggle('hidden');
-    if (showMoreText) showMoreText.textContent = isHidden ? 'Show More' : 'Show Less';
+    if (showMoreText) showMoreText.textContent = isHidden ? 'Tampilkan Lainnya' : 'Sembunyikan';
     if (showMoreIcon) showMoreIcon.style.transform = isHidden ? '' : 'rotate(180deg)';
   });
 

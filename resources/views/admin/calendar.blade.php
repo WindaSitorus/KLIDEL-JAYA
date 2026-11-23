@@ -1190,13 +1190,13 @@
         <span class="dot"></span>Semua Dokter
       </button>
       <button class="tab" data-doctor="dr-lina" onclick="filterDoctor('dr-lina')">
-        <span class="dot" style="background:#E11D48"></span>Dr. Lina Wijaya (Cardiologist)
+        <span class="dot" style="background:#E11D48"></span>Dr. Lina Wijaya (Spesialis Jantung)
       </button>
       <button class="tab" data-doctor="dr-anaya" onclick="filterDoctor('dr-anaya')">
-        <span class="dot" style="background:#4F46E5"></span>Dr. Anaya Kapoor (Neurologist)
+        <span class="dot" style="background:#4F46E5"></span>Dr. Anaya Kapoor (Spesialis Saraf)
       </button>
       <button class="tab" data-doctor="dr-saran" onclick="filterDoctor('dr-saran')">
-        <span class="dot" style="background:#012D68"></span>Dr. Saran Mitchell (Orthopedist)
+        <span class="dot" style="background:#012D68"></span>Dr. Saran Mitchell (Spesialis Ortopedi)
       </button>
     </div>
 

@@ -182,10 +182,10 @@
                     <div id="desktop-state-before" class="appointment-state-panel flex flex-col justify-between min-h-[148px] {{ $appointmentMode === 'before' ? '' : 'hidden' }}" data-status="Sebelum Periksa" aria-label="Status Janji Temu: Sebelum Periksa">
                         <span class="sr-only">Sebelum Periksa</span>
                         <div class="flex items-center justify-between mb-1">
-                            <small class="text-slate-400 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">Next Appointment</small>
+                            <small class="text-slate-400 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">Janji Temu Berikutnya</small>
                             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                Upcoming
+                                Mendatang
                             </span>
                         </div>
                         <div class="flex items-center gap-3 py-1">
@@ -199,10 +199,10 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button type="button" class="btn-reschedule h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-semibold text-[12px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onclick="window.showToast('Jadwal konsultasi dapat diatur melalui menu Jadwal.')">Reschedule</button>
+                            <button type="button" class="btn-reschedule h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-semibold text-[12px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onclick="window.showToast('Jadwal konsultasi dapat diatur melalui menu Jadwal.')">Ubah Jadwal</button>
                             <button type="button" class="btn-join-call h-9 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-[12px] flex items-center justify-center gap-1.5 transition-all shadow-xs" onclick="window.showToast('Menghubungkan ke ruang panggilan video Dr. Saran Mitchell...')">
                                 <svg class="app-svg-icon w-3.5 h-3.5"><use href="#icon-vid"/></svg>
-                                Join Call
+                                Masuk Panggilan
                             </button>
                         </div>
                     </div>
@@ -216,7 +216,7 @@
                                 <small class="text-slate-400 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">Tagihan Pemeriksaan</small>
                             </div>
                             <span id="desktop-unpaid-badge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                                UNPAID
+                                BELUM LUNAS
                             </span>
                         </div>
 
@@ -303,8 +303,8 @@
 
             <!-- Doctors Section Header -->
             <div class="section-header flex justify-between items-center mt-2">
-                <h2 class="text-[20px] font-semibold text-[var(--color-text)]">Find a Doctor</h2>
-                <a href="javascript:void(0)" onclick="window.showToast('Menampilkan seluruh dokter')" class="text-[var(--color-primary)] hover:underline text-[13px] font-medium">View All</a>
+                <h2 class="text-[20px] font-semibold text-[var(--color-text)]">Cari Dokter Spesialis</h2>
+                <a href="javascript:void(0)" onclick="window.showToast('Menampilkan seluruh dokter')" class="text-[var(--color-primary)] hover:underline text-[13px] font-medium">Lihat Semua</a>
             </div>
 
             <!-- Doctor Grid with Dynamic Specialty Pastel Colors -->
@@ -327,9 +327,9 @@
                             default => 'bg-[#012D68]'
                         };
                         $slotText = match($index) {
-                            0 => '4 Slots Available',
-                            1 => '6 Slots Available',
-                            default => '5 Slots Available'
+                            0 => '4 Kuota Tersedia',
+                            1 => '6 Kuota Tersedia',
+                            default => '5 Kuota Tersedia'
                         };
                     @endphp
                     <button class="doctor-card group {{ $index === 2 ? 'selected' : '' }}" 
@@ -386,7 +386,7 @@
                             </div>
                             <div class="mt-3.5 flex items-baseline gap-1">
                                 <span class="text-base font-extrabold text-[#012D68]">{{ $doc['price'] }}</span>
-                                <span class="text-xs font-normal text-slate-400">/per session</span>
+                                <span class="text-xs font-normal text-slate-400">/sesi</span>
                             </div>
                         </div>
                     </button>
@@ -416,9 +416,9 @@
 
             <!-- Pricing & Stats Card (Solid Clean Surface, No Gradient) -->
             <div class="pricing-card mt-5 border border-slate-200/90 rounded-[22px] p-4 bg-slate-50 shadow-xs">
-                <small class="text-slate-500 text-[11.5px] font-medium">Starting from</small>
+                <small class="text-slate-500 text-[11.5px] font-medium">Mulai dari</small>
                 <b id="pp" class="block text-[24px] font-extrabold text-slate-900 my-0.5">
-                    {{ $selectedDoctor['price'] }} <span class="text-[11px] font-normal text-slate-400">/per session</span>
+                    {{ $selectedDoctor['price'] }} <span class="text-[11px] font-normal text-slate-400">/sesi</span>
                 </b>
 
                 <!-- 3 Stat Tiles with Vibrant Solid Icons -->
@@ -427,38 +427,38 @@
                         <i class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center mx-auto mb-1">
                             <svg class="app-svg-icon w-3.5 h-3.5"><use href="#icon-clock"/></svg>
                         </i>
-                        <small class="text-[9.5px] text-slate-400 font-medium block">Availability</small>
+                        <small class="text-[9.5px] text-slate-400 font-medium block">Ketersediaan</small>
                         <b id="pav-avail" class="text-[11px] text-slate-900 font-bold block mt-0.5">{{ $selectedDoctor['availability'] }}</b>
                     </div>
                     <div class="stat-tile bg-white border border-slate-200/80 rounded-[14px] p-2.5 text-center shadow-xs">
                         <i class="w-7 h-7 rounded-full bg-sky-100 text-sky-700 grid place-items-center mx-auto mb-1">
                             <svg class="app-svg-icon w-3.5 h-3.5"><use href="#icon-cal"/></svg>
                         </i>
-                        <small class="text-[9.5px] text-slate-400 font-medium block">Experience</small>
+                        <small class="text-[9.5px] text-slate-400 font-medium block">Pengalaman</small>
                         <b id="pav-exp" class="text-[11px] text-slate-900 font-bold block mt-0.5">{{ $selectedDoctor['experience'] }}</b>
                     </div>
                     <div class="stat-tile bg-white border border-slate-200/80 rounded-[14px] p-2.5 text-center shadow-xs">
                         <i class="w-7 h-7 rounded-full bg-amber-100 text-amber-700 grid place-items-center mx-auto mb-1">
                             <svg class="app-svg-icon w-3.5 h-3.5"><use href="#icon-user"/></svg>
                         </i>
-                        <small class="text-[9.5px] text-slate-400 font-medium block">Patients</small>
+                        <small class="text-[9.5px] text-slate-400 font-medium block">Pasien</small>
                         <b id="pav-patients" class="text-[11px] text-slate-900 font-bold block mt-0.5">{{ $selectedDoctor['patients'] }}</b>
                     </div>
                 </div>
             </div>
 
             <!-- Date Picker -->
-            <div class="font-bold text-[14.5px] mt-5 mb-2.5 text-slate-900">Select a date &amp; time</div>
+            <div class="font-bold text-[14.5px] mt-5 mb-2.5 text-slate-900">Pilih Tanggal &amp; Waktu Praktik</div>
             <div class="days-container grid grid-cols-7 gap-1.5">
                 @php
                     $days = [
-                        ['name' => 'Su', 'date' => '10'],
-                        ['name' => 'Mo', 'date' => '11'],
-                        ['name' => 'Tu', 'date' => '12'],
-                        ['name' => 'We', 'date' => '13'],
-                        ['name' => 'Th', 'date' => '14'],
-                        ['name' => 'Fr', 'date' => '15'],
-                        ['name' => 'Sa', 'date' => '16'],
+                        ['name' => 'Min', 'date' => '10'],
+                        ['name' => 'Sen', 'date' => '11'],
+                        ['name' => 'Sel', 'date' => '12'],
+                        ['name' => 'Rab', 'date' => '13'],
+                        ['name' => 'Kam', 'date' => '14'],
+                        ['name' => 'Jum', 'date' => '15'],
+                        ['name' => 'Sab', 'date' => '16'],
                     ];
                 @endphp
                 @foreach ($days as $day)
@@ -472,10 +472,10 @@
             <!-- Time Slots -->
             <div class="slots-container grid grid-cols-3 gap-2 mt-3">
                 @php
-                    $slots = ['09 AM', '10 AM', '11 AM', '12 PM', '01 PM', '02 PM'];
+                    $slots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
                 @endphp
                 @foreach ($slots as $slot)
-                    <button class="slot-pill {{ $slot === '01 PM' ? 'active' : '' }}" data-time="{{ $slot }}">
+                    <button class="slot-pill {{ $slot === '13:00' ? 'active' : '' }}" data-time="{{ $slot }}">
                         {{ $slot }}
                     </button>
                 @endforeach
@@ -484,7 +484,7 @@
             <!-- Sticky CTA Button (Solid White Container with Border) -->
             <div class="mt-auto pt-5 sticky bottom-0 bg-white border-t border-slate-100 pb-1">
                 <button class="btn-book-session w-full h-12 rounded-[16px] bg-[#012D68] hover:bg-[#023E8A] active:bg-[#001F4D] text-white font-bold text-[14.5px] transition-all shadow-md">
-                    Book a Session
+                    Buat Janji Temu
                 </button>
             </div>
         </aside>
@@ -531,12 +531,12 @@
             <!-- Personal Greeting -->
             <div class="text-center mt-5">
                 <span class="text-white/80 text-[13px]">Selamat siang,</span>
-                <b class="block text-[21px] font-bold text-white mt-0.5">What’s on your health today?</b>
+                <b class="block text-[21px] font-bold text-white mt-0.5">Bagaimana kondisi kesehatan Anda hari ini?</b>
             </div>
 
             <!-- Next Appointment Label -->
             <div class="text-center text-blue-100 text-[11px] font-bold tracking-wider mt-4 mb-2 uppercase">
-                Next Appointment
+                Janji Temu Berikutnya
             </div>
 
             <!-- Stacked Appointment Card (Solid Pure White Surface with Dynamic Examination / Payment States) -->
@@ -576,10 +576,10 @@
                 <div id="mobile-state-before" class="appointment-state-panel flex flex-col justify-between min-h-[144px] {{ $appointmentMode === 'before' ? '' : 'hidden' }}" data-status="Sebelum Periksa" aria-label="Status Janji Temu: Sebelum Periksa">
                     <span class="sr-only">Sebelum Periksa</span>
                     <div class="flex items-center justify-between mb-1">
-                        <small class="text-slate-400 dark:text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">Next Appointment</small>
+                        <small class="text-slate-400 dark:text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">Janji Temu Berikutnya</small>
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                             <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                            Upcoming
+                            Mendatang
                         </span>
                     </div>
                     <div class="flex items-center gap-3 py-1">
@@ -593,10 +593,10 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2 mt-2">
-                        <button type="button" class="btn-reschedule h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-[11.5px] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="window.showToast('Jadwal konsultasi dapat diatur melalui menu Jadwal.')">Reschedule</button>
+                        <button type="button" class="btn-reschedule h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-[11.5px] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="window.showToast('Jadwal konsultasi dapat diatur melalui menu Jadwal.')">Ubah Jadwal</button>
                         <button type="button" class="btn-join-call h-8 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-[11.5px] flex items-center justify-center gap-1 shadow-xs" onclick="window.showToast('Menghubungkan ke ruang panggilan video Dr. Saran Mitchell...')">
                             <svg class="app-svg-icon w-3 h-3"><use href="#icon-vid"/></svg>
-                            Join Call
+                            Masuk Panggilan
                         </button>
                     </div>
                 </div>
@@ -610,7 +610,7 @@
                             <small class="text-slate-400 dark:text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">Tagihan Pemeriksaan</small>
                         </div>
                         <span id="mobile-unpaid-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                            UNPAID
+                            BELUM LUNAS
                         </span>
                     </div>
                     <div class="flex items-center gap-3">
@@ -692,8 +692,8 @@
 
             <!-- Section Header -->
             <div class="flex justify-between items-center mt-4 mb-3 px-1">
-                <b class="text-[15px] text-slate-900 font-bold">Find a Doctor</b>
-                <a href="javascript:void(0)" onclick="window.showToast('Menampilkan seluruh dokter')" class="text-[12px] text-[#012D68] font-bold">View All</a>
+                <b class="text-[15px] text-slate-900 font-bold">Cari Dokter Spesialis</b>
+                <a href="javascript:void(0)" onclick="window.showToast('Menampilkan seluruh dokter')" class="text-[12px] text-[#012D68] font-bold">Lihat Semua</a>
             </div>
 
             <!-- Horizontal Doctor Cards (Scrollable with Dynamic Specialty Pastels) -->
@@ -743,7 +743,7 @@
                             <small class="text-slate-500 font-normal text-xs block truncate mt-0.5">{{ $doc['specialty'] }}</small>
                             <div class="mt-2 flex items-baseline gap-1">
                                 <span class="text-xs font-extrabold text-[#012D68]">{{ $doc['price'] }}</span>
-                                <span class="text-[10px] font-normal text-slate-400">/per session</span>
+                                <span class="text-[10px] font-normal text-slate-400">/sesi</span>
                             </div>
                         </div>
                     </div>
@@ -789,9 +789,9 @@
 
             <!-- Price & Stat Tiles (Solid Clean Surface, No Gradient) -->
             <div class="pricing-card mt-4 border border-slate-200/90 rounded-[20px] p-3.5 bg-slate-50 shadow-xs">
-                <small class="text-slate-500 text-[11px] font-medium">Starting from</small>
+                <small class="text-slate-500 text-[11px] font-medium">Mulai dari</small>
                 <b id="m-pp" class="block text-[22px] font-extrabold text-slate-900 my-0.5">
-                    {{ $selectedDoctor['price'] }} <span class="text-[10px] font-normal text-slate-400">/per session</span>
+                    {{ $selectedDoctor['price'] }} <span class="text-[10px] font-normal text-slate-400">/sesi</span>
                 </b>
 
                 <div class="grid grid-cols-3 gap-1.5 mt-2.5">
@@ -799,28 +799,28 @@
                         <i class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center mx-auto mb-1">
                             <svg class="app-svg-icon w-3 h-3"><use href="#icon-clock"/></svg>
                         </i>
-                        <small class="text-[8.5px] text-slate-400 font-medium block">Availability</small>
+                        <small class="text-[8.5px] text-slate-400 font-medium block">Ketersediaan</small>
                         <b id="m-pav-avail" class="text-[10.5px] text-slate-900 font-bold block mt-0.5">{{ $selectedDoctor['availability'] }}</b>
                     </div>
                     <div class="stat-tile bg-white border border-slate-200/80 rounded-[12px] p-2 text-center shadow-xs">
                         <i class="w-6 h-6 rounded-full bg-sky-100 text-sky-700 grid place-items-center mx-auto mb-1">
                             <svg class="app-svg-icon w-3 h-3"><use href="#icon-cal"/></svg>
                         </i>
-                        <small class="text-[8.5px] text-slate-400 font-medium block">Experience</small>
+                        <small class="text-[8.5px] text-slate-400 font-medium block">Pengalaman</small>
                         <b id="m-pav-exp" class="text-[10.5px] text-slate-900 font-bold block mt-0.5">{{ $selectedDoctor['experience'] }}</b>
                     </div>
                     <div class="stat-tile bg-white border border-slate-200/80 rounded-[12px] p-2 text-center shadow-xs">
                         <i class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 grid place-items-center mx-auto mb-1">
                             <svg class="app-svg-icon w-3 h-3"><use href="#icon-user"/></svg>
                         </i>
-                        <small class="text-[8.5px] text-slate-400 font-medium block">Patients</small>
+                        <small class="text-[8.5px] text-slate-400 font-medium block">Pasien</small>
                         <b id="m-pav-patients" class="text-[10.5px] text-slate-900 font-bold block mt-0.5">{{ $selectedDoctor['patients'] }}</b>
                     </div>
                 </div>
             </div>
 
             <!-- Date Selection -->
-            <div class="font-semibold text-[13.5px] mt-4 mb-2 text-[var(--color-text)]">Select a date &amp; time</div>
+            <div class="font-semibold text-[13.5px] mt-4 mb-2 text-[var(--color-text)]">Pilih Tanggal &amp; Waktu Praktik</div>
             <div class="days-container grid grid-cols-7 gap-1">
                 @foreach ($days as $day)
                     <button class="day-pill text-[10px] py-1 {{ $day['date'] === '12' ? 'active' : '' }}" data-day="{{ $day['name'] }}" data-date="{{ $day['date'] }}">
@@ -841,7 +841,7 @@
 
             <!-- CTA Button -->
             <button class="btn-book-session w-full h-11 rounded-[14px] bg-[var(--color-primary)] text-white font-semibold text-[14px] mt-5 shadow-md">
-                Book a Session
+                Buat Janji Temu
             </button>
         </div>
     </div>
@@ -1026,7 +1026,7 @@
         <!-- Drawer Header -->
         <div class="d-head">
             <div class="id">
-                <span>Bill ID</span>
+                <span>ID Tagihan</span>
                 <b>#BILL00124</b>
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                     Ortopedi
@@ -1048,11 +1048,11 @@
 
         <!-- Drawer Body -->
         <div class="d-body">
-            <span class="lbl">Select Account</span>
+            <span class="lbl">Pilih Sumber Biaya</span>
             <div class="select">
                 <span class="dot"><svg><use href="#i-pulse"/></svg></span>
                 <div class="leading-tight">
-                    <span class="block text-[13px] font-bold">Treatment fund</span>
+                    <span class="block text-[13px] font-bold">Dana Perawatan</span>
                     <small class="text-[11px] text-slate-500">Klinik Maristella · Rawat Jalan</small>
                 </div>
                 <svg class="chev"><use href="#i-down"/></svg>
@@ -1061,14 +1061,14 @@
             <!-- Bill To Section -->
             <div class="billto">
                 <div>
-                    <div class="ov">Bill to</div>
+                    <div class="ov">Tagihan Untuk</div>
                     <div class="nm">{{ $user['name'] }}</div>
                     <div class="ad">Jl. Boulevard Maristella No. 45, Kebayoran Baru,<br>Jakarta Selatan 12170</div>
                 </div>
                 <div class="r">
-                    <div class="ov">Bill date</div>
+                    <div class="ov">Tanggal Tagihan</div>
                     <b style="font-weight:600">14/08/2026</b>
-                    <span id="drawer-bill-badge" class="badge unpaid">UNPAID</span>
+                    <span id="drawer-bill-badge" class="badge unpaid">BELUM LUNAS</span>
                 </div>
             </div>
 
@@ -1096,8 +1096,8 @@
             <script type="application/json" id="bill-data">@json($bill)</script>
             <div class="items">
                 <div class="h">
-                    <span>Bill Name</span>
-                    <span>Amount</span>
+                    <span>Rincian Tagihan</span>
+                    <span>Nominal</span>
                 </div>
                 <div class="row">
                     <svg><use href="#i-tooth"/></svg>
@@ -1154,10 +1154,10 @@
             <!-- Note Section -->
             <div class="note-box">
                 <div class="note-h">
-                    <span class="lbl" style="margin-bottom:0">Add Note <small>(Optional)</small></span>
+                    <span class="lbl" style="margin-bottom:0">Catatan Tambahan <small>(Opsional)</small></span>
                     <small id="cnt">0/200</small>
                 </div>
-                <textarea id="note" maxlength="200" placeholder="Type a message or pharmacy note..."></textarea>
+                <textarea id="note" maxlength="200" placeholder="Tulis catatan atau pesan resep farmasi..."></textarea>
             </div>
 
             <!-- Total Price Summary -->
@@ -1179,7 +1179,7 @@
             <!-- Security Assurance -->
             <div class="secure">
                 <svg><use href="#i-shield"/></svg>
-                <span>All your transactions are secure and fast with Klinik Maristella.</span>
+                <span>Seluruh transaksi Anda aman dan terenkripsi bersama Klinik Maristella.</span>
             </div>
 
             <!-- Drawer Paid Notice and Action -->
@@ -1197,7 +1197,7 @@
 
             <!-- Payment Method Selection -->
             <div class="pay" id="drawer-unpaid-actions">
-                <div class="ov">Select a payment method</div>
+                <div class="ov">Pilih Metode Pembayaran</div>
                 <button type="button" class="method" id="openCash">
                     <svg><use href="#i-cash"/></svg>
                     <div>
@@ -1209,7 +1209,7 @@
                 <button type="button" class="method" id="openCardMethod" onclick="window.showToast('Metode Kartu Kredit/Debit dipilih. Silakan gesek kartu di kasir.')">
                     <svg><use href="#i-card"/></svg>
                     <div>
-                        <span class="block">Credit / Debit card</span>
+                        <span class="block">Kartu Kredit / Debit</span>
                         <small class="block text-[11px] text-slate-400 font-normal">Visa, Mastercard, JCB, GPN</small>
                     </div>
                     <svg class="chev"><use href="#i-chev"/></svg>
@@ -1233,7 +1233,7 @@
                     </button>
                 </div>
                 <button type="button" class="more" id="btn-show-more-methods">
-                    <span id="show-more-text">Show More</span>
+                    <span id="show-more-text">Tampilkan Lainnya</span>
                     <svg id="show-more-icon" style="width:14px;height:14px"><use href="#i-down"/></svg>
                 </button>
             </div>
@@ -1254,7 +1254,7 @@
             </div>
             <div class="m-body">
                 <div class="m-total">
-                    <span>Total Payment</span>
+                    <span>Total Pembayaran</span>
                     <span id="modal-total-display">Rp {{ number_format((float) ($nextAppointment['total_amount'] ?? 435000), 0, ',', '.') }}</span>
                 </div>
                 <div class="box">
@@ -1333,13 +1333,13 @@
             <path d="M12 20.5l6 6 11-12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
 
-        <h2 id="success-modal-title">Payment success</h2>
-        <div class="amt-l">Total Amount Paid</div>
+        <h2 id="success-modal-title">Pembayaran Berhasil</h2>
+        <div class="amt-l">Total Pembayaran Lunas</div>
         <div class="amt" id="success-amount">{{ $formatRupiah($bill['total_amount']) }}</div>
-        <div class="meta" id="success-meta">{{ now()->translatedFormat('d M Y') }}<i>•</i>Bill ID: <span data-bill-code>{{ $bill['booking_code'] }}</span><i>•</i><span data-bill-specialty>{{ $bill['specialty'] ?: 'Poliklinik' }}</span></div>
+        <div class="meta" id="success-meta">{{ now()->translatedFormat('d M Y') }}<i>•</i>ID Tagihan: <span data-bill-code>{{ $bill['booking_code'] }}</span><i>•</i><span data-bill-specialty>{{ $bill['specialty'] ?: 'Poliklinik' }}</span></div>
 
         <div class="details">
-            <h3>Payment Details</h3>
+            <h3>Rincian Pembayaran</h3>
             <div class="acc">
                 <!-- Accordion Item 1: Consultation -->
                 <div class="acc-item open" id="success-acc-treatment">
@@ -1374,21 +1374,21 @@
 
             <!-- Transaction Metadata -->
             <div class="dt">
-                <div class="ov">Detail Transaction</div>
+                <div class="ov">Rincian Transaksi</div>
                 <div class="r">
                     <span>Pasien</span>
                     <b>{{ $user['name'] }}</b>
                 </div>
                 <div class="r">
-                    <span>Amount paid</span>
+                    <span>Jumlah Dibayar</span>
                     <b id="success-amount-paid">{{ $formatRupiah($bill['total_amount']) }}</b>
                 </div>
                 <div class="r">
-                    <span>Change money</span>
+                    <span>Uang Kembalian</span>
                     <b>Rp 0</b>
                 </div>
                 <div class="r">
-                    <span>Payment method</span>
+                    <span>Metode Pembayaran</span>
                     <b class="m"><svg><use href="#i-cash"/></svg>Cash (Kasir Poliklinik)</b>
                 </div>
             </div>
@@ -1398,11 +1398,11 @@
         <div class="actions">
             <button type="button" class="btn-o" id="successBackBtn">
                 <svg style="width:18px;height:18px"><use href="#i-cal"/></svg>
-                <span>Back to calendar</span>
+                <span>Kembali ke Kalender Jadwal</span>
             </button>
             <button type="button" class="btn-o primary" id="successPrintBtn">
                 <svg style="width:18px;height:18px"><use href="#i-receipt"/></svg>
-                <span>Print Receipt</span>
+                <span>Cetak Kuitansi</span>
             </button>
         </div>
     </section>

@@ -17,10 +17,10 @@ class HomeViewTest extends TestCase
         $response->assertViewIs('home');
         $response->assertViewHasAll(['user', 'nextAppointment', 'categories', 'doctors']);
         $response->assertSee('Klinik Maristella');
-        $response->assertSee('What’s on your health today?');
+        $response->assertSee('Bagaimana kondisi kesehatan Anda hari ini?');
         $response->assertSee('Dr. Saran Mitchell');
         $response->assertSee('Dr. Anaya Kapoor');
-        $response->assertSee('Book a Session');
+        $response->assertSee('Buat Janji Temu');
         $response->assertSee('Pendaftaran Sesi Konsultasi');
         $response->assertSee('Gejala / Keluhan Utama');
         $response->assertSee('Sudah Berapa Lama Dirasakan?');
@@ -33,12 +33,12 @@ class HomeViewTest extends TestCase
         $response->assertSee('Bayar Sekarang');
         $response->assertSee('Konsultasi + Resep Obat');
         $response->assertSee('Rp 180.000');
-        $response->assertSee('Payment success');
-        $response->assertSee('Payment Details');
-        $response->assertSee('Print Receipt');
-        $response->assertSee('Back to calendar');
+        $response->assertSee('Pembayaran Berhasil');
+        $response->assertSee('Rincian Pembayaran');
+        $response->assertSee('Cetak Kuitansi');
+        $response->assertSee('Kembali ke Kalender Jadwal');
         $response->assertSee('Jasa Konsultasi');
         $response->assertSee('Obat');
-        $response->assertSee('Detail Transaction');
+        $response->assertSee('Rincian Transaksi');
     }
 }
