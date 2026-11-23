@@ -7,7 +7,8 @@ use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Poli;
-use App\Models\Queue;
+use App\Services\BookingService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,8 +24,11 @@ class HomeController extends Controller
         $authUser = auth()->user();
         $user = [
             'name' => $authUser?->name ?? 'Rina Anggraini',
+            'email' => $authUser?->email ?? 'user@aihealth.com',
+            'phone' => $authUser?->phone ?? '+62 812-5550-1920',
+            'avatar_url' => $authUser?->avatar_url ?? '',
             'role' => $authUser ? ($authUser->isAdmin() ? 'Administrator' : ($authUser->isDoctor() ? 'Dokter Spesialis' : 'Pasien')) : 'Pasien',
-            'initials' => $authUser ? strtoupper(substr($authUser->name, 0, 1).substr(trim(strstr($authUser->name, ' ') ?: ''), 0, 1)) : 'RA',
+            'initials' => $authUser ? $authUser->initials : 'RA',
             'is_logged_in' => auth()->check(),
             'is_admin' => $authUser?->isAdmin() ?? false,
             'is_doctor' => $authUser?->isDoctor() ?? false,
@@ -133,10 +137,20 @@ class HomeController extends Controller
         $appointmentMode = $appointmentData['mode'];
         $isDoctorExamined = $appointmentData['doctor_examined'];
 
+        $bookingTimeDisplay = '14 Agu 2026 · 14:30 WIB';
+        if ($latestBooking) {
+            $formattedDate = $latestBooking->booking_date ? Carbon::parse($latestBooking->booking_date)->translatedFormat('d M Y') : 'Hari Ini';
+            $jamStr = $latestBooking->jam_mulai ? Carbon::parse($latestBooking->jam_mulai)->format('H:i') : ($latestBooking->booking_time ?: '14:30');
+            if (! str_contains($jamStr, 'WIB')) {
+                $jamStr .= ' WIB';
+            }
+            $bookingTimeDisplay = $formattedDate.' · '.$jamStr;
+        }
+
         $nextAppointment = [
             'doctor_name' => $latestBooking?->doctor?->nama_dokter ?? 'Dr. Saran Mitchell',
             'specialty' => $latestBooking?->doctor?->spesialisasi ?? 'Spesialis Ortopedi',
-            'date_time' => $latestBooking?->booking_time ?? '14 Agu 2026 · 14:30 WIB',
+            'date_time' => $bookingTimeDisplay,
             'initials' => $latestBooking?->doctor?->initials ?? 'SM',
             'image' => $latestBooking?->doctor?->image ?? 'images/doctors/doctor-3.png',
             'booking_code' => $latestBooking?->booking_code ?? '#BILL00124',
@@ -153,6 +167,64 @@ class HomeController extends Controller
             $nextAppointment['total_amount'] = $bill['total_amount'];
         }
 
+        $notifications = $this->resolveNotifications($latestBooking, $appointmentMode, $bill);
+
+        // 4. Real-time booking dates for current week
+        $today = Carbon::today();
+        $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
+        $bookingDays = [];
+        $activeDayIndex = 0;
+
+        for ($i = 0; $i < 7; $i++) {
+            $dayCarbon = $startOfWeek->copy()->addDays($i);
+            $isPast = $dayCarbon->lt($today);
+            $isToday = $dayCarbon->isToday();
+
+            if ($isToday) {
+                $activeDayIndex = $i;
+            }
+
+            $indonesianDayMap = [
+                'Sun' => 'Min',
+                'Mon' => 'Sen',
+                'Tue' => 'Sel',
+                'Wed' => 'Rab',
+                'Thu' => 'Kam',
+                'Fri' => 'Jum',
+                'Sat' => 'Sab',
+            ];
+            $engShort = $dayCarbon->format('D');
+            $indoShort = $indonesianDayMap[$engShort] ?? substr($dayCarbon->format('D'), 0, 2);
+
+            $bookingDays[] = [
+                'name' => $indoShort, // Min, Sen, Sel, Rab, Kam, Jum, Sab
+                'day_name' => $dayCarbon->translatedFormat('l'),
+                'date' => $dayCarbon->format('d'),
+                'full_date' => $dayCarbon->format('Y-m-d'),
+                'is_past' => $isPast,
+                'is_today' => $isToday,
+            ];
+        }
+
+        $currentHour = (int) Carbon::now()->format('H');
+        $timeSlots = [
+            ['time' => '08:00', 'hour' => 8, 'start' => '08:00:00', 'end' => '09:00:00', 'period' => 'morning'],
+            ['time' => '09:00', 'hour' => 9, 'start' => '09:00:00', 'end' => '10:00:00', 'period' => 'morning'],
+            ['time' => '10:00', 'hour' => 10, 'start' => '10:00:00', 'end' => '11:00:00', 'period' => 'morning'],
+            ['time' => '11:00', 'hour' => 11, 'start' => '11:00:00', 'end' => '12:00:00', 'period' => 'morning'],
+            ['time' => '12:00', 'hour' => 12, 'start' => '12:00:00', 'end' => '13:00:00', 'period' => 'afternoon'],
+            ['time' => '13:00', 'hour' => 13, 'start' => '13:00:00', 'end' => '14:00:00', 'period' => 'afternoon'],
+            ['time' => '14:00', 'hour' => 14, 'start' => '14:00:00', 'end' => '15:00:00', 'period' => 'afternoon'],
+            ['time' => '15:00', 'hour' => 15, 'start' => '15:00:00', 'end' => '16:00:00', 'period' => 'afternoon'],
+            ['time' => '16:00', 'hour' => 16, 'start' => '16:00:00', 'end' => '17:00:00', 'period' => 'evening'],
+            ['time' => '17:00', 'hour' => 17, 'start' => '17:00:00', 'end' => '18:00:00', 'period' => 'evening'],
+            ['time' => '18:00', 'hour' => 18, 'start' => '18:00:00', 'end' => '19:00:00', 'period' => 'evening'],
+            ['time' => '19:00', 'hour' => 19, 'start' => '19:00:00', 'end' => '20:00:00', 'period' => 'evening'],
+            ['time' => '20:00', 'hour' => 20, 'start' => '20:00:00', 'end' => '21:00:00', 'period' => 'evening'],
+        ];
+
+        $currentMonthYear = Carbon::now()->translatedFormat('M Y');
+
         return view('home', [
             'user' => $user,
             'nextAppointment' => $nextAppointment,
@@ -162,6 +234,13 @@ class HomeController extends Controller
             'isDoctorExamined' => $isDoctorExamined,
             'categories' => $categories,
             'doctors' => $doctors,
+            'notifications' => $notifications,
+            'unreadCount' => count($notifications),
+            'bookingDays' => $bookingDays,
+            'activeDayIndex' => $activeDayIndex,
+            'timeSlots' => $timeSlots,
+            'currentHour' => $currentHour,
+            'currentMonthYear' => $currentMonthYear,
         ]);
     }
 
@@ -307,6 +386,98 @@ class HomeController extends Controller
     }
 
     /**
+     * Resolve active real-time notifications for the patient.
+     *
+     * @return array<int, array{id: string, title: string, message: string, time: string, type: string, action_label: ?string, action_url: ?string, onclick: ?string}>
+     */
+    public function resolveNotifications(?Booking $latestBooking, string $appointmentMode, array $bill): array
+    {
+        $notifications = [];
+
+        // 1. Tagihan siap dibayar (Doctor has examined)
+        if ($appointmentMode === 'after' && $latestBooking && $latestBooking->payment_status === 'unpaid') {
+            $formattedTotal = 'Rp '.number_format((float) $bill['total_amount'], 0, ',', '.');
+            $doctorName = $latestBooking->doctor?->nama_dokter ?? 'Dokter Pemeriksa';
+            $notifications[] = [
+                'id' => 'notif-bill-'.$latestBooking->id,
+                'title' => 'Tagihan Konsultasi Tersedia',
+                'message' => "Pemeriksaan medis oleh {$doctorName} telah selesai. Tagihan sebesar {$formattedTotal} siap dibayar.",
+                'time' => 'Baru saja',
+                'type' => 'bill',
+                'action_label' => 'Bayar Sekarang',
+                'action_url' => null,
+                'onclick' => 'window.openPaymentDrawer?.()',
+            ];
+        }
+
+        // 2. Janji temu aktif menunggu konsultasi
+        if ($appointmentMode === 'before' && $latestBooking && $latestBooking->payment_status === 'unpaid') {
+            $doctorName = $latestBooking->doctor?->nama_dokter ?? 'Dokter Pemeriksa';
+            $formattedDate = $latestBooking->booking_date ? Carbon::parse($latestBooking->booking_date)->translatedFormat('d M Y') : 'Hari Ini';
+            $jamStr = $latestBooking->jam_mulai ? Carbon::parse($latestBooking->jam_mulai)->format('H:i') : ($latestBooking->booking_time ?: '');
+            if ($jamStr && ! str_contains($jamStr, 'WIB')) {
+                $jamStr .= ' WIB';
+            }
+            $dateTime = trim($formattedDate.' · '.$jamStr, ' ·');
+            $notifications[] = [
+                'id' => 'notif-appt-'.$latestBooking->id,
+                'title' => 'Janji Temu Menunggu',
+                'message' => "Jadwal konsultasi Anda bersama {$doctorName} ({$latestBooking->doctor?->spesialisasi}) terdaftar untuk {$dateTime}.",
+                'time' => 'Mendatang',
+                'type' => 'appointment',
+                'action_label' => 'Lihat Jadwal',
+                'action_url' => route('calendar'),
+                'onclick' => null,
+            ];
+        }
+
+        // 3. Resep obat farmasi status
+        if ($latestBooking && Schema::hasTable('medical_records') && $latestBooking->medicalRecord) {
+            $plan = $latestBooking->medicalRecord->plan ?? [];
+            $prescriptionStatus = is_array($plan) ? ($plan['prescription_status'] ?? null) : null;
+            if ($prescriptionStatus === 'sedang_diracik') {
+                $notifications[] = [
+                    'id' => 'notif-rx-prep-'.$latestBooking->id,
+                    'title' => 'Resep Sedang Diracik',
+                    'message' => 'Apoteker sedang menyiapkan dan meracik resep obat Anda.',
+                    'time' => 'Sedang berlangsung',
+                    'type' => 'pharmacy',
+                    'action_label' => null,
+                    'action_url' => null,
+                    'onclick' => null,
+                ];
+            } elseif ($prescriptionStatus === 'selesai') {
+                $notifications[] = [
+                    'id' => 'notif-rx-done-'.$latestBooking->id,
+                    'title' => 'Obat Siap Diserahkan',
+                    'message' => 'Obat resep Anda telah diserahkan oleh apoteker sesuai instruksi dosis.',
+                    'time' => 'Selesai',
+                    'type' => 'pharmacy',
+                    'action_label' => null,
+                    'action_url' => null,
+                    'onclick' => null,
+                ];
+            }
+        }
+
+        // 4. Pembayaran berhasil / lunas
+        if (session('just_paid_booking_id') || ($latestBooking && $latestBooking->payment_status === 'paid')) {
+            $notifications[] = [
+                'id' => 'notif-paid-'.($latestBooking?->id ?? 'last'),
+                'title' => 'Pembayaran Berhasil',
+                'message' => 'Transaksi pembayaran konsultasi Anda telah diverifikasi dan lunas.',
+                'time' => 'Lunas',
+                'type' => 'success',
+                'action_label' => null,
+                'action_url' => null,
+                'onclick' => null,
+            ];
+        }
+
+        return $notifications;
+    }
+
+    /**
      * Get real-time appointment and examination status (for automatic client trigger).
      */
     public function getAppointmentStatus(): JsonResponse
@@ -314,6 +485,7 @@ class HomeController extends Controller
         $appointmentData = $this->resolveAppointmentState();
         $latestBooking = $appointmentData['booking'];
         $bill = $this->resolveBillDetails($latestBooking);
+        $notifications = $this->resolveNotifications($latestBooking, $appointmentData['mode'], $bill);
 
         return response()->json([
             'success' => true,
@@ -329,6 +501,8 @@ class HomeController extends Controller
             'payment_status' => $latestBooking?->payment_status ?? 'unpaid',
             'tariff_plan' => $latestBooking ? $bill['tariff_plan'] : 'with_medicine',
             'bill' => $bill,
+            'notifications' => $notifications,
+            'unread_count' => count($notifications),
         ]);
     }
 
@@ -428,7 +602,7 @@ class HomeController extends Controller
     /**
      * Store a newly created consultation booking in database.
      */
-    public function storeBooking(Request $request): JsonResponse
+    public function storeBooking(Request $request, BookingService $bookingService): JsonResponse
     {
         $validated = $request->validate([
             'patient_name' => ['required', 'string'],
@@ -438,103 +612,92 @@ class HomeController extends Controller
             'severity' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
             'doctor_id' => ['nullable', 'integer'],
-            'booking_date' => ['nullable', 'string'],
+            'booking_date' => ['nullable', 'date', 'after_or_equal:today'],
             'booking_time' => ['nullable', 'string'],
+            'jam_mulai' => ['nullable', 'string'],
+            'jam_selesai' => ['nullable', 'string'],
+        ], [
+            'booking_date.after_or_equal' => 'Tanggal booking tidak boleh di masa lalu (sudah terlewati).',
+            'booking_date.date' => 'Format tanggal booking tidak valid.',
         ]);
 
-        $doctor = null;
-        if (Schema::hasTable('doctors')) {
-            $doctor = isset($validated['doctor_id'])
-                ? Doctor::find($validated['doctor_id'])
-                : Doctor::first();
+        $booking = $bookingService->createBooking($validated, auth()->user());
 
-            if (! $doctor) {
-                $doctor = Doctor::first();
-            }
-        }
-
-        // Find or create patient record
-        $patient = null;
-        if (Schema::hasTable('patients')) {
-            $patient = Patient::firstOrCreate(
-                ['phone' => $validated['phone']],
-                [
-                    'mrn' => '#GM-'.fake()->unique()->numerify('####'),
-                    'full_name' => $validated['patient_name'],
-                    'user_id' => auth()->id(),
-                ]
-            );
-        }
-
-        $bookingCode = 'BK-'.now()->format('Ymd').'-'.strtoupper(substr(uniqid(), -4));
-
-        $booking = null;
-        if (Schema::hasTable('bookings') && $patient) {
-            $booking = Booking::create([
-                'booking_code' => $bookingCode,
-                'patient_id' => $patient->id,
-                'doctor_id' => $doctor ? $doctor->id : 1,
-                'booking_date' => now()->toDateString(),
-                'booking_time' => $validated['booking_time'] ?? '09:00 AM',
-                'booking_source' => 'online',
-                'symptoms' => $validated['symptoms'],
-                'duration' => $validated['duration'] ?? '1 - 3 Hari',
-                'severity' => $validated['severity'] ?? 'Sedang',
-                'notes' => $validated['notes'] ?? null,
-                'status' => 'confirmed',
-                'tariff_plan' => 'consultation_only',
-                'total_amount' => (float) ($doctor?->price_num ?? 180000.00),
-                'payment_status' => 'unpaid',
-            ]);
-        }
-
-        $queue = null;
-        if (Schema::hasTable('queues') && $booking) {
-            $prefix = match ($doctor?->id) {
-                1 => 'B', 2 => 'A', 3 => 'C', default => 'A'
-            };
-            $queueCount = Queue::whereDate('queue_date', now()->toDateString())->count();
-            $queueNumber = $prefix.'-'.str_pad((string) ($queueCount + 1), 2, '0', STR_PAD_LEFT);
-
-            $queue = Queue::create([
-                'booking_id' => $booking->id,
-                'queue_number' => $queueNumber,
-                'queue_date' => now()->toDateString(),
-                'time_slot' => $validated['booking_time'] ?? '09:00 AM',
-                'status' => 'waiting',
-            ]);
-
-            session(['current_booking_id' => $booking->id]);
-            session()->forget('last_examined_booking_id');
-            session()->forget('just_paid_booking_id');
-        }
+        session(['current_booking_id' => $booking->id]);
+        session()->forget('last_examined_booking_id');
+        session()->forget('just_paid_booking_id');
 
         return response()->json([
             'success' => true,
-            'message' => 'Pendaftaran Berhasil! Sesi dengan '.($doctor?->nama_dokter ?? 'Dokter').' telah dijadwalkan.',
+            'message' => 'Pendaftaran Berhasil! Sesi dengan '.($booking->doctor?->nama_dokter ?? 'Dokter').' telah dijadwalkan.',
             'booking' => $booking,
-            'queue' => $queue,
+            'queue' => $booking->queue,
+        ]);
+    }
+
+    /**
+     * Cancel an existing consultation booking.
+     */
+    public function cancelBooking(Request $request, Booking $booking, BookingService $bookingService): JsonResponse
+    {
+        $cancelledBooking = $bookingService->cancelBooking($booking, auth()->user());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Jadwal booking berhasil dibatalkan. Slot jam kini kembali kosong.',
+            'booking' => $cancelledBooking,
+        ]);
+    }
+
+    /**
+     * Return JSON data of doctors, schedules, and bookings for interactive calendar.
+     */
+    public function calendarData(Request $request, BookingService $bookingService): JsonResponse
+    {
+        $doctorId = $request->has('doctor_id') && $request->get('doctor_id') !== 'all' && is_numeric($request->get('doctor_id'))
+            ? (int) $request->get('doctor_id')
+            : null;
+        $date = $request->get('date', now()->toDateString());
+
+        $data = $bookingService->getCalendarData($doctorId, $date);
+
+        return response()->json([
+            'success' => true,
+            'date' => $data['date'],
+            'doctors' => $data['doctors'],
+            'bookings' => $data['bookings'],
         ]);
     }
 
     /**
      * Display the Patient Calendar view.
      */
-    public function calendar(): View
+    public function calendar(Request $request): View
     {
         $authUser = auth()->user();
         $user = [
             'name' => $authUser?->name ?? 'Rina Anggraini',
             'email' => $authUser?->email ?? 'rina@example.com',
+            'phone' => $authUser?->phone ?? '+62 812-5550-1920',
+            'avatar_url' => $authUser?->avatar_url ?? '',
             'role' => $authUser ? ($authUser->isAdmin() ? 'Administrator' : 'Pasien') : 'Pasien',
-            'initials' => $authUser ? strtoupper(substr($authUser->name, 0, 1).substr(trim(strstr($authUser->name, ' ') ?: ''), 0, 1)) : 'RA',
+            'initials' => $authUser ? $authUser->initials : 'RA',
             'is_logged_in' => auth()->check(),
             'is_admin' => $authUser?->isAdmin() ?? false,
         ];
 
+        $doctors = Doctor::with(['poli', 'schedules'])->get();
+        $selectedDate = $request->get('date', now()->toDateString());
+        $allBookings = Booking::with(['patient', 'doctor.poli'])
+            ->whereDate('booking_date', $selectedDate)
+            ->get();
+
         return view('admin.calendar', [
             'user' => $user,
             'role' => 'patient',
+            'doctors' => $doctors,
+            'initialBookings' => $allBookings,
+            'initialDate' => $selectedDate,
         ]);
     }
 

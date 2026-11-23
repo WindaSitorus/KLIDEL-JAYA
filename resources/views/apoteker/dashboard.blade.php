@@ -1003,16 +1003,20 @@
       </div>
 
       <!-- User Card Apoteker -->
-      <div class="user-card" id="apotekerUserCard">
-        <div class="avatar">
-          {{ $apoteker['initials'] ?? 'AL' }}
+      <a href="{{ route('profile.edit') }}" class="user-card" id="apotekerUserCard" title="Kelola Profil Saya" style="text-decoration:none;">
+        <div class="avatar" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
+          @if(!empty($apoteker['avatar_url']))
+            <img src="{{ $apoteker['avatar_url'] }}" alt="{{ $apoteker['name'] }}" style="width:100%;height:100%;object-fit:cover;">
+          @else
+            {{ $apoteker['initials'] ?? 'AL' }}
+          @endif
           <i class="status"></i>
         </div>
         <div class="min-w-0 flex-1">
           <strong>{{ $apoteker['name'] ?? 'Amélie Laurent' }}</strong>
-          <small>{{ $apoteker['role'] ?? 'Apoteker' }}</small>
+          <small>{{ $apoteker['role'] ?? 'Apoteker' }} · Profil</small>
         </div>
-      </div>
+      </a>
 
       <!-- Logout Form -->
       <form action="{{ route('logout') }}" method="POST">

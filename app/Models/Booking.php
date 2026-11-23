@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'schedule_id',
     'booking_date',
     'booking_time',
+    'jam_mulai',
+    'jam_selesai',
     'booking_source',
     'symptoms',
     'duration',

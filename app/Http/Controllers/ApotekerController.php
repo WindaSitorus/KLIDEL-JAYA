@@ -22,13 +22,10 @@ class ApotekerController extends Controller
         $apoteker = [
             'name' => $authUser?->name ?? 'Amélie Laurent',
             'email' => $authUser?->email ?? 'apoteker@aihealth.com',
+            'phone' => $authUser?->phone ?? '',
+            'avatar_url' => $authUser?->avatar_url ?? '',
             'role' => 'Apoteker',
-            'initials' => $authUser
-                ? strtoupper(
-                    substr($authUser->name, 0, 1).
-                    substr(trim(strstr($authUser->name, ' ') ?: 'L'), 1, 1)
-                )
-                : 'AL',
+            'initials' => $authUser ? $authUser->initials : 'AL',
             'terminal' => 'APT-01',
             'shift' => 'Shift Sore',
         ];

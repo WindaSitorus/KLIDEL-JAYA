@@ -6,7 +6,7 @@ use App\Models\Booking;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Payment;
-use App\Models\Queue;
+use App\Services\BookingService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -25,8 +25,10 @@ class AdminController extends Controller
         $user = [
             'name' => $admin?->name ?? 'Amélie Laurent',
             'email' => $admin?->email ?? 'admin@klinikmaristella.com',
+            'phone' => $admin?->phone ?? '',
+            'avatar_url' => $admin?->avatar_url ?? '',
             'role' => 'Administrator',
-            'initials' => $admin ? strtoupper(substr($admin->name, 0, 1).substr(trim(strstr($admin->name, ' ') ?: 'L'), 1, 1)) : 'AL',
+            'initials' => $admin ? $admin->initials : 'AL',
             'is_logged_in' => true,
             'is_admin' => true,
         ];
@@ -204,7 +206,7 @@ class AdminController extends Controller
     /**
      * Store new consultation booking and transaction from Admin Modal.
      */
-    public function storeTransaction(Request $request): RedirectResponse
+    public function storeTransaction(Request $request, BookingService $bookingService): RedirectResponse
     {
         $validated = $request->validate([
             'patient_name' => ['required', 'string', 'max:255'],
@@ -212,6 +214,8 @@ class AdminController extends Controller
             'doctor_id' => ['required', 'exists:doctors,id'],
             'booking_date' => ['nullable', 'date'],
             'booking_time' => ['nullable', 'string'],
+            'jam_mulai' => ['nullable', 'string'],
+            'jam_selesai' => ['nullable', 'string'],
             'tariff_plan' => ['required', 'string'],
             'payment_method' => ['required', 'string'],
             'payment_status' => ['required', 'string'],
@@ -219,61 +223,26 @@ class AdminController extends Controller
         ]);
 
         $doctor = Doctor::with('poli')->findOrFail($validated['doctor_id']);
-
-        // Find or create patient record
-        $patient = Patient::firstOrCreate(
-            ['phone' => $validated['phone']],
-            [
-                'mrn' => '#GM-'.fake()->unique()->numerify('####'),
-                'full_name' => $validated['patient_name'],
-                'user_id' => null,
-            ]
-        );
-
         $amount = $validated['tariff_plan'] === 'consultation_only' ? 180000.00 : 435000.00;
         $bookingCode = '#BILL'.strtoupper(substr(uniqid(), -5));
-        $bookingDate = $validated['booking_date'] ?? now()->toDateString();
-        $bookingTime = $validated['booking_time'] ?? '09:00 AM';
 
-        // Create booking
-        $booking = Booking::create([
+        $bookingData = array_merge($validated, [
             'booking_code' => $bookingCode,
-            'patient_id' => $patient->id,
-            'doctor_id' => $doctor->id,
-            'booking_date' => $bookingDate,
-            'booking_time' => $bookingTime,
             'booking_source' => 'admin',
-            'symptoms' => $validated['symptoms'] ?? 'Pemeriksaan langsung di klinik',
-            'duration' => '1 - 3 Hari',
-            'severity' => 'Sedang',
-            'notes' => null,
-            'status' => $validated['payment_status'] === 'paid' ? 'completed' : 'confirmed',
-            'tariff_plan' => $validated['tariff_plan'],
             'total_amount' => $amount,
-            'payment_status' => $validated['payment_status'],
+            'status' => $validated['payment_status'] === 'paid' ? 'completed' : 'confirmed',
         ]);
 
-        // Create queue
-        $prefix = match ($doctor->id) {
-            1 => 'B', 2 => 'A', 3 => 'C', default => 'A'
-        };
-        $queueCount = Queue::whereDate('queue_date', $bookingDate)->count();
-        Queue::create([
-            'booking_id' => $booking->id,
-            'queue_number' => $prefix.'-'.str_pad((string) ($queueCount + 1), 2, '0', STR_PAD_LEFT),
-            'queue_date' => $bookingDate,
-            'time_slot' => $bookingTime,
-            'status' => $validated['payment_status'] === 'paid' ? 'completed' : 'waiting',
-        ]);
+        $booking = $bookingService->createBooking($bookingData, Auth::user());
 
         // If marked as paid, record transaction in payments table
         if ($validated['payment_status'] === 'paid') {
             Payment::create([
                 'booking_id' => $booking->id,
-                'patient_id' => $patient->id,
+                'patient_id' => $booking->patient_id,
                 'doctor_id' => $doctor->id,
                 'invoice_number' => $bookingCode,
-                'patient_name' => $patient->full_name,
+                'patient_name' => $booking->patient?->full_name,
                 'doctor_name' => $doctor->nama_dokter,
                 'service_type' => $doctor->spesialisasi ?? $doctor->poli?->nama_poli ?? 'General Consultation',
                 'payment_method' => $validated['payment_method'],
@@ -287,28 +256,39 @@ class AdminController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.dashboard')->with('success', 'Transaksi & Jadwal Pasien '.$patient->full_name.' berhasil disimpan!');
+        return redirect()->route('admin.dashboard')->with('success', 'Transaksi & Jadwal Pasien '.($booking->patient?->full_name ?? '').' berhasil disimpan!');
     }
 
     /**
      * Display the Admin Calendar view.
      */
-    public function calendar(): View
+    public function calendar(Request $request): View
     {
         $admin = Auth::user();
         $user = [
             'name' => $admin?->name ?? 'Amélie Laurent',
             'email' => $admin?->email ?? 'admin@klinikmaristella.com',
+            'phone' => $admin?->phone ?? '',
+            'avatar_url' => $admin?->avatar_url ?? '',
             'role' => 'Administrator',
-            'initials' => $admin ? strtoupper(substr($admin->name, 0, 1).substr(trim(strstr($admin->name, ' ') ?: 'L'), 1, 1)) : 'AL',
+            'initials' => $admin ? $admin->initials : 'AL',
             'is_logged_in' => true,
             'is_admin' => true,
         ];
+
+        $doctors = Doctor::with(['poli', 'schedules'])->get();
+        $selectedDate = $request->get('date', now()->toDateString());
+        $allBookings = Booking::with(['patient', 'doctor.poli'])
+            ->whereDate('booking_date', $selectedDate)
+            ->get();
 
         return view('admin.calendar', [
             'admin' => $admin,
             'user' => $user,
             'role' => 'admin',
+            'doctors' => $doctors,
+            'initialBookings' => $allBookings,
+            'initialDate' => $selectedDate,
         ]);
     }
 

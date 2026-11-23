@@ -26,8 +26,10 @@ class AdminDoctorController extends Controller
         $user = [
             'name' => $admin?->name ?? 'Administrator',
             'email' => $admin?->email ?? 'admin@aihealth.com',
+            'phone' => $admin?->phone ?? '',
+            'avatar_url' => $admin?->avatar_url ?? '',
             'role' => 'Administrator',
-            'initials' => $admin ? strtoupper(substr($admin->name, 0, 1).substr(trim(strstr($admin->name, ' ') ?: 'A'), 1, 1)) : 'AD',
+            'initials' => $admin ? $admin->initials : 'AD',
             'is_logged_in' => true,
             'is_admin' => true,
         ];
@@ -159,8 +161,8 @@ class AdminDoctorController extends Controller
             Schedule::create([
                 'doctor_id' => $doc->id,
                 'hari' => 'Senin - Jumat',
-                'jam_mulai' => '09:00',
-                'jam_selesai' => '17:00',
+                'jam_mulai' => '08:00',
+                'jam_selesai' => '21:00',
                 'kuota' => 20,
             ]);
 

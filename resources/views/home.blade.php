@@ -11,7 +11,7 @@
         'price' => 'Rp 0',
         'initials' => 'DR',
         'image' => 'images/doctors/doctor-1.png',
-        'availability' => '9AM - 5PM',
+        'availability' => '09:00 - 17:00 WIB',
         'experience' => '10 years',
         'patients' => '1k Up',
     ];
@@ -56,11 +56,11 @@
                     <span class="hidden xl:inline text-[14px]">Rekam Medis</span>
                 </a>
 
-                <!-- Pengaturan -->
-                <button class="nav flex items-center gap-3 p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-tint)]/60 text-left w-full transition-colors" onclick="window.showToast('Membuka Pengaturan...')">
+                <!-- Pengaturan / Profil -->
+                <a href="{{ route('profile.edit') }}" class="nav flex items-center gap-3 p-2.5 rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-tint)]/60 text-left w-full transition-colors" title="Profil & Pengaturan">
                     <svg class="app-svg-icon"><use href="#icon-set"/></svg>
-                    <span class="hidden xl:inline text-[14px]">Pengaturan</span>
-                </button>
+                    <span class="hidden xl:inline text-[14px]">Profil & Pengaturan</span>
+                </a>
 
                 @auth
                     @if (auth()->user()->isAdmin())
@@ -111,21 +111,95 @@
                     <svg class="app-svg-icon w-4 h-4"><use href="#icon-sun"/></svg>
                 </button>
 
-                <!-- Notification Bell -->
-                <button class="glass-btn !bg-[var(--color-surface)] !text-[var(--color-text)] !border-[var(--color-border)] relative hover:!border-[var(--color-primary)]" aria-label="Notifikasi" onclick="window.showToast('Tidak ada notifikasi baru.')">
-                    <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
-                    <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
-                </button>
+                <!-- Notification Bell with Interactive Dropdown -->
+                <div class="relative" id="desktop-notif-container">
+                    <button id="desktop-notif-btn" type="button" class="glass-btn !bg-[var(--color-surface)] !text-[var(--color-text)] !border-[var(--color-border)] relative hover:!border-[var(--color-primary)] transition-all" aria-label="Notifikasi" aria-expanded="false">
+                        <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
+                        <span id="desktop-notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 {{ ($unreadCount ?? 0) > 0 ? '' : 'hidden' }}"></span>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div id="desktop-notif-dropdown" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-[#101E35] rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden transition-all duration-200">
+                        <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">Notifikasi</span>
+                                <span id="desktop-notif-counter" class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ ($unreadCount ?? 0) > 0 ? 'bg-[#012D68] text-white' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300' }}">
+                                    {{ $unreadCount ?? 0 }} Baru
+                                </span>
+                            </div>
+                            @if(($unreadCount ?? 0) > 0)
+                                <button type="button" onclick="window.markAllNotificationsRead?.()" class="text-[11px] text-[#012D68] dark:text-blue-400 font-semibold hover:underline">Tandai Dibaca</button>
+                            @endif
+                        </div>
+                        <div id="desktop-notif-list" class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                            @forelse(($notifications ?? []) as $notif)
+                                <div class="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 
+                                        @if($notif['type'] === 'bill') bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400
+                                        @elseif($notif['type'] === 'appointment') bg-blue-50 text-[#012D68] dark:bg-blue-950/50 dark:text-blue-400
+                                        @elseif($notif['type'] === 'pharmacy') bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400
+                                        @else bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 @endif">
+                                        @if($notif['type'] === 'bill')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        @elseif($notif['type'] === 'appointment')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        @elseif($notif['type'] === 'pharmacy')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <b class="text-xs font-bold text-slate-900 dark:text-white truncate block">{{ $notif['title'] }}</b>
+                                            <small class="text-[10px] text-slate-400 whitespace-nowrap">{{ $notif['time'] }}</small>
+                                        </div>
+                                        <p class="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ $notif['message'] }}</p>
+                                        @if(!empty($notif['action_label']))
+                                            <div class="mt-2">
+                                                @if(!empty($notif['onclick']))
+                                                    <button type="button" onclick="{{ $notif['onclick'] }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#012D68] text-white text-[11px] font-bold hover:bg-[#023E8A] transition-colors shadow-2xs">
+                                                        <span>{{ $notif['action_label'] }}</span>
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                    </button>
+                                                @elseif(!empty($notif['action_url']))
+                                                    <a href="{{ $notif['action_url'] }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#012D68] text-white text-[11px] font-bold hover:bg-[#023E8A] transition-colors shadow-2xs">
+                                                        <span>{{ $notif['action_label'] }}</span>
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div id="desktop-notif-empty" class="py-8 text-center">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    </div>
+                                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Belum ada notifikasi baru</p>
+                                    <small class="text-[11px] text-slate-400 mt-0.5 block">Notifikasi jadwal, resep, dan tagihan akan tampil di sini.</small>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
 
                 <!-- User Profile / Auth Action -->
                 @auth
-                    <div class="user-pill flex items-center gap-2.5 pl-2">
-                        <div class="avatar-initials w-11 h-11 text-[14px]">{{ $user['initials'] }}</div>
+                    <a href="{{ route('profile.edit') }}" class="user-pill flex items-center gap-2.5 pl-2 hover:opacity-90 transition-opacity" title="Kelola Profil Saya">
+                        <div class="avatar-initials w-11 h-11 text-[14px] overflow-hidden flex items-center justify-center">
+                            @if(!empty($user['avatar_url']))
+                                <img src="{{ $user['avatar_url'] }}" alt="{{ $user['name'] }}" class="w-full h-full object-cover">
+                            @else
+                                {{ $user['initials'] }}
+                            @endif
+                        </div>
                         <div class="hidden xl:block leading-tight text-left">
                             <b class="block text-[13.5px] text-[var(--color-text)]">{{ $user['name'] }}</b>
                             <small class="block text-[11.5px] text-[var(--color-text-muted)]">{{ $user['role'] }}</small>
                         </div>
-                    </div>
+                    </a>
                 @else
                     <a href="{{ route('login') }}" class="btn-primary !h-11 !px-5 !py-0 flex items-center gap-2 text-[13.5px] rounded-full font-semibold shadow-sm hover:opacity-95 transition-all">
                         <svg class="app-svg-icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -145,38 +219,8 @@
                     <h1 class="text-[30px] font-bold leading-[1.2] mt-1 text-white">What’s on your health today?</h1>
                 </div>
 
-                <!-- Next Appointment Card (Solid Pure White Surface with Dynamic Examination / Payment States) -->
-                <div class="next-appt-card bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 w-[385px] max-w-full shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300" data-appointment-mode="{{ $appointmentMode }}">
-                    
-                    <!-- State 0: SELAMAT DATANG (Aktif saat tidak ada tagihan aktif / sesudah bayar lunas) -->
-                    <div id="desktop-state-welcome" class="appointment-state-panel flex flex-col justify-between min-h-[148px] {{ $appointmentMode === 'welcome' ? '' : 'hidden' }}" data-status="Selamat Datang" aria-label="Status Janji Temu: Selamat Datang">
-                        <span class="sr-only">Selamat Datang</span>
-                        <div class="flex items-center justify-between mb-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <small class="text-slate-400 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">Layanan Pasien</small>
-                            </div>
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                Siap Melayani
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-3 py-1">
-                            <div class="w-[50px] h-[50px] rounded-[14px] bg-emerald-50 dark:bg-emerald-950/50 overflow-hidden flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 shadow-xs">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <b class="block text-[14.5px] text-slate-900 dark:text-white truncate font-bold">Selamat datang, ada yang bisa dibantu?</b>
-                                <small class="block text-slate-500 dark:text-slate-400 text-[11.5px] mt-0.5 leading-tight">Konsultasikan keluhan kesehatan Anda dengan dokter spesialis kami.</small>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button type="button" class="btn-open-booking-trigger h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-semibold text-[12px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">Cari Dokter</button>
-                            <button type="button" class="btn-open-booking-trigger h-9 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-[12px] flex items-center justify-center gap-1.5 transition-all shadow-xs" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                                <span>Buat Janji Temu</span>
-                            </button>
-                        </div>
-                    </div>
+                <!-- Next Appointment Card (Hanya muncul jika ada janji temu aktif: sebelum periksa atau siap bayar) -->
+                <div class="next-appt-card bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 w-[385px] max-w-full shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300 {{ $appointmentMode === 'welcome' ? 'hidden' : '' }}" data-appointment-mode="{{ $appointmentMode }}">
 
                     <!-- State 1: SEBELUM PERIKSA (Default / Upcoming) -->
                     <div id="desktop-state-before" class="appointment-state-panel flex flex-col justify-between min-h-[148px] {{ $appointmentMode === 'before' ? '' : 'hidden' }}" data-status="Sebelum Periksa" aria-label="Status Janji Temu: Sebelum Periksa">
@@ -448,35 +492,77 @@
             </div>
 
             <!-- Date Picker -->
-            <div class="font-bold text-[14.5px] mt-5 mb-2.5 text-slate-900">Pilih Tanggal &amp; Waktu Praktik</div>
-            <div class="days-container grid grid-cols-7 gap-1.5">
-                @php
-                    $days = [
-                        ['name' => 'Min', 'date' => '10'],
-                        ['name' => 'Sen', 'date' => '11'],
-                        ['name' => 'Sel', 'date' => '12'],
-                        ['name' => 'Rab', 'date' => '13'],
-                        ['name' => 'Kam', 'date' => '14'],
-                        ['name' => 'Jum', 'date' => '15'],
-                        ['name' => 'Sab', 'date' => '16'],
-                    ];
-                @endphp
-                @foreach ($days as $day)
-                    <button class="day-pill {{ $day['date'] === '12' ? 'active' : '' }}" data-day="{{ $day['name'] }}" data-date="{{ $day['date'] }}">
+            <div class="flex items-center justify-between mt-5 mb-2.5">
+                <div class="font-bold text-[14.5px] text-slate-900 dark:text-white">Pilih Tanggal &amp; Waktu</div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span class="week-month-label text-[11.5px] font-semibold text-slate-700 dark:text-slate-300">{{ $currentMonthYear ?? date('M Y') }}</span>
+                    <div class="flex items-center gap-0.5">
+                        <button type="button" class="btn-prev-week w-6 h-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Sebelumnya">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" class="btn-next-week w-6 h-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Berikutnya">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="days-container grid grid-cols-7 gap-1.5" id="desktop-days-container">
+                @foreach ($bookingDays ?? [] as $index => $day)
+                    <button type="button"
+                        class="day-pill {{ $day['is_past'] ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($index === ($activeDayIndex ?? 0) ? 'active' : '') }}"
+                        data-day="{{ $day['name'] }}"
+                        data-date="{{ $day['date'] }}"
+                        data-full-date="{{ $day['full_date'] }}"
+                        data-is-past="{{ $day['is_past'] ? '1' : '0' }}"
+                        data-is-today="{{ $day['is_today'] ? '1' : '0' }}"
+                        {{ $day['is_past'] ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $day['is_past'] ? 'Tanggal sudah terlewati' : ($day['is_today'] ? 'Hari ini' : $day['full_date']) }}">
                         <small>{{ $day['name'] }}</small>
                         <b>{{ $day['date'] }}</b>
                     </button>
                 @endforeach
             </div>
 
+            <!-- Time Slots Filter & Header -->
+            <div class="mt-4 mb-2 flex items-center justify-between">
+                <span class="text-[12px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi (WIB)</span>
+                <span class="text-[11px] text-slate-400 font-medium">08:00 - 21:00 WIB</span>
+            </div>
+            <div class="slot-filter-chips flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 no-scrollbar" id="desktop-slot-filters">
+                <button type="button" class="slot-filter-chip active text-[11px] px-2.5 py-1 rounded-lg border border-[#012D68] bg-[#012D68] text-white font-semibold transition-all whitespace-nowrap" data-period="all">Semua</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi (08:00 - 11:00)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang (12:00 - 15:00)</button>
+                <button type="button" class="slot-filter-chip text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam (16:00 - 20:00)</button>
+            </div>
+
             <!-- Time Slots -->
-            <div class="slots-container grid grid-cols-3 gap-2 mt-3">
+            <div class="slots-container grid grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-0.5" id="desktop-slots-container">
                 @php
-                    $slots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
+                    $isFirstDayToday = ($bookingDays[$activeDayIndex ?? 0]['is_today'] ?? false);
+                    $firstActiveSlotFound = false;
                 @endphp
-                @foreach ($slots as $slot)
-                    <button class="slot-pill {{ $slot === '13:00' ? 'active' : '' }}" data-time="{{ $slot }}">
-                        {{ $slot }}
+                @foreach ($timeSlots ?? [] as $slot)
+                    @php
+                        $slotIsPast = $isFirstDayToday && (($currentHour ?? 0) >= $slot['hour']);
+                        $isSlotActive = false;
+                        if (! $slotIsPast && ! $firstActiveSlotFound) {
+                            $isSlotActive = true;
+                            $firstActiveSlotFound = true;
+                        }
+                    @endphp
+                    <button type="button"
+                        class="slot-pill {{ $slotIsPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($isSlotActive ? 'active' : '') }}"
+                        data-time="{{ $slot['time'] }}"
+                        data-hour="{{ $slot['hour'] }}"
+                        data-period="{{ $slot['period'] }}"
+                        data-start="{{ $slot['start'] }}"
+                        data-end="{{ $slot['end'] }}"
+                        data-is-past="{{ $slotIsPast ? '1' : '0' }}"
+                        {{ $slotIsPast ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $slotIsPast ? 'Jam ini sudah terlewati' : $slot['time'] }}">
+                        {{ $slot['time'] }}
+>>>>>>> upstream/main
                     </button>
                 @endforeach
             </div>
@@ -514,9 +600,50 @@
                     <button id="mobile-search-trigger" class="glass-btn" aria-label="Cari Dokter">
                         <svg class="app-svg-icon w-4 h-4"><use href="#icon-search"/></svg>
                     </button>
-                    <button class="glass-btn" aria-label="Notifikasi" onclick="window.showToast('Tidak ada notifikasi baru.')">
-                        <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
-                    </button>
+                    <!-- Mobile Notification Bell -->
+                    <div class="relative" id="mobile-notif-container">
+                        <button id="mobile-notif-btn" type="button" class="glass-btn relative" aria-label="Notifikasi">
+                            <svg class="app-svg-icon w-4 h-4"><use href="#icon-bell"/></svg>
+                            <span id="mobile-notif-badge" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-[#012D68] {{ ($unreadCount ?? 0) > 0 ? '' : 'hidden' }}"></span>
+                        </button>
+
+                        <!-- Mobile Notification Dropdown Panel -->
+                        <div id="mobile-notif-dropdown" class="hidden absolute right-0 mt-2 w-72 max-w-[90vw] bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 overflow-hidden">
+                            <div class="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                                <span class="font-bold text-[11px] uppercase tracking-wider text-slate-800 dark:text-white">Notifikasi</span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-[#012D68] text-white">
+                                    {{ $unreadCount ?? 0 }} Baru
+                                </span>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-1">
+                                @forelse(($notifications ?? []) as $notif)
+                                    <div class="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors flex items-start gap-2.5">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 
+                                            @if($notif['type'] === 'bill') bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400
+                                            @elseif($notif['type'] === 'appointment') bg-blue-50 text-[#012D68] dark:bg-blue-950/50 dark:text-blue-400
+                                            @elseif($notif['type'] === 'pharmacy') bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400
+                                            @else bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 @endif">
+                                            @if($notif['type'] === 'bill')
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            @elseif($notif['type'] === 'appointment')
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            @else
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <b class="text-[11px] font-bold text-slate-900 dark:text-white truncate block">{{ $notif['title'] }}</b>
+                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{{ $notif['message'] }}</p>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="py-5 text-center text-xs text-slate-400">
+                                        Tidak ada notifikasi baru
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -534,43 +661,13 @@
                 <b class="block text-[21px] font-bold text-white mt-0.5">Bagaimana kondisi kesehatan Anda hari ini?</b>
             </div>
 
-            <!-- Next Appointment Label -->
-            <div class="text-center text-blue-100 text-[11px] font-bold tracking-wider mt-4 mb-2 uppercase">
+            <!-- Next Appointment Label (Hanya tampil jika ada appointment aktif) -->
+            <div id="mobile-next-appt-label" class="text-center text-blue-100 text-[11px] font-bold tracking-wider mt-4 mb-2 uppercase {{ $appointmentMode === 'welcome' ? 'hidden' : '' }}">
                 Janji Temu Berikutnya
             </div>
 
-            <!-- Stacked Appointment Card (Solid Pure White Surface with Dynamic Examination / Payment States) -->
-            <div class="stacked-card mx-1 bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300" data-appointment-mode="{{ $appointmentMode }}">
-                
-                <!-- State 0: SELAMAT DATANG (Aktif saat tidak ada tagihan tertunda / sesudah bayar lunas) -->
-                <div id="mobile-state-welcome" class="appointment-state-panel flex flex-col justify-between min-h-[144px] {{ $appointmentMode === 'welcome' ? '' : 'hidden' }}" data-status="Selamat Datang" aria-label="Status Janji Temu: Selamat Datang">
-                    <span class="sr-only">Selamat Datang</span>
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <small class="text-slate-400 dark:text-slate-400 text-[10.5px] font-bold uppercase tracking-wider">Layanan Pasien</small>
-                        </div>
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                            Siap Melayani
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-3 py-1">
-                        <div class="w-11 h-11 rounded-[14px] bg-emerald-50 dark:bg-emerald-950/50 overflow-hidden flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <b class="text-[13.5px] text-slate-900 dark:text-white truncate block font-bold">Selamat datang, ada yang bisa dibantu?</b>
-                            <small class="text-slate-500 dark:text-slate-400 text-[11px] block mt-0.5 leading-tight">Konsultasikan kesehatan Anda dengan dokter terbaik kami.</small>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                        <button type="button" class="h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-[11px] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">Cari Dokter</button>
-                        <button type="button" class="h-8 rounded-xl bg-[#012D68] hover:bg-[#023E8A] text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-xs" onclick="document.getElementById('open-booking-modal-btn')?.click() || window.showBookingModal?.()">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Buat Janji</span>
-                        </button>
-                    </div>
-                </div>
+            <!-- Stacked Appointment Card (Hanya muncul jika ada appointment aktif) -->
+            <div class="stacked-card mx-1 bg-white dark:bg-[#101E35] text-slate-900 dark:text-white rounded-[22px] p-4 shadow-md border border-slate-100 dark:border-slate-800 transition-all duration-300 {{ $appointmentMode === 'welcome' ? 'hidden' : '' }}" data-appointment-mode="{{ $appointmentMode }}">
 
                 <!-- State 1: SEBELUM PERIKSA (Default / Upcoming) -->
                 <div id="mobile-state-before" class="appointment-state-panel flex flex-col justify-between min-h-[144px] {{ $appointmentMode === 'before' ? '' : 'hidden' }}" data-status="Sebelum Periksa" aria-label="Status Janji Temu: Sebelum Periksa">
@@ -820,10 +917,32 @@
             </div>
 
             <!-- Date Selection -->
-            <div class="font-semibold text-[13.5px] mt-4 mb-2 text-[var(--color-text)]">Pilih Tanggal &amp; Waktu Praktik</div>
-            <div class="days-container grid grid-cols-7 gap-1">
-                @foreach ($days as $day)
-                    <button class="day-pill text-[10px] py-1 {{ $day['date'] === '12' ? 'active' : '' }}" data-day="{{ $day['name'] }}" data-date="{{ $day['date'] }}">
+            <div class="flex items-center justify-between mt-4 mb-2">
+                <div class="font-semibold text-[13.5px] text-[var(--color-text)]">Pilih Tanggal &amp; Waktu</div>
+                <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                    <span class="week-month-label text-[11px] font-semibold text-slate-700 dark:text-slate-300">{{ $currentMonthYear ?? date('M Y') }}</span>
+                    <div class="flex items-center gap-0.5">
+                        <button type="button" class="btn-prev-week w-5 h-5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Sebelumnya">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button type="button" class="btn-next-week w-5 h-5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 transition-colors" title="Minggu Berikutnya">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="days-container grid grid-cols-7 gap-1" id="mobile-days-container">
+                @foreach ($bookingDays ?? [] as $index => $day)
+                    <button type="button"
+                        class="day-pill text-[10px] py-1 {{ $day['is_past'] ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($index === ($activeDayIndex ?? 0) ? 'active' : '') }}"
+                        data-day="{{ $day['name'] }}"
+                        data-date="{{ $day['date'] }}"
+                        data-full-date="{{ $day['full_date'] }}"
+                        data-is-past="{{ $day['is_past'] ? '1' : '0' }}"
+                        data-is-today="{{ $day['is_today'] ? '1' : '0' }}"
+                        {{ $day['is_past'] ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $day['is_past'] ? 'Tanggal sudah terlewati' : ($day['is_today'] ? 'Hari ini' : $day['full_date']) }}">
                         <small class="text-[8.5px]">{{ $day['name'] }}</small>
                         <b class="text-[13px]">{{ $day['date'] }}</b>
                     </button>
@@ -831,10 +950,42 @@
             </div>
 
             <!-- Time Slots Selection -->
-            <div class="slots-container grid grid-cols-3 gap-1.5 mt-2.5">
-                @foreach ($slots as $slot)
-                    <button class="slot-pill h-8 text-[11px] {{ $slot === '01 PM' ? 'active' : '' }}" data-time="{{ $slot }}">
-                        {{ $slot }}
+            <div class="mt-3.5 mb-1.5 flex items-center justify-between">
+                <span class="text-[11.5px] font-bold text-slate-700 dark:text-slate-300">Pilih Jam Konsultasi (WIB)</span>
+                <span class="text-[10.5px] text-slate-400 font-medium">08:00 - 21:00 WIB</span>
+            </div>
+            <div class="slot-filter-chips flex items-center gap-1.5 mb-2 overflow-x-auto pb-0.5 no-scrollbar" id="mobile-slot-filters">
+                <button type="button" class="slot-filter-chip active text-[10px] px-2 py-0.5 rounded-lg border border-[#012D68] bg-[#012D68] text-white font-semibold transition-all whitespace-nowrap" data-period="all">Semua</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="morning">Pagi (08:00 - 11:00)</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="afternoon">Siang (12:00 - 15:00)</button>
+                <button type="button" class="slot-filter-chip text-[10px] px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold hover:border-slate-300 transition-all whitespace-nowrap" data-period="evening">Sore &amp; Malam (16:00 - 20:00)</button>
+            </div>
+
+            <div class="slots-container grid grid-cols-3 gap-1.5 max-h-[190px] overflow-y-auto pr-0.5" id="mobile-slots-container">
+                @php
+                    $isFirstDayToday = ($bookingDays[$activeDayIndex ?? 0]['is_today'] ?? false);
+                    $firstActiveSlotFoundMobile = false;
+                @endphp
+                @foreach ($timeSlots ?? [] as $slot)
+                    @php
+                        $slotIsPast = $isFirstDayToday && (($currentHour ?? 0) >= $slot['hour']);
+                        $isSlotActive = false;
+                        if (! $slotIsPast && ! $firstActiveSlotFoundMobile) {
+                            $isSlotActive = true;
+                            $firstActiveSlotFoundMobile = true;
+                        }
+                    @endphp
+                    <button type="button"
+                        class="slot-pill h-8 text-[11px] {{ $slotIsPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : ($isSlotActive ? 'active' : '') }}"
+                        data-time="{{ $slot['time'] }}"
+                        data-hour="{{ $slot['hour'] }}"
+                        data-period="{{ $slot['period'] }}"
+                        data-start="{{ $slot['start'] }}"
+                        data-end="{{ $slot['end'] }}"
+                        data-is-past="{{ $slotIsPast ? '1' : '0' }}"
+                        {{ $slotIsPast ? 'disabled aria-disabled=true' : '' }}
+                        title="{{ $slotIsPast ? 'Jam ini sudah terlewati' : $slot['time'] }}">
+                        {{ $slot['time'] }}
                     </button>
                 @endforeach
             </div>
@@ -889,7 +1040,7 @@
                             <div class="flex items-center gap-2 mt-1 text-[11.5px] font-medium text-[#012D68] dark:text-blue-300">
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                    <span id="modal-doc-schedule">Tu 12 · 01 PM</span>
+                                    <span id="modal-doc-schedule">{{ ($bookingDays[$activeDayIndex ?? 0]['name'] ?? 'Hari Ini').' '.($bookingDays[$activeDayIndex ?? 0]['date'] ?? '') }} · 13:00 WIB</span>
                                 </span>
                             </div>
                         </div>

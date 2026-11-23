@@ -35,9 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let currentCategory = 'all';
   let searchQuery = '';
-  let selectedDate = '12';
-  let selectedDayName = 'Tu';
-  let selectedTime = '01 PM';
+  
+  const initialActiveDay = document.querySelector('.day-pill.active:not(.disabled)') || document.querySelector('.day-pill:not(.disabled)');
+  let selectedDate = initialActiveDay ? initialActiveDay.dataset.date : String(new Date().getDate()).padStart(2, '0');
+  let selectedDayName = initialActiveDay ? initialActiveDay.dataset.day : 'Rab';
+  let selectedFullDate = initialActiveDay ? initialActiveDay.dataset.fullDate : (new Date().toISOString().split('T')[0]);
+  let selectedIsToday = initialActiveDay ? (initialActiveDay.dataset.isToday === '1') : true;
+
+  const initialActiveSlot = document.querySelector('.slot-pill.active:not(.disabled)') || document.querySelector('.slot-pill:not(.disabled)');
+  let selectedTime = initialActiveSlot ? initialActiveSlot.dataset.time : '13:00';
+  let weekOffset = 0;
   let currentDoctor = null;
 
   // Initial Selected Doctor from currently selected card
@@ -56,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
       price: card.dataset.price,
       initials: card.dataset.initials,
       image: card.dataset.image,
-      availability: card.dataset.availability || '9AM - 8PM',
+      availability: card.dataset.availability || '09:00 - 20:00 WIB',
       experience: card.dataset.experience || '10 years',
       patients: card.dataset.patients || '3.5k Up',
     };
@@ -204,40 +211,277 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Date selection (Desktop & Mobile)
-  const setupDatePicker = (containerSelector) => {
-    const containers = document.querySelectorAll(containerSelector);
-    containers.forEach(container => {
-      const dayButtons = container.querySelectorAll('.day-pill');
-      dayButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          selectedDate = btn.dataset.date;
-          selectedDayName = btn.dataset.day;
-          document.querySelectorAll('.day-pill').forEach(b => {
-            b.classList.toggle('active', b.dataset.date === selectedDate);
-          });
-        });
-      });
-    });
-  };
-  setupDatePicker('.days-container');
+  // ==========================================
+  // Real-Time Date & Time Picker Logic
+  // ==========================================
+  const dayNamesShort = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-  // Time slot selection (Desktop & Mobile)
-  const setupTimeSlots = (containerSelector) => {
-    const containers = document.querySelectorAll(containerSelector);
-    containers.forEach(container => {
-      const slotButtons = container.querySelectorAll('.slot-pill');
-      slotButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          selectedTime = btn.dataset.time;
-          document.querySelectorAll('.slot-pill').forEach(b => {
-            b.classList.toggle('active', b.dataset.time === selectedTime);
-          });
-        });
-      });
+  function updateTimeSlotsAvailability(isToday) {
+    const currentHour = new Date().getHours();
+    const allSlotPills = document.querySelectorAll('.slot-pill');
+    let firstValidSlot = null;
+    let currentSelectedValid = false;
+
+    allSlotPills.forEach(pill => {
+      const slotHour = parseInt(pill.dataset.hour, 10);
+      const isPast = isToday && (slotHour <= currentHour);
+
+      if (isPast) {
+        pill.classList.add('disabled', 'opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        pill.classList.remove('active');
+        pill.setAttribute('disabled', 'disabled');
+        pill.setAttribute('aria-disabled', 'true');
+        pill.dataset.isPast = '1';
+        pill.title = 'Jam ini sudah terlewati';
+      } else {
+        pill.classList.remove('disabled', 'opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        pill.removeAttribute('disabled');
+        pill.removeAttribute('aria-disabled');
+        pill.dataset.isPast = '0';
+        pill.title = pill.dataset.time;
+
+        if (!firstValidSlot) firstValidSlot = pill.dataset.time;
+        if (pill.dataset.time === selectedTime) currentSelectedValid = true;
+      }
     });
-  };
-  setupTimeSlots('.slots-container');
+
+    if (!currentSelectedValid && firstValidSlot) {
+      selectedTime = firstValidSlot;
+    }
+
+    allSlotPills.forEach(pill => {
+      if (pill.dataset.time === selectedTime && pill.dataset.isPast !== '1') {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+  }
+
+  function handleDayPillClick(btn) {
+    if (btn.disabled || btn.classList.contains('disabled') || btn.dataset.isPast === '1') {
+      showToast('Tanggal ini sudah terlewati dan tidak dapat dibooking.', '⚠️');
+      return;
+    }
+
+    selectedDate = btn.dataset.date;
+    selectedDayName = btn.dataset.day;
+    selectedFullDate = btn.dataset.fullDate;
+    selectedIsToday = (btn.dataset.isToday === '1');
+
+    document.querySelectorAll('.day-pill').forEach(b => {
+      if (b.dataset.fullDate === selectedFullDate && b.dataset.isPast !== '1') {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+
+    updateTimeSlotsAvailability(selectedIsToday);
+
+    if (modalDocSchedule) {
+      modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
+    }
+  }
+
+  function handleSlotPillClick(btn) {
+    if (btn.disabled || btn.classList.contains('disabled') || btn.dataset.isPast === '1') {
+      showToast('Jam konsultasi ini sudah terlewati.', '⚠️');
+      return;
+    }
+
+    selectedTime = btn.dataset.time;
+    document.querySelectorAll('.slot-pill').forEach(b => {
+      if (b.dataset.time === selectedTime && b.dataset.isPast !== '1') {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+
+    if (modalDocSchedule) {
+      modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
+    }
+  }
+
+  function renderCalendarWeek(offset) {
+    weekOffset = offset;
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // Compute Sunday of target week
+    const currentDayOfWeek = now.getDay(); // 0 is Sunday
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - currentDayOfWeek + (offset * 7));
+
+    const daysData = [];
+    let startMonth = startOfWeek.getMonth();
+    let endMonth = startOfWeek.getMonth();
+    let startYear = startOfWeek.getFullYear();
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const isPast = iso < todayStr;
+      const isToday = iso === todayStr;
+      endMonth = d.getMonth();
+
+      daysData.push({
+        name: dayNamesShort[d.getDay()],
+        date: String(d.getDate()).padStart(2, '0'),
+        fullDate: iso,
+        isPast: isPast,
+        isToday: isToday
+      });
+    }
+
+    // Month & year label
+    let monthLabel = monthNames[startMonth] + ' ' + startYear;
+    if (startMonth !== endMonth) {
+      monthLabel = monthNames[startMonth] + ' - ' + monthNames[endMonth] + ' ' + startYear;
+    }
+    document.querySelectorAll('.week-month-label').forEach(el => {
+      el.textContent = monthLabel;
+    });
+
+    // Disable prev week button if weekOffset <= 0
+    document.querySelectorAll('.btn-prev-week').forEach(btn => {
+      btn.disabled = (weekOffset <= 0);
+    });
+
+    // Check if selectedFullDate is still in the visible week, otherwise pick first non-past
+    const dateStillInView = daysData.find(d => d.fullDate === selectedFullDate && !d.isPast);
+    if (!dateStillInView) {
+      const firstAvailable = daysData.find(d => !d.isPast);
+      if (firstAvailable) {
+        selectedFullDate = firstAvailable.fullDate;
+        selectedDate = firstAvailable.date;
+        selectedDayName = firstAvailable.name;
+        selectedIsToday = firstAvailable.isToday;
+      }
+    }
+
+    // Render into containers
+    const containers = [
+      { id: 'desktop-days-container', isMobile: false },
+      { id: 'mobile-days-container', isMobile: true }
+    ];
+
+    containers.forEach(({ id, isMobile }) => {
+      const container = document.getElementById(id);
+      if (!container) return;
+
+      container.innerHTML = daysData.map(d => {
+        const isActive = (d.fullDate === selectedFullDate);
+        const disabledAttr = d.isPast ? 'disabled aria-disabled="true"' : '';
+        const disabledClass = d.isPast ? 'disabled opacity-40 cursor-not-allowed pointer-events-none' : '';
+        const activeClass = isActive && !d.isPast ? 'active' : '';
+        const title = d.isPast ? 'Tanggal sudah terlewati' : (d.isToday ? 'Hari ini' : d.fullDate);
+        const sizeClass = isMobile ? 'text-[10px] py-1' : '';
+        const smallSize = isMobile ? 'text-[8.5px]' : '';
+        const boldSize = isMobile ? 'text-[13px]' : '';
+
+        return `
+          <button type="button"
+            class="day-pill ${sizeClass} ${disabledClass} ${activeClass}"
+            data-day="${d.name}"
+            data-date="${d.date}"
+            data-full-date="${d.fullDate}"
+            data-is-past="${d.isPast ? '1' : '0'}"
+            data-is-today="${d.isToday ? '1' : '0'}"
+            ${disabledAttr}
+            title="${title}">
+            <small class="${smallSize}">${d.name}</small>
+            <b class="${boldSize}">${d.date}</b>
+          </button>
+        `;
+      }).join('');
+    });
+
+    // Re-attach listeners to day-pills
+    document.querySelectorAll('.days-container .day-pill').forEach(btn => {
+      btn.addEventListener('click', () => handleDayPillClick(btn));
+    });
+
+    // Update time slots
+    updateTimeSlotsAvailability(selectedIsToday);
+  }
+
+  // Initial event bindings for day and slot buttons
+  document.querySelectorAll('.days-container .day-pill').forEach(btn => {
+    btn.addEventListener('click', () => handleDayPillClick(btn));
+  });
+
+  document.querySelectorAll('.slots-container .slot-pill').forEach(btn => {
+    btn.addEventListener('click', () => handleSlotPillClick(btn));
+  });
+
+  // Period Filter Chips (Semua, Pagi, Siang, Sore & Malam)
+  let currentSlotPeriod = 'all';
+
+  function filterTimeSlots(period) {
+    currentSlotPeriod = period;
+
+    document.querySelectorAll('.slot-filter-chip').forEach(chip => {
+      const isMatch = (chip.dataset.period === period);
+      chip.classList.toggle('active', isMatch);
+      chip.classList.toggle('bg-[#012D68]', isMatch);
+      chip.classList.toggle('text-white', isMatch);
+      chip.classList.toggle('border-[#012D68]', isMatch);
+    });
+
+    let firstVisibleValidSlot = null;
+    let selectedStillVisible = false;
+
+    document.querySelectorAll('.slot-pill').forEach(pill => {
+      const matchPeriod = (period === 'all' || pill.dataset.period === period);
+      if (matchPeriod) {
+        pill.style.display = '';
+        if (pill.dataset.isPast !== '1' && !firstVisibleValidSlot) {
+          firstVisibleValidSlot = pill.dataset.time;
+        }
+        if (pill.dataset.time === selectedTime && pill.dataset.isPast !== '1') {
+          selectedStillVisible = true;
+        }
+      } else {
+        pill.style.display = 'none';
+      }
+    });
+
+    if (!selectedStillVisible && firstVisibleValidSlot) {
+      selectedTime = firstVisibleValidSlot;
+      document.querySelectorAll('.slot-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.time === selectedTime && pill.dataset.isPast !== '1');
+      });
+      if (modalDocSchedule) {
+        modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
+      }
+    }
+  }
+
+  document.querySelectorAll('.slot-filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      filterTimeSlots(chip.dataset.period || 'all');
+    });
+  });
+
+  // Week navigation button listeners
+  document.querySelectorAll('.btn-prev-week').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (weekOffset > 0) {
+        renderCalendarWeek(weekOffset - 1);
+      }
+    });
+  });
+
+  document.querySelectorAll('.btn-next-week').forEach(btn => {
+    btn.addEventListener('click', () => {
+      renderCalendarWeek(weekOffset + 1);
+    });
+  });
+
+  // Run initial slot availability check
+  updateTimeSlotsAvailability(selectedIsToday);
 
   // Booking Registration Modal Elements
   const bookingModalBackdrop = document.getElementById('booking-modal-backdrop');
@@ -294,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalDocName) modalDocName.textContent = currentDoctor.name;
     if (modalDocRating) modalDocRating.textContent = currentDoctor.rating;
     if (modalDocSpecialty) modalDocSpecialty.textContent = currentDoctor.specialty;
-    if (modalDocSchedule) modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime}`;
+    if (modalDocSchedule) modalDocSchedule.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
     if (modalDocPrice) modalDocPrice.textContent = currentDoctor.price;
 
     // Clear error
@@ -402,6 +646,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const severityVal = regSeverity ? regSeverity.value : 'Sedang';
       const notesVal = regNotes ? regNotes.value.trim() : '';
 
+      // Visual feedback loading state
+      const originalText = btnConfirmBooking.innerHTML;
+      btnConfirmBooking.disabled = true;
+      btnConfirmBooking.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Memproses...</span>
+      `;
+
       // Persist booking to database via API
       fetch('/booking', {
         method: 'POST',
@@ -419,22 +674,23 @@ document.addEventListener('DOMContentLoaded', () => {
           notes: notesVal,
           doctor_id: currentDoctor?.id,
           booking_time: selectedTime,
-          booking_date: `${selectedDayName} ${selectedDate}, 2026`
+          booking_date: selectedFullDate
         })
-      }).catch(() => {});
+      })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          const errDetail = data.errors?.booking_date?.[0]
+            || data.errors?.booking_time?.[0]
+            || data.errors?.jam_mulai?.[0]
+            || data.message
+            || 'Gagal memproses pendaftaran. Silakan periksa kembali jadwal Anda.';
+          showToast(errDetail, '⚠️');
+          btnConfirmBooking.disabled = false;
+          btnConfirmBooking.innerHTML = originalText;
+          return;
+        }
 
-      // Visual feedback loading state
-      const originalText = btnConfirmBooking.innerHTML;
-      btnConfirmBooking.disabled = true;
-      btnConfirmBooking.innerHTML = `
-        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>Memproses...</span>
-      `;
-
-      setTimeout(() => {
         // Update "Next Appointment" cards in UI to reflect newly registered appointment
         const nextApptDesktop = document.querySelector('.next-appt-card');
         if (nextApptDesktop && currentDoctor) {
@@ -446,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (docImg && currentDoctor.image) docImg.src = currentDoctor.image;
           if (docName) docName.textContent = currentDoctor.name;
           if (docSpecialty) docSpecialty.textContent = currentDoctor.specialty;
-          if (docDateTime) docDateTime.textContent = `${selectedDayName} ${selectedDate}, 2026 · ${selectedTime}`;
+          if (docDateTime) docDateTime.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
         }
 
         const nextApptMobile = document.querySelector('.stacked-card');
@@ -459,14 +715,14 @@ document.addEventListener('DOMContentLoaded', () => {
           if (mDocImg && currentDoctor.image) mDocImg.src = currentDoctor.image;
           if (mDocName) mDocName.textContent = currentDoctor.name;
           if (mDocSpecialty) mDocSpecialty.textContent = currentDoctor.specialty;
-          if (mDocDateTime) mDocDateTime.textContent = `${selectedDayName} ${selectedDate}, 2026 · ${selectedTime}`;
+          if (mDocDateTime) mDocDateTime.textContent = `${selectedDayName} ${selectedDate} · ${selectedTime} WIB`;
         }
 
-        // Automatically switch card to 'before' (Gambar 3: NEXT APPOINTMENT Upcoming)
+        // Automatically switch card to 'before' (NEXT APPOINTMENT Upcoming)
         setAppointmentMode('before', false);
 
         // Show Rich Success Toast
-        showToast(`Pendaftaran Berhasil! Sesi dengan ${currentDoctor.name} dijadwalkan pada ${selectedDayName} ${selectedDate} · ${selectedTime} (${durationVal})`);
+        showToast(`Pendaftaran Berhasil! Sesi dengan ${currentDoctor.name} dijadwalkan pada ${selectedDayName} ${selectedDate} · ${selectedTime} WIB (${durationVal})`);
 
         // Reset button
         btnConfirmBooking.disabled = false;
@@ -480,7 +736,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close modal and mobile sheet
         closeBookingModal();
         closeMobileSheet();
-      }, 500);
+      })
+      .catch(() => {
+        showToast('Terjadi kesalahan koneksi saat memproses jadwal booking.', '⚠️');
+        btnConfirmBooking.disabled = false;
+        btnConfirmBooking.innerHTML = originalText;
+      });
     });
   }
 
@@ -554,8 +815,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // KLINIK MARISTELLA: AUTOMATIC APPOINTMENT STATUS & BILLING DRAWER / MODAL
   // ==========================================================================
 
-  const desktopStateWelcome = document.getElementById('desktop-state-welcome');
-  const mobileStateWelcome = document.getElementById('mobile-state-welcome');
   const desktopStateBefore = document.getElementById('desktop-state-before');
   const desktopStateAfter = document.getElementById('desktop-state-after');
   const mobileStateBefore = document.getElementById('mobile-state-before');
@@ -569,23 +828,19 @@ document.addEventListener('DOMContentLoaded', () => {
     currentAppointmentMode = mode;
 
     if (mode === 'welcome') {
-      desktopStateWelcome?.classList.remove('hidden');
+      document.querySelectorAll('.next-appt-card, .stacked-card, #mobile-next-appt-label').forEach(el => el.classList.add('hidden'));
       desktopStateBefore?.classList.add('hidden');
       desktopStateAfter?.classList.add('hidden');
-
-      mobileStateWelcome?.classList.remove('hidden');
       mobileStateBefore?.classList.add('hidden');
       mobileStateAfter?.classList.add('hidden');
 
       if (showNotification) {
-        showToast('Tagihan telah lunas. Selamat datang di Klinik Maristella!');
+        showToast('Tagihan telah lunas. Terima kasih atas kunjungan Anda di Klinik Maristella!');
       }
     } else if (mode === 'before') {
-      desktopStateWelcome?.classList.add('hidden');
+      document.querySelectorAll('.next-appt-card, .stacked-card, #mobile-next-appt-label').forEach(el => el.classList.remove('hidden'));
       desktopStateBefore?.classList.remove('hidden');
       desktopStateAfter?.classList.add('hidden');
-
-      mobileStateWelcome?.classList.add('hidden');
       mobileStateBefore?.classList.remove('hidden');
       mobileStateAfter?.classList.add('hidden');
 
@@ -593,11 +848,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Janji Temu Aktif: Menunggu jadwal konsultasi dokter.');
       }
     } else { // 'after'
-      desktopStateWelcome?.classList.add('hidden');
+      document.querySelectorAll('.next-appt-card, .stacked-card, #mobile-next-appt-label').forEach(el => el.classList.remove('hidden'));
       desktopStateBefore?.classList.add('hidden');
       desktopStateAfter?.classList.remove('hidden');
-
-      mobileStateWelcome?.classList.add('hidden');
       mobileStateBefore?.classList.add('hidden');
       mobileStateAfter?.classList.remove('hidden');
 
@@ -606,6 +859,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  // Interactive Notification Dropdown Toggle & Read Status
+  const desktopNotifBtn = document.getElementById('desktop-notif-btn');
+  const desktopNotifDropdown = document.getElementById('desktop-notif-dropdown');
+  const mobileNotifBtn = document.getElementById('mobile-notif-btn');
+  const mobileNotifDropdown = document.getElementById('mobile-notif-dropdown');
+
+  desktopNotifBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    desktopNotifDropdown?.classList.toggle('hidden');
+  });
+
+  mobileNotifBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    mobileNotifDropdown?.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!desktopNotifDropdown?.contains(e.target) && !desktopNotifBtn?.contains(e.target)) {
+      desktopNotifDropdown?.classList.add('hidden');
+    }
+    if (!mobileNotifDropdown?.contains(e.target) && !mobileNotifBtn?.contains(e.target)) {
+      mobileNotifDropdown?.classList.add('hidden');
+    }
+  });
+
+  window.markAllNotificationsRead = function() {
+    const desktopBadge = document.getElementById('desktop-notif-badge');
+    const mobileBadge = document.getElementById('mobile-notif-badge');
+    const desktopCounter = document.getElementById('desktop-notif-counter');
+    desktopBadge?.classList.add('hidden');
+    mobileBadge?.classList.add('hidden');
+    if (desktopCounter) desktopCounter.textContent = '0 Baru';
+    showToast('Semua notifikasi ditandai telah dibaca.');
+  };
 
   // Expose for external or programmatic triggering
   window.setAppointmentMode = setAppointmentMode;
