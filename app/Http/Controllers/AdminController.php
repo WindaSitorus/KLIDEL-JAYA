@@ -55,6 +55,17 @@ class AdminController extends Controller
             ->latest('id')
             ->get();
 
+        // Fetch All Clinical Examinations, Prescriptions & Results for Admin Workflow
+        $consultations = Booking::with([
+            'patient',
+            'doctor.poli',
+            'medicalRecord',
+            'payments',
+            'queue',
+        ])
+            ->latest('id')
+            ->get();
+
         // Fetch Doctors for appointment creation modal
         $doctors = Doctor::with('poli')->get();
 
@@ -181,6 +192,7 @@ class AdminController extends Controller
             'timeframe' => $timeframe,
             'payments' => $payments,
             'patients' => $patients,
+            'consultations' => $consultations,
             'doctors' => $doctors,
             'totalVisitors' => $totalVisitors,
             'visitorsGrowth' => $visitorsGrowth,

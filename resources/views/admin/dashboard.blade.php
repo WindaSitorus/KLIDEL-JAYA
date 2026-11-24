@@ -627,12 +627,16 @@
             <button type="button" id="admin-tab-btn-payments" onclick="switchAdminView('payments')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#012D68] text-white transition-all shadow-xs">
               Today's Appointments &amp; Riwayat Pembayaran
             </button>
+            <button type="button" id="admin-tab-btn-results" onclick="switchAdminView('results')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all">
+              Semua Hasil Pemeriksaan &amp; Resep Farmasi
+              <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-blue-100 text-[#012D68] font-bold">{{ $consultations->count() }}</span>
+            </button>
             <button type="button" id="admin-tab-btn-patients" onclick="switchAdminView('patients')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all">
               Daftar Seluruh Pasien (Semua Dokter)
               <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-800 font-bold">{{ $patients->count() }}</span>
             </button>
           </div>
-          <span class="text-xs text-slate-400 font-medium hidden sm:inline">Portal Admin: Akses Penuh Semua Dokter &amp; Pasien</span>
+          <span class="text-xs text-slate-400 font-medium hidden sm:inline">Portal Admin: Akses Penuh Semua Dokter, Pasien &amp; Apotek</span>
         </div>
 
         <!-- VIEW 1: PAYMENTS & APPOINTMENTS TABLE -->
@@ -942,6 +946,169 @@
           </div>
         </div><!-- End #view-patients -->
 
+        <!-- VIEW 3: SEMUA HASIL PEMERIKSAAN & RESEP FARMASI (ADMINISTRATOR ACCESS) -->
+        <div id="view-results" class="space-y-4 hidden">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs pb-1">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">Semua Hasil Pemeriksaan Dokter &amp; Resep Apotek</h3>
+              <p class="text-slate-500 font-medium">Rekapitulasi lengkap alur 6 langkah: Permintaan Pasien &rarr; Pemeriksaan Dokter &rarr; ACC SOAP &rarr; Farmasi Apoteker &rarr; Laporan Administrator.</p>
+            </div>
+            <span class="font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl shadow-xs">
+              ✓ {{ $consultations->where('status', 'completed')->count() }} Selesai Diperiksa
+            </span>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar border border-slate-100 rounded-xl">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+              <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100">
+                <tr>
+                  <th class="py-3 px-3.5">Kode &amp; Pasien</th>
+                  <th class="py-3 px-3.5">Dokter Pemeriksa</th>
+                  <th class="py-3 px-3.5">Status Pertemuan</th>
+                  <th class="py-3 px-3.5">Hasil ACC Pemeriksaan</th>
+                  <th class="py-3 px-3.5">Resep ke Apoteker</th>
+                  <th class="py-3 px-3.5">Total &amp; Pembayaran</th>
+                  <th class="py-3 px-3.5 text-center">Aksi Detail</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-medium">
+                @forelse($consultations as $consult)
+                  @php
+                    $rec = $consult->medicalRecord;
+                    $plan = $rec?->plan ?? [];
+                    $meds = $plan['medications'] ?? [];
+                    $rxStatus = $plan['prescription_status'] ?? (count($meds) > 0 ? 'perlu_diproses' : 'tidak_ada_resep');
+                    $primaryDiag = $rec?->assessmen['primary_diagnosis'] ?? null;
+                  @endphp
+                  <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="py-3.5 px-3.5">
+                      <div class="flex items-center gap-2">
+                        <span class="font-mono text-[11px] font-bold text-[#012D68] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                          {{ $consult->booking_code }}
+                        </span>
+                        <div>
+                          <b class="text-slate-900 block">{{ $consult->patient?->full_name ?? 'Pasien' }}</b>
+                          <small class="text-slate-400 block text-[10.5px]">MRN: {{ $consult->patient?->mrn ?? '-' }} · {{ $consult->patient?->phone ?? '-' }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-3.5">
+                      <b class="text-slate-800 block">{{ $consult->doctor?->nama_dokter ?? '-' }}</b>
+                      <small class="text-slate-500 block text-[11px]">{{ $consult->doctor?->poli?->nama_poli ?? $consult->doctor?->spesialisasi ?? 'Spesialis' }}</small>
+                    </td>
+                    <td class="py-3.5 px-3.5">
+                      @if($consult->status === 'completed')
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Selesai
+                        </span>
+                      @elseif($consult->status === 'in_progress')
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                          <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span> Diperiksa
+                        </span>
+                      @elseif(in_array($consult->status, ['confirmed', 'pending', 'waiting']))
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Menunggu Dokter
+                        </span>
+                      @else
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                          {{ ucfirst($consult->status) }}
+                        </span>
+                      @endif
+                      <small class="block text-[10.5px] text-slate-400 mt-0.5">{{ $consult->booking_date }} · {{ $consult->booking_time }}</small>
+                    </td>
+                    <td class="py-3.5 px-3.5">
+                      @if($rec)
+                        <div class="max-w-[200px]">
+                          <span class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200 mb-0.5">
+                            ✓ ACC Dokter Selesai
+                          </span>
+                          <b class="text-slate-900 block truncate text-[11.5px]" title="{{ $primaryDiag }}">{{ $primaryDiag ?: 'Pemeriksaan Klinis' }}</b>
+                          <small class="text-slate-500 block truncate text-[10.5px]">Keluhan: {{ $rec->subjective ?: $consult->symptoms }}</small>
+                        </div>
+                      @else
+                        <span class="text-slate-400 text-xs italic">Belum diperiksa dokter</span>
+                      @endif
+                    </td>
+                    <td class="py-3.5 px-3.5">
+                      @if(count($meds) > 0 || $rxStatus !== 'tidak_ada_resep')
+                        <div>
+                          @if($rxStatus === 'selesai')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              ✓ Obat Selesai Dibuat
+                            </span>
+                            <small class="text-emerald-700 block text-[10.5px] mt-0.5">Diserahkan oleh: {{ $plan['pharmacist_name'] ?? 'Apoteker' }}</small>
+                          @elseif($rxStatus === 'sedang_diracik')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              🧪 Sedang Diracik
+                            </span>
+                            <small class="text-amber-700 block text-[10.5px] mt-0.5">Apoteker: {{ $plan['pharmacist_name'] ?? 'Apoteker' }}</small>
+                          @else
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                              ⏳ Perlu Diproses Apoteker
+                            </span>
+                          @endif
+                          <small class="text-slate-500 block text-[10.5px]">{{ count($meds) }} jenis obat diresepkan</small>
+                        </div>
+                      @else
+                        <span class="text-slate-400 text-[11px]">Konsultasi saja (Tanpa obat)</span>
+                      @endif
+                    </td>
+                    <td class="py-3.5 px-3.5">
+                      <b class="text-slate-900 font-bold block">Rp {{ number_format((float)$consult->total_amount, 0, ',', '.') }}</b>
+                      @if($consult->payment_status === 'paid')
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-block mt-0.5">✓ LUNAS</span>
+                      @else
+                        <span class="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full inline-block mt-0.5">MENUNGGU BAYAR</span>
+                      @endif
+                    </td>
+                    <td class="py-3.5 px-3.5 text-center">
+                      <button 
+                        type="button"
+                        onclick="showConsultationDetail({{ json_encode([
+                          'booking_code' => $consult->booking_code,
+                          'patient_name' => $consult->patient?->full_name ?? 'Pasien',
+                          'mrn' => $consult->patient?->mrn ?? '-',
+                          'doctor_name' => $consult->doctor?->nama_dokter ?? '-',
+                          'poli' => $consult->doctor?->poli?->nama_poli ?? $consult->doctor?->spesialisasi ?? 'Poli',
+                          'booking_date' => $consult->booking_date,
+                          'booking_time' => $consult->booking_time,
+                          'status' => $consult->status,
+                          'symptoms' => $consult->symptoms,
+                          'subjective' => $rec?->subjective ?? '-',
+                          'objective' => $rec?->objective ?? [],
+                          'primary_diagnosis' => $primaryDiag ?? 'Belum ada',
+                          'secondary_diagnosis' => $rec?->assessmen['secondary_diagnosis'] ?? '-',
+                          'therapy_plan' => $plan['clinical_action'] ?? '-',
+                          'medications' => $meds,
+                          'rx_status' => $rxStatus,
+                          'pharmacist_name' => $plan['pharmacist_name'] ?? 'Apoteker',
+                          'acc_at' => $plan['acc_at'] ?? '-',
+                          'completed_at' => $plan['completed_at'] ?? '-',
+                          'total_amount' => 'Rp ' . number_format((float)$consult->total_amount, 0, ',', '.'),
+                          'payment_status' => $consult->payment_status,
+                        ]) }})"
+                        class="px-3 py-1.5 rounded-lg bg-[#012D68] hover:bg-[#083E88] text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span>Detail Hasil</span>
+                      </button>
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-slate-400">
+                      Belum ada data pemeriksaan pasien.
+                    </td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+          <div class="text-xs text-slate-500 pt-1">
+            Total rekam workflow: <b>{{ $consultations->count() }} Permintaan &amp; Pemeriksaan Pasien</b>
+          </div>
+        </div><!-- End #view-results -->
+
       </section>
 
     </main>
@@ -1039,6 +1206,95 @@
     </div>
   </div>
 
+  <!-- Modal Detail Hasil Pemeriksaan & Resep Farmasi (Administrator) -->
+  <div id="consultation-detail-modal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <div>
+          <span id="dtl-booking-code" class="font-mono text-xs font-bold text-[#012D68] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">#BK-0000</span>
+          <h3 class="text-base font-bold text-slate-900 mt-1" id="dtl-patient-title">Hasil Pemeriksaan Klinis &amp; Farmasi</h3>
+          <p class="text-[11px] text-slate-400">Arsip data lengkap untuk Administrator Klinik</p>
+        </div>
+        <button type="button" onclick="document.getElementById('consultation-detail-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Info Pasien & Dokter -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Data Pasien</span>
+            <b class="text-slate-900 text-sm block" id="dtl-patient-name">-</b>
+            <span class="text-slate-500 block" id="dtl-patient-mrn">MRN: -</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Dokter Pemeriksa</span>
+            <b class="text-slate-900 text-sm block" id="dtl-doctor-name">-</b>
+            <span class="text-slate-500 block" id="dtl-doctor-poli">Poli: -</span>
+          </div>
+        </div>
+
+        <!-- Alur Status Workflow -->
+        <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-100 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-[10px] text-blue-700 font-bold uppercase block">Status Pemeriksaan Dokter</span>
+            <b class="text-[#012D68] text-xs" id="dtl-exam-status">Selesai &amp; ACC Dokter</b>
+          </div>
+          <div>
+            <span class="text-[10px] text-purple-700 font-bold uppercase block">Status Resep Apoteker</span>
+            <b class="text-purple-900 text-xs" id="dtl-rx-status">Selesai Dibuat</b>
+          </div>
+          <div>
+            <span class="text-[10px] text-emerald-700 font-bold uppercase block">Status Pembayaran</span>
+            <b class="text-emerald-900 text-xs" id="dtl-pay-status">Lunas</b>
+          </div>
+        </div>
+
+        <!-- Rekam Medis SOAP -->
+        <div class="border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+          <b class="text-xs text-slate-900 uppercase tracking-wide block border-b border-slate-100 pb-1.5 font-bold">1. Catatan Medis SOAP (Dokter)</b>
+          
+          <div>
+            <span class="text-[10.5px] font-bold text-slate-500 uppercase block">Subjektif (Keluhan &amp; Anamnesa):</span>
+            <p class="text-slate-800 bg-slate-50 p-2 rounded-lg mt-0.5" id="dtl-subjective">-</p>
+          </div>
+
+          <div>
+            <span class="text-[10.5px] font-bold text-slate-500 uppercase block">Asesmen / Diagnosis Utama:</span>
+            <p class="text-slate-900 font-bold bg-amber-50 border border-amber-100 p-2 rounded-lg mt-0.5" id="dtl-diagnosis">-</p>
+          </div>
+
+          <div>
+            <span class="text-[10.5px] font-bold text-slate-500 uppercase block">Rencana Tindakan Klinis:</span>
+            <p class="text-slate-800 bg-slate-50 p-2 rounded-lg mt-0.5" id="dtl-therapy">-</p>
+          </div>
+        </div>
+
+        <!-- Rincian Resep Obat yang Masuk ke Apoteker -->
+        <div class="border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+            <b class="text-xs text-slate-900 uppercase tracking-wide font-bold">2. Rikues Resep Obat (Farmasi Apotek)</b>
+            <span class="text-[11px] text-slate-500" id="dtl-pharmacist-info">Apoteker: -</span>
+          </div>
+
+          <div id="dtl-meds-list" class="space-y-1.5">
+            <!-- Dynamic medicine items -->
+          </div>
+        </div>
+
+        <!-- Total Transaksi -->
+        <div class="flex items-center justify-between p-3.5 bg-slate-900 text-white rounded-xl">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Tagihan Konsultasi &amp; Resep</span>
+            <b class="text-base font-bold text-emerald-400" id="dtl-total-amount">Rp 0</b>
+          </div>
+          <button type="button" onclick="document.getElementById('consultation-detail-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Mobile Floating Bottom Nav -->
   <div class="floating-bottom-nav">
     <a href="{{ route('admin.calendar') }}" title="Jadwal Dokter">
@@ -1120,24 +1376,89 @@
       });
     }
 
-    // Switch between Payments and All-Patients views
+    // Switch between Payments, Results, and All-Patients views
     function switchAdminView(view) {
       const viewPayments = document.getElementById('view-payments');
       const viewPatients = document.getElementById('view-patients');
+      const viewResults = document.getElementById('view-results');
       const btnPayments = document.getElementById('admin-tab-btn-payments');
       const btnPatients = document.getElementById('admin-tab-btn-patients');
+      const btnResults = document.getElementById('admin-tab-btn-results');
+
+      // Hide all first
+      viewPayments?.classList.add('hidden');
+      viewPatients?.classList.add('hidden');
+      viewResults?.classList.add('hidden');
+
+      const inactiveClass = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all";
+      const activeClass = "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#012D68] text-white transition-all shadow-xs";
+
+      if (btnPayments) btnPayments.className = inactiveClass;
+      if (btnPatients) btnPatients.className = inactiveClass;
+      if (btnResults) btnResults.className = inactiveClass;
       
       if (view === 'patients') {
-        viewPayments?.classList.add('hidden');
         viewPatients?.classList.remove('hidden');
-        if (btnPatients) btnPatients.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#012D68] text-white transition-all shadow-xs";
-        if (btnPayments) btnPayments.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all";
+        if (btnPatients) btnPatients.className = activeClass;
+      } else if (view === 'results') {
+        viewResults?.classList.remove('hidden');
+        if (btnResults) btnResults.className = activeClass;
       } else {
-        viewPatients?.classList.add('hidden');
         viewPayments?.classList.remove('hidden');
-        if (btnPayments) btnPayments.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#012D68] text-white transition-all shadow-xs";
-        if (btnPatients) btnPatients.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-all";
+        if (btnPayments) btnPayments.className = activeClass;
       }
+    }
+
+    // Show consultation details modal for Administrator
+    function showConsultationDetail(data) {
+      document.getElementById('dtl-booking-code').textContent = data.booking_code || '-';
+      document.getElementById('dtl-patient-title').textContent = 'Hasil Pemeriksaan: ' + data.patient_name;
+      document.getElementById('dtl-patient-name').textContent = data.patient_name;
+      document.getElementById('dtl-patient-mrn').textContent = 'MRN: ' + data.mrn;
+      document.getElementById('dtl-doctor-name').textContent = data.doctor_name;
+      document.getElementById('dtl-doctor-poli').textContent = 'Poli: ' + data.poli;
+      document.getElementById('dtl-exam-status').textContent = data.status === 'completed' ? '✓ Selesai & Di-ACC Dokter' : (data.status === 'in_progress' ? '⏳ Sedang Diperiksa' : 'Menunggu Antrean');
+      
+      let rxText = 'Tidak ada resep';
+      if (data.rx_status === 'selesai') {
+        rxText = '✓ Selesai Dibuat & Diserahkan (' + data.pharmacist_name + ')';
+      } else if (data.rx_status === 'sedang_diracik') {
+        rxText = '🧪 Sedang Diracik Apoteker (' + data.pharmacist_name + ')';
+      } else if (data.rx_status === 'perlu_diproses') {
+        rxText = '⏳ Perlu Diproses di Apotek';
+      }
+      document.getElementById('dtl-rx-status').textContent = rxText;
+      document.getElementById('dtl-pay-status').textContent = data.payment_status === 'paid' ? '✓ Lunas' : 'Menunggu Pembayaran';
+      
+      document.getElementById('dtl-subjective').textContent = data.subjective || data.symptoms || '-';
+      document.getElementById('dtl-diagnosis').textContent = data.primary_diagnosis || '-';
+      document.getElementById('dtl-therapy').textContent = data.therapy_plan || '-';
+      document.getElementById('dtl-pharmacist-info').textContent = 'Apoteker: ' + (data.pharmacist_name || 'Apoteker Jaga');
+      
+      const medsListEl = document.getElementById('dtl-meds-list');
+      medsListEl.innerHTML = '';
+      if (Array.isArray(data.medications) && data.medications.length > 0) {
+        data.medications.forEach(med => {
+          const item = document.createElement('div');
+          item.className = 'flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200 text-xs';
+          item.innerHTML = `
+            <div>
+              <b class="text-slate-900 block">${med.name || 'Obat'}</b>
+              <span class="text-[11px] text-blue-700 font-semibold block">${med.frequency || '3x1 sesudah makan'} · Dosis: ${med.dose || '1 tablet'}</span>
+            </div>
+            <div class="text-right">
+              <span class="font-bold text-slate-800">${med.quantity || 10} ${med.satuan || 'Item'}</span>
+              ${med.subtotal ? `<small class="block text-slate-500">Rp ${Number(med.subtotal).toLocaleString('id-ID')}</small>` : ''}
+            </div>
+          `;
+          medsListEl.appendChild(item);
+        });
+      } else {
+        medsListEl.innerHTML = '<p class="text-slate-400 italic text-xs">Konsultasi dokter tanpa resep obat farmasi.</p>';
+      }
+
+      document.getElementById('dtl-total-amount').textContent = data.total_amount || 'Rp 0';
+      document.getElementById('consultation-detail-modal').classList.remove('hidden');
     }
 
     // Copy to clipboard helper

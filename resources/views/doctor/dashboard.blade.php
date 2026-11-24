@@ -338,12 +338,56 @@
 
             <!-- Queue Token Status -->
             <div class="flex items-center gap-2">
+              @if($activeQueue['status'] === 'waiting' && $activeQueue['id'] !== 'Q-NONE')
+                <form action="{{ route('doctor.terimaPeriksa', $activeQueue['id']) }}" method="POST" class="inline">
+                  @csrf
+                  <button type="submit" class="text-xs px-3.5 py-1.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <span>Terima &amp; Periksa Pasien</span>
+                  </button>
+                </form>
+              @endif
               <span class="text-xs px-3 py-1.5 rounded-xl font-bold bg-[#012D68] text-white shadow-xs">
                 Antrean {{ $activeQueue['queue_no'] }}
               </span>
             </div>
 
           </div>
+
+          @if($activeQueue['status'] === 'waiting' && $activeQueue['id'] !== 'Q-NONE')
+            <div class="mt-4 p-3.5 rounded-xl bg-amber-50 border border-amber-200/90 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-sm font-bold flex-shrink-0">⏳</span>
+                <div>
+                  <b class="text-xs font-bold text-amber-900 block">Permintaan Pertemuan Masuk dari Pasien</b>
+                  <p class="text-[11.5px] text-amber-700 leading-tight">Pasien telah mendaftar dan menunggu dokter menerima permintaan untuk mulai diperiksa.</p>
+                </div>
+              </div>
+              <form action="{{ route('doctor.terimaPeriksa', $activeQueue['id']) }}" method="POST">
+                @csrf
+                <button type="submit" class="px-4 py-2 rounded-xl bg-[#012D68] hover:bg-[#083E88] text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>Terima Permintaan &amp; Mulai Periksa</span>
+                </button>
+              </form>
+            </div>
+          @elseif($activeQueue['status'] === 'in_progress')
+            <div class="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-between gap-3 shadow-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></span>
+                <b class="text-xs font-bold text-blue-900">Sesi Pemeriksaan Sedang Berlangsung</b>
+              </div>
+              <span class="text-[11px] text-blue-700 font-medium">Silakan lakukan anamnesa &amp; buat ACC pemeriksaan di form rekam medis SOAP berikut.</span>
+            </div>
+          @elseif($activeQueue['status'] === 'completed' && $activeQueue['id'] !== 'Q-NONE')
+            <div class="mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-3 shadow-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                <b class="text-xs font-bold text-emerald-900">Pemeriksaan Pasien Telah Selesai &amp; Di-ACC</b>
+              </div>
+              <span class="text-[11px] text-emerald-700 font-medium">Rekam medis telah tercatat dan rikues obat tersinkronisasi ke Apoteker &amp; Administrator.</span>
+            </div>
+          @endif
 
           <!-- Use Case Tab Bar -->
           <div class="flex border-b border-slate-200 mt-5 gap-2" role="tablist">
@@ -736,13 +780,13 @@
             <!-- Submit CTA -->
             <div class="flex items-center justify-end gap-3 pt-2">
 
-              <button type="submit" class="px-6 py-3 rounded-xl bg-[#012D68] hover:bg-[#083E88] text-white font-bold text-xs shadow-md transition-all flex items-center gap-2">
+              <button type="submit" class="px-6 py-3 rounded-xl bg-[#012D68] hover:bg-[#083E88] text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer">
 
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                 </svg>
 
-                <span>Simpan Rekam Medis SOAP &amp; Selesaikan Sesi</span>
+                <span>ACC Pemeriksaan &amp; Simpan Rekam Medis (Kirim ke Apoteker)</span>
 
               </button>
 

@@ -92,6 +92,9 @@ Route::middleware(['doctor'])
         Route::get('/', [DoctorController::class, 'index'])
             ->name('dashboard');
 
+        Route::post('/antrean/{queueId}/terima', [DoctorController::class, 'terimaPeriksa'])
+            ->name('terimaPeriksa');
+
         Route::post('/soap/{queueId}', [DoctorController::class, 'saveSoap'])
             ->name('saveSoap');
 

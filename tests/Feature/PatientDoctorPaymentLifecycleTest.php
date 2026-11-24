@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Booking;
 use App\Models\Doctor;
+use App\Models\Obat;
 use App\Models\Payment;
+use App\Models\Queue;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -136,5 +139,144 @@ class PatientDoctorPaymentLifecycleTest extends TestCase
         $adminDashboard->assertStatus(200)
             ->assertSee($bookingCode)
             ->assertSee('Budi Lifecycle Test');
+    }
+
+    /**
+     * Test the explicit 6-step clinic workflow requested by the user:
+     * 1. Pasien mengajukan permintaan pertemuan
+     * 2. Dokter menerima permintaan dan memeriksa pasien
+     * 3. Dokter membuat ACC pemeriksaan
+     * 4. Rikues daftar obat masuk ke apoteker
+     * 5. Apoteker membuat obat (ACC racik & selesaikan hingga stok berkurang)
+     * 6. Semua hasil yang sudah dilakukan masuk ke administrator
+     */
+    public function test_complete_six_step_clinic_workflow_from_patient_to_admin(): void
+    {
+        // -------------------------------------------------------------
+        // STEP 1: Pasien mengajukan permintaan pertemuan
+        // -------------------------------------------------------------
+        $doctor = Doctor::first();
+        $this->assertNotNull($doctor);
+
+        $bookingRes = $this->postJson('/booking', [
+            'patient_name' => 'Dewi workflow Test',
+            'phone' => '0813-8899-7711',
+            'symptoms' => 'Batuk berdahak dan demam tinggi',
+            'duration' => '1 - 3 Hari',
+            'severity' => 'Sedang',
+            'doctor_id' => $doctor->id,
+            'booking_time' => '14:00',
+        ]);
+
+        $bookingRes->assertOk()->assertJsonPath('success', true);
+        $bookingId = $bookingRes->json('booking.id');
+        $bookingCode = $bookingRes->json('booking.booking_code');
+        $this->assertNotNull($bookingId);
+
+        $queue = Queue::where('booking_id', $bookingId)->first();
+        $this->assertNotNull($queue);
+        $this->assertSame('waiting', $queue->status);
+
+        // -------------------------------------------------------------
+        // STEP 2: Dokter menerima permintaan dan memeriksa pasien
+        // -------------------------------------------------------------
+        $doctorUser = User::where('role', 'doctor')->first();
+        $this->assertNotNull($doctorUser);
+
+        $queueKey = 'Q-'.str_pad((string) $queue->id, 3, '0', STR_PAD_LEFT);
+
+        $terimaRes = $this->actingAs($doctorUser)->postJson(route('doctor.terimaPeriksa', $queueKey));
+        $terimaRes->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 'in_progress');
+
+        $queue->refresh();
+        $this->assertSame('in_progress', $queue->status);
+
+        // -------------------------------------------------------------
+        // STEP 3: Dokter membuat ACC pemeriksaan
+        // -------------------------------------------------------------
+        $obat = Obat::where('kode_obat', 'PCT-500')->first();
+        $this->assertNotNull($obat);
+        $initialStock = $obat->stok;
+
+        $medications = [
+            [
+                'obat_id' => $obat->id,
+                'kode_obat' => $obat->kode_obat,
+                'name' => $obat->nama_obat,
+                'quantity' => 5,
+                'satuan' => 'Tablet',
+                'dose' => '1 tablet',
+                'frequency' => '3x1 sesudah makan',
+                'harga' => 12000,
+            ],
+        ];
+
+        $soapRes = $this->actingAs($doctorUser)->postJson(route('doctor.saveSoap', $queueKey), [
+            'subjective' => 'Pasien batuk berdahak dan demam tinggi sejak 2 hari yang lalu.',
+            'bp' => '115/75',
+            'hr' => '82',
+            'rr' => '18',
+            'temp' => '38.5',
+            'spo2' => '98',
+            'primary_diagnosis' => 'J06.9 - Infeksi Saluran Pernapasan Akut',
+            'therapy_plan' => 'Paracetamol 500 mg 3x1 tablet sesudah makan bila demam',
+            'medications_json' => json_encode($medications),
+            'return_date' => '5 hari lagi',
+        ]);
+
+        $soapRes->assertOk()->assertJsonPath('success', true);
+
+        $booking = Booking::with('medicalRecord')->find($bookingId);
+        $this->assertSame('completed', $booking->status);
+        $this->assertNotNull($booking->medicalRecord);
+        $this->assertTrue($booking->medicalRecord->plan['doctor_acc'] ?? false);
+        $this->assertSame('perlu_diproses', $booking->medicalRecord->plan['prescription_status']);
+
+        // -------------------------------------------------------------
+        // STEP 4: Rikues daftar obat masuk ke apoteker
+        // -------------------------------------------------------------
+        $apotekerUser = User::where('email', 'apoteker@aihealth.com')->first();
+        $this->assertNotNull($apotekerUser);
+
+        $apotekerDashboard = $this->actingAs($apotekerUser)->get(route('apoteker.dashboard'));
+        $apotekerDashboard->assertOk()
+            ->assertSee('Dewi workflow Test')
+            ->assertSee($bookingCode)
+            ->assertSee('PERLU DIPROSES');
+
+        // -------------------------------------------------------------
+        // STEP 5: Apoteker membuat obat (ACC racik lalu selesaikan)
+        // -------------------------------------------------------------
+        // 5a. ACC resep -> sedang_diracik
+        $accResepRes = $this->actingAs($apotekerUser)->postJson(route('apoteker.resep.acc', $bookingId));
+        $accResepRes->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 'sedang_diracik');
+
+        // 5b. Selesaikan pembuatan obat -> selesai & potong stok
+        $selesaiResepRes = $this->actingAs($apotekerUser)->postJson(route('apoteker.resep.selesai', $bookingId));
+        $selesaiResepRes->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 'selesai');
+
+        // Verify stock deducted
+        $obat->refresh();
+        $this->assertSame($initialStock - 5, $obat->stok);
+
+        // -------------------------------------------------------------
+        // STEP 6: Semua hasil yang sudah dilakukan masuk ke administrator
+        // -------------------------------------------------------------
+        $adminUser = User::where('email', 'admin@aihealth.com')->first();
+        $this->assertNotNull($adminUser);
+
+        $adminDashboard = $this->actingAs($adminUser)->get(route('admin.dashboard'));
+        $adminDashboard->assertOk()
+            ->assertSee('Dewi workflow Test')
+            ->assertSee($bookingCode)
+            ->assertSee('Semua Hasil Pemeriksaan')
+            ->assertSee('Infeksi Saluran Pernapasan Akut')
+            ->assertSee('Obat Selesai Dibuat');
     }
 }

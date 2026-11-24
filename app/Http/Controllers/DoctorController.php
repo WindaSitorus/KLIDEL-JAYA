@@ -355,6 +355,51 @@ class DoctorController extends Controller
     }
 
     /**
+     * Dokter menerima permintaan pertemuan dan mulai memeriksa pasien.
+     */
+    public function terimaPeriksa(
+        Request $request,
+        string $queueId
+    ): RedirectResponse|JsonResponse {
+        $doctorModel = $this->resolveCurrentDoctor();
+        $queues = $this->getDoctorQueues($doctorModel);
+
+        if (! isset($queues[$queueId])) {
+            return back()->with(
+                'error',
+                'Data antrean tidak ditemukan atau bukan wewenang Anda.'
+            );
+        }
+
+        $queueData = $queues[$queueId];
+        $bookingId = $queueData['booking_id'] ?? null;
+        $dbQueueId = $queueData['db_id'] ?? null;
+
+        if ($dbQueueId) {
+            Queue::where('id', $dbQueueId)->update(['status' => 'in_progress']);
+        }
+
+        if ($bookingId) {
+            Booking::where('id', $bookingId)->update(['status' => 'in_progress']);
+        }
+
+        $patientName = $queueData['patient']['name'] ?? 'Pasien';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'queue_id' => $queueId,
+                'status' => 'in_progress',
+                'message' => "Permintaan konsultasi {$patientName} telah diterima. Anda dapat memulai pemeriksaan medis.",
+            ]);
+        }
+
+        return redirect()
+            ->route('doctor.dashboard', ['queue_id' => $queueId])
+            ->with('success', "Permintaan konsultasi {$patientName} telah diterima. Status antrean kini 'Sedang Diperiksa'.");
+    }
+
+    /**
      * Save SOAP Medical Record & Complete Examination
      * (Use Case 3: Isi Rekam Medis SOAP).
      */
@@ -502,6 +547,8 @@ class DoctorController extends Controller
                 'return_date' => $validated['return_date'] ?? '14 hari ke depan',
                 'prescription_status' => $hasMedicine ? 'perlu_diproses' : 'tidak_ada_resep',
                 'prescribed_at' => now()->toIso8601String(),
+                'doctor_acc' => true,
+                'acc_at' => now()->toIso8601String(),
                 'tariff_plan' => $hasMedicine ? 'with_medicine' : 'consultation_only',
                 'consultation_fee' => $consultationFee,
                 'medicine_cost' => $totalMedCost,
@@ -566,8 +613,8 @@ class DoctorController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Rekam Medis SOAP berhasil disimpan untuk pasien '.
-                    $queues[$queueId]['patient']['name'],
+                'message' => 'ACC Pemeriksaan & Rekam Medis SOAP berhasil disimpan untuk pasien '.
+                    $queues[$queueId]['patient']['name'].($hasMedicine ? '. Rikues resep obat telah masuk ke Apoteker.' : '.'),
                 'queue_id' => $queueId,
             ]);
         }
@@ -576,9 +623,9 @@ class DoctorController extends Controller
             ->route('doctor.dashboard', ['queue_id' => $queueId])
             ->with(
                 'success',
-                'Rekam Medis SOAP untuk '.
+                'ACC Pemeriksaan & Rekam Medis SOAP untuk '.
                 $queues[$queueId]['patient']['name'].
-                ' berhasil disimpan dan status antrean diselesaikan.'
+                ' berhasil disimpan'.($hasMedicine ? ' dan rikues daftar obat diteruskan ke Apoteker.' : '.')
             );
     }
 
