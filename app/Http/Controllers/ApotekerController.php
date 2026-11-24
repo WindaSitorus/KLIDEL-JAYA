@@ -361,11 +361,11 @@ class ApotekerController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 'sedang_diracik',
-                'message' => "Resep pasien {$patientName} berhasil di-ACC! Obat sedang diracik.",
+                'message' => "Resep pasien {$patientName} berhasil disetujui! Obat sedang diracik.",
             ]);
         }
 
-        return back()->with('success', "Resep pasien {$patientName} berhasil di-ACC! Obat sedang diracik.");
+        return back()->with('success', "Resep pasien {$patientName} berhasil disetujui! Obat sedang diracik.");
     }
 
     /**

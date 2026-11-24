@@ -202,7 +202,7 @@
 
                                             <a href="{{ route('obat.edit', $obat->id) }}"
                                                class="rounded-lg bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100">
-                                                Edit
+                                                Ubah
                                             </a>
 
                                             @if($obat->is_active)

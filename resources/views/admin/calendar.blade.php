@@ -988,7 +988,7 @@
   <aside class="sidebar">
     <div class="brand">
       <img src="{{ asset('images/maristella-icon.png') }}" alt="Logo Klinik Maristella">
-      <span class="role-indicator-badge" id="sidebarRoleBadge">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'ADMIN' : 'PASIEN' }}</span>
+      <span class="role-indicator-badge" id="sidebarRoleBadge">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? (!empty($user['role']) && strtoupper($user['role']) === 'APOTEKER' ? 'APOTEKER' : 'ADMIN') : 'PASIEN' }}</span>
     </div>
 
     <!-- Patient Navigation -->
@@ -1020,7 +1020,7 @@
       @else
         <a href="{{ route('login') }}" class="nav-item" style="color: var(--brand-primary); font-weight: 700;">
           <svg><use href="#i-logout"/></svg>
-          <span>Masuk / Login</span>
+          <span>Masuk</span>
         </a>
       @endauth
     </nav>
@@ -1123,12 +1123,12 @@
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="date-badge">
-          <small id="badgeMonth">NOV</small>
-          <b id="badgeDay">17</b>
+          <small id="badgeMonth">{{ \Carbon\Carbon::parse($initialDate ?? now())->locale('id')->isoFormat('MMM') }}</small>
+          <b id="badgeDay">{{ \Carbon\Carbon::parse($initialDate ?? now())->format('d') }}</b>
         </div>
         <div class="date-title">
-          <h2 id="dateTitle">November 17, 2026</h2>
-          <span id="dateDow">Tuesday</span>
+          <h2 id="dateTitle">{{ \Carbon\Carbon::parse($initialDate ?? now())->locale('id')->isoFormat('D MMMM Y') }}</h2>
+          <span id="dateDow">{{ \Carbon\Carbon::parse($initialDate ?? now())->locale('id')->isoFormat('dddd') }}</span>
         </div>
 
         <!-- Date navigation (Previous, Today, Next) -->
@@ -1145,13 +1145,15 @@
           <button type="button" class="view-btn" id="btnViewMonth" onclick="switchViewMode('month')">Bulanan</button>
         </div>
 
-        <!-- Action Button -->
+        <!-- Action Button (Khusus Administrator / Apoteker) -->
+        @if(!empty($user['is_admin']) && ($role ?? 'admin') === 'admin')
         <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
           <button id="btnOpenBookingModal" class="btn primary" onclick="openBookingModal()">
             <svg><use href="#i-plus"/></svg>
-            <span id="btnActionText">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'Tambah Jadwal Pasien' : 'Booking Jadwal Dokter' }}</span>
+            <span id="btnActionText">Tambah Jadwal Pasien</span>
           </button>
         </div>
+        @endif
       </div>
 
       <!-- VIEW 1: Daily Time Grid & Detail Panel -->
@@ -1162,7 +1164,7 @@
             <div id="hoursContainer"></div>
             <div class="events" id="eventsContainer"></div>
             <div class="now" id="nowIndicator">
-              <em id="nowTimeLbl">Live</em>
+              <em id="nowTimeLbl">Sekarang</em>
             </div>
           </div>
         </div>
@@ -1234,7 +1236,7 @@
 <div id="bookingModalBackdrop" class="modal-backdrop" onclick="closeBookingModal()"></div>
 <div id="bookingModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-head">
-    <h3 id="modalTitle">Booking Jadwal Konsultasi Dokter</h3>
+    <h3 id="modalTitle">{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'Tambah Jadwal Pasien' : 'Jadwal Konsultasi Dokter' }}</h3>
     <button class="modal-close" onclick="closeBookingModal()" aria-label="Tutup Modal">
       <svg><use href="#i-close"/></svg>
     </button>
@@ -1301,7 +1303,7 @@
     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
       <button type="button" class="btn" onclick="closeBookingModal()">Batal</button>
       <button type="submit" id="bmSubmitBtn" class="btn primary">
-        <span>Konfirmasi Booking</span>
+        <span>{{ !empty($user['is_admin']) && ($role ?? 'admin') === 'admin' ? 'Konfirmasi Tambah Jadwal' : 'Konfirmasi Jadwal' }}</span>
       </button>
     </div>
   </form>
@@ -1521,11 +1523,19 @@ function renderDetailPanel() {
         Dokter siap menerima konsultasi pasien pada jam ini. Anda dapat membuat booking baru dengan menekan tombol di bawah.
       </div>
     `;
-    actSec.innerHTML = `
-      <button class="btn primary" style="width:100%;height:38px;justify-content:center;" onclick="openBookingModal()">
-        + Booking di Slot Ini
-      </button>
-    `;
+    if (currentRole === 'admin') {
+      actSec.innerHTML = `
+        <button class="btn primary" style="width:100%;height:38px;justify-content:center;" onclick="openBookingModal()">
+          + Tambah Jadwal Pasien
+        </button>
+      `;
+    } else {
+      actSec.innerHTML = `
+        <div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:10px 12px; background:var(--brand-primary-tint); border-radius:8px; border:1px solid #bfdbfe; line-height:1.4;">
+          Untuk melakukan pemesanan jadwal dokter, silakan gunakan menu <b>Pemesanan</b> pada halaman Beranda.
+        </div>
+      `;
+    }
     return;
   }
 
@@ -1601,9 +1611,9 @@ function renderDetailPanel() {
         </div>
       `;
       actSec.innerHTML = `
-        <button class="btn primary" style="width:100%;height:38px;justify-content:center;" onclick="openBookingModal()">
-          Booking di Slot Ini
-        </button>
+        <div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:10px 12px; background:var(--brand-primary-tint); border-radius:8px; border:1px solid #bfdbfe; line-height:1.4;">
+          Slot ini tersedia untuk pemesanan melalui menu <b>Pemesanan</b> di Beranda.
+        </div>
       `;
     } else {
       dTitle.innerHTML = `<span>Slot Sudah Direservasi</span> ${statusBadgeHtml}`;
@@ -1615,9 +1625,9 @@ function renderDetailPanel() {
         </div>
       `;
       actSec.innerHTML = `
-        <button class="btn primary" style="width:100%;height:38px;justify-content:center;" onclick="openBookingModal()">
-          Cari Jam Lain yang Tersedia
-        </button>
+        <div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:10px 12px; background:var(--bg-subtle); border-radius:8px; border:1px solid var(--border); line-height:1.4;">
+          Silakan kembali ke <b>Beranda</b> untuk memilih dan memesan jadwal dokter yang tersedia.
+        </div>
       `;
     }
   }
@@ -1633,7 +1643,11 @@ function handleEmptySlotClick(hour) {
   activeBookingId = null;
   document.querySelectorAll(".event").forEach(b => b.classList.remove("selected"));
   renderDetailPanel();
-  openBookingModal(hour);
+  if (IS_ADMIN && currentRole === 'admin') {
+    openBookingModal(hour);
+  } else {
+    showToast("Untuk melakukan pemesanan jadwal dokter, silakan gunakan fitur Pemesanan di Beranda.");
+  }
 }
 
 /* Cancel Booking with Live Backend Integration */
@@ -1680,10 +1694,13 @@ function switchRole(role) {
   if (admNav) admNav.style.display = role === 'admin' ? 'block' : 'none';
   const crumb = document.getElementById("crumbModeTitle");
   if (crumb) crumb.textContent = role === 'admin' ? 'Kalender Dokter (Admin)' : 'Jadwal Konsultasi Dokter';
+  const btnBook = document.getElementById("btnOpenBookingModal");
+  if (btnBook) btnBook.style.display = role === 'admin' ? 'inline-flex' : 'none';
   const btnTxt = document.getElementById("btnActionText");
-  if (btnTxt) btnTxt.textContent = role === 'admin' ? 'Tambah Jadwal Pasien' : 'Booking Jadwal Dokter';
+  if (btnTxt) btnTxt.textContent = 'Tambah Jadwal Pasien';
 
   renderEvents();
+  renderDetailPanel();
   showToast(`Beralih ke mode tampilan ${role === 'admin' ? 'Administrator' : 'Pasien'}.`);
 }
 
@@ -1835,12 +1852,16 @@ async function handleBookingSubmit(e) {
     alertBox.style.display = "block";
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Konfirmasi Booking";
+    submitBtn.textContent = "Konfirmasi Tambah Jadwal";
   }
 }
 
 /* Modal Handling */
 function openBookingModal(hourDefault = null) {
+  if (!IS_ADMIN && currentRole !== 'admin') {
+    showToast("Untuk melakukan pemesanan jadwal dokter, silakan gunakan fitur Pemesanan di Beranda.");
+    return;
+  }
   document.getElementById("bookingModalBackdrop").classList.add("open");
   document.getElementById("bookingModal").classList.add("open");
 
@@ -2090,7 +2111,7 @@ function renderMonthlyGrid() {
     const bookedCount = activeOnDate.length;
     let badgeHtml = '';
     if (bookedCount > 0) {
-      badgeHtml = `<span class="badge-status badge-status-pending" style="font-size:8.5px;padding:1px 4px;">${bookedCount} Booked</span>`;
+      badgeHtml = `<span class="badge-status badge-status-pending" style="font-size:8.5px;padding:1px 4px;">${bookedCount} Dipesan</span>`;
     }
 
     const cell = document.createElement("div");

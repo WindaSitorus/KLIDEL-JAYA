@@ -12,7 +12,7 @@
             </a>
 
             <h1 class="mt-4 text-2xl font-extrabold text-[#012D68]">
-                Edit Obat
+                Ubah Data Obat
             </h1>
 
             <p class="mt-2 text-sm text-slate-500">

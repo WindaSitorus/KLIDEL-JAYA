@@ -28,7 +28,7 @@ class AdminDoctorController extends Controller
             'email' => $admin?->email ?? 'admin@aihealth.com',
             'phone' => $admin?->phone ?? '',
             'avatar_url' => $admin?->avatar_url ?? '',
-            'role' => 'Administrator',
+            'role' => $admin?->isApoteker() ? 'Apoteker' : 'Administrator',
             'initials' => $admin ? $admin->initials : 'AD',
             'is_logged_in' => true,
             'is_admin' => true,

@@ -675,15 +675,16 @@ class HomeController extends Controller
     public function calendar(Request $request): View
     {
         $authUser = auth()->user();
+        $isAdminOrApoteker = $authUser?->isAdmin() || $authUser?->isApoteker();
         $user = [
             'name' => $authUser?->name ?? 'Rina Anggraini',
             'email' => $authUser?->email ?? 'rina@example.com',
             'phone' => $authUser?->phone ?? '+62 812-5550-1920',
             'avatar_url' => $authUser?->avatar_url ?? '',
-            'role' => $authUser ? ($authUser->isAdmin() ? 'Administrator' : 'Pasien') : 'Pasien',
+            'role' => $authUser ? ($authUser->isAdmin() ? 'Administrator' : ($authUser->isApoteker() ? 'Apoteker' : 'Pasien')) : 'Pasien',
             'initials' => $authUser ? $authUser->initials : 'RA',
             'is_logged_in' => auth()->check(),
-            'is_admin' => $authUser?->isAdmin() ?? false,
+            'is_admin' => $isAdminOrApoteker,
         ];
 
         $doctors = Doctor::with(['poli', 'schedules'])->get();
@@ -694,7 +695,7 @@ class HomeController extends Controller
 
         return view('admin.calendar', [
             'user' => $user,
-            'role' => 'patient',
+            'role' => $isAdminOrApoteker ? 'admin' : 'patient',
             'doctors' => $doctors,
             'initialBookings' => $allBookings,
             'initialDate' => $selectedDate,

@@ -825,7 +825,7 @@
           </div>
 
           <div class="field" id="field-password">
-            <label for="password">Password</label>
+            <label for="password">Kata Sandi</label>
 
             <input
               id="password"
@@ -840,7 +840,7 @@
             <button type="button"
                     class="toggle"
                     id="toggle-password"
-                    aria-label="Show password"
+                    aria-label="Tampilkan kata sandi"
                     aria-pressed="false">
 
               <svg class="eye" viewBox="0 0 24 24"
@@ -867,35 +867,35 @@
             </button>
 
             <p class="error-msg" id="password-error">
-              Password tidak boleh kosong.
+              Kata sandi tidak boleh kosong.
             </p>
           </div>
 
           <div class="row">
             <label class="check">
               <input type="checkbox" name="remember" checked />
-              Remember me
+              Ingat saya
             </label>
 
             <a href="javascript:void(0)"
                onclick="alert('Kata sandi demo Anda: password')">
-              Forgot Password?
+              Lupa Kata Sandi?
             </a>
           </div>
 
           <button class="btn btn-primary"
                   type="submit"
                   id="btn-login">
-            Login
+            Masuk
           </button>
 
         </form>
 
         <p class="signup">
-          Don't have an account?
+          Belum memiliki akun?
           <a href="javascript:void(0)"
              onclick="alert('Pendaftaran akun baru saat ini ditutup untuk sesi demo.')">
-            Sign Up
+            Daftar
           </a>
         </p>
 
@@ -1142,7 +1142,7 @@
 
         toggle.setAttribute(
           'aria-label',
-          show ? 'Hide password' : 'Show password'
+          show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
         );
       });
 

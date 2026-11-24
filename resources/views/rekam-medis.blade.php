@@ -1038,11 +1038,11 @@
         <span>Rekam Medis</span>
       </a>
 
-      <!-- Pengaturan -->
-      <button type="button" class="nav-item" onclick="showToast('Membuka Pengaturan...')" title="Pengaturan">
+      <!-- Profil Saya -->
+      <a href="{{ route('profile.edit') }}" class="nav-item" title="Profil Saya">
         <svg><use href="#i-set"/></svg>
-        <span>Pengaturan</span>
-      </button>
+        <span>Profil Saya</span>
+      </a>
 
       @auth
         @if (auth()->user()->isAdmin())
@@ -1061,9 +1061,9 @@
           </button>
         </form>
       @else
-        <a href="{{ route('login') }}" class="nav-item nav-item-login" title="Masuk / Login">
+        <a href="{{ route('login') }}" class="nav-item nav-item-login" title="Masuk">
           <svg><use href="#i-logout"/></svg>
-          <span>Masuk / Login</span>
+          <span>Masuk</span>
         </a>
       @endauth
     </nav>
@@ -1118,9 +1118,9 @@
         </div>
       </div>
       <div class="patient-actions">
-        <button class="btn" onclick="openEditPatientModal()" title="Edit data pasien">
+        <button class="btn" onclick="openEditPatientModal()" title="Ubah data pasien">
           <svg><use href="#i-edit"/></svg>
-          <span>Edit Pasien</span>
+          <span>Ubah Data Pasien</span>
         </button>
         <button class="btn" onclick="window.print()" title="Cetak ringkasan">
           <svg><use href="#i-print"/></svg>
@@ -1674,7 +1674,7 @@
 
 <div id="editPatientModal" class="modal">
   <div class="modal-head">
-    <h3>Edit Data Pasien</h3>
+    <h3>Ubah Data Pasien</h3>
     <button class="modal-close" onclick="closeAllModals()">✕</button>
   </div>
   <form onsubmit="handleEditPatientSubmit(event)">
