@@ -87,7 +87,7 @@
                 @else
                     <a href="{{ route('login') }}" class="nav flex items-center gap-3 p-2.5 rounded-xl text-[var(--color-primary)] bg-[var(--color-primary-tint)] hover:brightness-105 text-left w-full transition-colors font-semibold">
                         <svg class="app-svg-icon text-[var(--color-primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                        <span class="hidden xl:inline text-[14px]">Masuk / Login</span>
+                        <span class="hidden xl:inline text-[14px]">Masuk</span>
                     </a>
                 @endauth
             </nav>
@@ -216,7 +216,7 @@
                         Layanan Prioritas Klinik Maristella
                     </div>
                     <small class="text-white/80 text-[13px] block">Selamat siang,</small>
-                    <h1 class="text-[30px] font-bold leading-[1.2] mt-1 text-white">What’s on your health today?</h1>
+                    <h1 class="text-[30px] font-bold leading-[1.2] mt-1 text-white">Bagaimana kondisi kesehatan Anda hari ini?</h1>
                 </div>
 
                 <!-- Next Appointment Card (Hanya muncul jika ada janji temu aktif: sebelum periksa atau siap bayar) -->
@@ -381,7 +381,6 @@
                             data-name="{{ $doc['name'] }}"
                             data-specialty="{{ $doc['specialty'] }}"
                             data-category="{{ $doc['category'] }}"
-                            data-rating="{{ $doc['rating'] }}"
                             data-price="{{ $doc['price'] }}"
                             data-initials="{{ $doc['initials'] }}"
                             data-image="{{ asset($doc['image']) }}"
@@ -401,14 +400,6 @@
 
                         <!-- Top pastel block with dynamic specialty tone -->
                         <div class="relative w-full h-[180px] {{ $cardBg }} rounded-t-[22px] flex items-end justify-center overflow-visible">
-                            <!-- Rating pill at top left -->
-                            <div class="absolute top-3 left-3 z-30 inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full shadow-xs border border-slate-100">
-                                <svg class="w-3.5 h-3.5 text-amber-400 fill-amber-400" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
-                                <span class="text-xs font-bold text-slate-900 leading-none">{{ $doc['rating'] }}</span>
-                            </div>
-
                             <!-- Doctor Cut-out Photo with Out-of-Bounds Pop-out Effect -->
                             <div class="relative w-full h-full flex items-end justify-center overflow-visible">
                                 <img src="{{ asset($doc['image']) }}" 
@@ -452,9 +443,6 @@
                 <div class="min-w-0">
                     <h3 id="pn" class="text-[19px] font-bold text-[var(--color-text)] leading-tight truncate">{{ $selectedDoctor['name'] }}</h3>
                     <small id="ps" class="text-[var(--color-text-secondary)] text-[12.5px] block mt-0.5">{{ $selectedDoctor['specialty'] }}</small>
-                    <div class="text-[12px] text-slate-600 mt-1 flex items-center gap-1 font-semibold">
-                        <span class="text-amber-500">★</span> <span id="pr">{{ $selectedDoctor['rating'] }}</span>
-                    </div>
                 </div>
             </div>
 
@@ -562,7 +550,6 @@
                         {{ $slotIsPast ? 'disabled aria-disabled=true' : '' }}
                         title="{{ $slotIsPast ? 'Jam ini sudah terlewati' : $slot['time'] }}">
                         {{ $slot['time'] }}
->>>>>>> upstream/main
                     </button>
                 @endforeach
             </div>
@@ -808,7 +795,6 @@
                          data-name="{{ $doc['name'] }}"
                          data-specialty="{{ $doc['specialty'] }}"
                          data-category="{{ $doc['category'] }}"
-                         data-rating="{{ $doc['rating'] }}"
                          data-price="{{ $doc['price'] }}"
                          data-initials="{{ $doc['initials'] }}"
                          data-image="{{ asset($doc['image']) }}"
@@ -823,12 +809,6 @@
 
                         <!-- Top pastel block (rounded top, dynamic specialty pastel) -->
                         <div class="relative w-full h-[135px] {{ $mCardBg }} rounded-t-[22px] flex items-end justify-center overflow-visible">
-                            <div class="absolute top-2 left-2 z-30 inline-flex items-center gap-1 bg-white/95 px-2 py-0.5 rounded-full shadow-xs border border-slate-100">
-                                <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
-                                <span class="text-[10px] font-bold text-slate-900 leading-none">{{ $doc['rating'] }}</span>
-                            </div>
                             <div class="relative w-full h-full flex items-end justify-center overflow-visible">
                                 <img src="{{ asset($doc['image']) }}" alt="{{ $doc['name'] }}" onerror="this.src='{{ asset('images/doctors/doctor-1.png') }}'" class="relative z-20 h-[122%] w-auto max-w-none object-contain object-bottom -top-4 pointer-events-none drop-shadow-[0_8px_12px_rgba(1,45,104,0.18)]">
                             </div>
@@ -878,7 +858,6 @@
                     <img id="m-pav-img" src="{{ asset($selectedDoctor['image']) }}" alt="{{ $selectedDoctor['name'] }}" class="h-full w-auto object-contain object-bottom">
                 </div>
                 <div class="min-w-0">
-                    <span class="rating-pill text-[11px] mb-1 inline-flex">★ <span id="m-pr">{{ $selectedDoctor['rating'] }}</span></span>
                     <h3 id="m-pn" class="text-[17px] font-bold text-slate-900 leading-tight truncate">{{ $selectedDoctor['name'] }}</h3>
                     <small id="m-ps" class="text-slate-500 text-[12px] block">{{ $selectedDoctor['specialty'] }}</small>
                 </div>
@@ -1030,13 +1009,8 @@
                             <span id="modal-doc-initials" class="hidden font-bold text-blue-900 text-sm">AK</span>
                         </div>
                         <div class="min-w-0">
-                            <div class="flex items-center gap-1.5">
-                                <b id="modal-doc-name" class="text-[14px] text-slate-900 dark:text-white font-bold truncate">Dr. Anaya Kapoor</b>
-                                <span class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-amber-600">
-                                    ★ <span id="modal-doc-rating">4.8</span>
-                                </span>
-                            </div>
-                            <span id="modal-doc-specialty" class="text-[12px] text-slate-500 dark:text-slate-400 block truncate">Neurologist</span>
+                            <b id="modal-doc-name" class="text-[14px] text-slate-900 dark:text-white font-bold truncate">Dr. Anaya Kapoor</b>
+                            <span id="modal-doc-specialty" class="text-[12px] text-slate-500 dark:text-slate-400 block truncate mt-0.5">Neurologist</span>
                             <div class="flex items-center gap-2 mt-1 text-[11.5px] font-medium text-[#012D68] dark:text-blue-300">
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>

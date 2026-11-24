@@ -306,6 +306,7 @@
       <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
       <symbol id="i-doctor" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
     </defs>
   </svg>
 
@@ -321,7 +322,7 @@
         <a href="{{ route('home') }}" title="Klinik Maristella">
           <img src="{{ asset('images/maristella-logo-horizontal.png') }}" alt="Klinik Maristella" />
         </a>
-        <span class="role-indicator-badge">Admin</span>
+        <span class="role-indicator-badge">{{ !empty($user['role']) && strtoupper($user['role']) === 'APOTEKER' ? 'Apoteker' : 'Admin' }}</span>
       </div>
 
       <!-- Admin Navigation Menu (Matching Gambar 1 with Jadwal Dokter & Riwayat Pembayaran) -->
@@ -344,6 +345,12 @@
         <a href="{{ route('admin.doctors.index') }}" class="nav-item" title="Manajemen Dokter">
           <svg><use href="#i-doctor"/></svg>
           <span>Manajemen Dokter</span>
+        </a>
+
+        <!-- Menu 4: Profil Saya -->
+        <a href="{{ route('profile.edit') }}" class="nav-item" title="Profil Saya">
+          <svg><use href="#i-gear"/></svg>
+          <span>Profil Saya</span>
         </a>
 
       </nav>
@@ -404,10 +411,10 @@
           <!-- Timeframe Selector -->
           <div class="relative">
             <select id="timeframe-select" onchange="window.location.href='{{ route('admin.dashboard') }}?timeframe=' + this.value" class="appearance-none h-9.5 pl-3.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#012D68]/20 cursor-pointer shadow-xs transition-all">
-              <option value="week" {{ ($timeframe ?? 'week') === 'week' ? 'selected' : '' }}>This Week</option>
-              <option value="month" {{ ($timeframe ?? 'week') === 'month' ? 'selected' : '' }}>This Month</option>
-              <option value="year" {{ ($timeframe ?? 'week') === 'year' ? 'selected' : '' }}>This Year</option>
-              <option value="all" {{ ($timeframe ?? 'week') === 'all' ? 'selected' : '' }}>All Time</option>
+              <option value="week" {{ ($timeframe ?? 'week') === 'week' ? 'selected' : '' }}>Minggu Ini</option>
+              <option value="month" {{ ($timeframe ?? 'week') === 'month' ? 'selected' : '' }}>Bulan Ini</option>
+              <option value="year" {{ ($timeframe ?? 'week') === 'year' ? 'selected' : '' }}>Tahun Ini</option>
+              <option value="all" {{ ($timeframe ?? 'week') === 'all' ? 'selected' : '' }}>Semua Waktu</option>
             </select>
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -417,7 +424,7 @@
           <!-- Export CSV Button (Matching Image 4 with Maristella Brand Colors) -->
           <a href="{{ route('admin.exportCsv', ['timeframe' => $timeframe ?? 'all']) }}" class="h-9.5 px-4 rounded-xl bg-[#012D68] hover:bg-[#083E88] active:scale-[0.98] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-all" title="Unduh data pembayaran dalam format CSV">
             <svg class="w-4 h-4"><use href="#i-download"/></svg>
-            <span>Export CSV</span>
+            <span>Ekspor CSV</span>
           </a>
 
         </div>
@@ -701,9 +708,9 @@
         <div id="status-filter-bar" class="hidden flex items-center gap-2 pt-2 border-t border-slate-100 text-xs">
           <span class="text-slate-400 font-semibold">Status:</span>
           <button type="button" onclick="filterByStatus('all')" class="px-2.5 py-1 rounded-lg bg-[#012D68] text-white font-bold filter-btn" data-status="all">Semua</button>
-          <button type="button" onclick="filterByStatus('confirmed')" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold filter-btn" data-status="confirmed">Confirmed</button>
-          <button type="button" onclick="filterByStatus('changed')" class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-semibold filter-btn" data-status="changed">Changed</button>
-          <button type="button" onclick="filterByStatus('canceled')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-semibold filter-btn" data-status="canceled">Canceled</button>
+          <button type="button" onclick="filterByStatus('confirmed')" class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold filter-btn" data-status="confirmed">Terkonfirmasi</button>
+          <button type="button" onclick="filterByStatus('changed')" class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-semibold filter-btn" data-status="changed">Diubah</button>
+          <button type="button" onclick="filterByStatus('canceled')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 font-semibold filter-btn" data-status="canceled">Dibatalkan</button>
         </div>
 
         <!-- Table Container -->
@@ -714,13 +721,13 @@
                 <th class="py-3 px-3.5 w-8">
                   <input type="checkbox" id="check-all" class="rounded border-slate-300 text-[#012D68] focus:ring-[#012D68]/20">
                 </th>
-                <th class="py-3 px-3 font-semibold text-slate-600">Name</th>
-                <th class="py-3 px-3 font-semibold text-slate-600">ID Number</th>
-                <th class="py-3 px-3 font-semibold text-slate-600">Date &amp; Time</th>
-                <th class="py-3 px-3 font-semibold text-slate-600">Type</th>
-                <th class="py-3 px-3 font-semibold text-slate-600">Doctor</th>
+                <th class="py-3 px-3 font-semibold text-slate-600">Nama Pasien</th>
+                <th class="py-3 px-3 font-semibold text-slate-600">No. ID / Tagihan</th>
+                <th class="py-3 px-3 font-semibold text-slate-600">Tanggal &amp; Waktu</th>
+                <th class="py-3 px-3 font-semibold text-slate-600">Tipe Layanan</th>
+                <th class="py-3 px-3 font-semibold text-slate-600">Dokter Pemeriksa</th>
                 <th class="py-3 px-3 font-semibold text-slate-600">Status</th>
-                <th class="py-3 px-3 font-semibold text-slate-600 text-center">Actions</th>
+                <th class="py-3 px-3 font-semibold text-slate-600 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody id="payment-table-body" class="divide-y divide-slate-100 font-medium">
@@ -729,22 +736,22 @@
                   $status = strtolower($payment->status ?? 'confirmed');
                   $statusConfig = match($status) {
                     'confirmed', 'paid' => [
-                      'label' => 'Confirmed',
+                      'label' => 'Terkonfirmasi',
                       'dot' => 'bg-emerald-500',
                       'badge' => 'text-emerald-700 bg-emerald-50 border-emerald-200',
                     ],
                     'changed', 'pending' => [
-                      'label' => 'Changed',
+                      'label' => 'Diubah',
                       'dot' => 'bg-blue-500',
                       'badge' => 'text-blue-700 bg-blue-50 border-blue-200',
                     ],
                     'canceled' => [
-                      'label' => 'Canceled',
+                      'label' => 'Dibatalkan',
                       'dot' => 'bg-rose-500',
                       'badge' => 'text-rose-700 bg-rose-50 border-rose-200',
                     ],
                     default => [
-                      'label' => 'Confirmed',
+                      'label' => 'Terkonfirmasi',
                       'dot' => 'bg-emerald-500',
                       'badge' => 'text-emerald-700 bg-emerald-50 border-emerald-200',
                     ]

@@ -20,8 +20,8 @@ class AdminMiddleware
             return redirect()->route('login')->with('warning', 'Silakan masuk terlebih dahulu.');
         }
 
-        if (Auth::user()->role !== 'admin') {
-            return redirect()->route('home')->with('warning', 'Akses terbatas hanya untuk Administrator.');
+        if (! in_array(Auth::user()->role, ['admin', 'apoteker'])) {
+            return redirect()->route('home')->with('warning', 'Akses terbatas hanya untuk Administrator dan Apoteker.');
         }
 
         return $next($request);

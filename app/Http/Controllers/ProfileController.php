@@ -113,14 +113,14 @@ class ProfileController extends Controller
             'current_password' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
-            'password.min' => 'Password baru harus memiliki panjang minimal 8 karakter.',
-            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'password.min' => 'Kata sandi baru harus memiliki panjang minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi kata sandi baru tidak cocok.',
         ]);
 
         // Verify current password
         if (! Hash::check($validated['current_password'], $user->password)) {
             return back()->withErrors([
-                'current_password' => 'Password lama yang Anda masukkan tidak sesuai.',
+                'current_password' => 'Kata sandi lama yang Anda masukkan tidak sesuai.',
             ]);
         }
 
@@ -128,7 +128,7 @@ class ProfileController extends Controller
         $user->password = Hash::make($validated['password']);
         $user->save();
 
-        return redirect()->route('profile.edit')->with('success', 'Password Anda berhasil diperbarui!');
+        return redirect()->route('profile.edit')->with('success', 'Kata sandi Anda berhasil diperbarui!');
     }
 
     /**

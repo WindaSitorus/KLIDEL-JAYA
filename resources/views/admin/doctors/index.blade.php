@@ -233,6 +233,7 @@
       <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
       <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
       <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
     </defs>
   </svg>
 
@@ -244,7 +245,7 @@
         <a href="{{ route('home') }}" title="Klinik Maristella">
           <img src="{{ asset('images/maristella-logo-horizontal.png') }}" alt="Klinik Maristella" />
         </a>
-        <span class="role-indicator-badge">Admin</span>
+        <span class="role-indicator-badge">{{ !empty($user['role']) && strtoupper($user['role']) === 'APOTEKER' ? 'Apoteker' : 'Admin' }}</span>
       </div>
 
       <nav class="sidebar-nav" aria-label="Navigasi admin">
@@ -263,6 +264,12 @@
           <span class="active-indicator"></span>
           <svg><use href="#i-doctor"/></svg>
           <span>Manajemen Dokter</span>
+        </a>
+
+        <!-- Menu 4: Profil Saya -->
+        <a href="{{ route('profile.edit') }}" class="nav-item" title="Profil Saya">
+          <svg><use href="#i-gear"/></svg>
+          <span>Profil Saya</span>
         </a>
       </nav>
 
@@ -453,10 +460,6 @@
                         <div class="min-w-0">
                           <b class="text-sm font-bold text-slate-900 block truncate">{{ $doc->nama_dokter }}</b>
                           <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="inline-flex items-center gap-0.5 text-amber-600 font-bold text-[11px]">
-                              ★ {{ $doc->rating ?? '4.8' }}
-                            </span>
-                            <span class="text-slate-300">•</span>
                             <span class="text-slate-400 font-mono text-[10.5px]">ID #DOC-{{ str_pad($doc->id, 3, '0', STR_PAD_LEFT) }}</span>
                           </div>
                         </div>
